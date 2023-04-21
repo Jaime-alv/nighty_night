@@ -80,10 +80,10 @@ impl NewUserDto {
     pub fn get_rol(&self) -> Option<i32> {
         self.rol
     }
-    pub fn create_user(&self, conn: &mut SqliteConnection) -> Result<usize, diesel::result::Error> {
+    pub fn create_user(&self, conn: &mut SqliteConnection) -> Result<User, diesel::result::Error> {
         diesel::insert_into(user_model::table)
-            .values(self)
-            .execute(conn)
+            .values(self).returning(User::as_returning()).get_result(conn)
+            // .execute(conn)
     }
 }
 
