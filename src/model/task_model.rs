@@ -1,8 +1,8 @@
+use crate::model::user_model::User;
 use diesel::prelude::*;
 use diesel::Queryable;
 use hyper::StatusCode;
 use serde::{Deserialize, Serialize};
-use crate::model::user_model::User;
 
 use crate::schema::task;
 
@@ -18,7 +18,6 @@ pub struct Task {
 }
 
 impl Task {
-    
     pub fn last_inserted_row(conn: &mut SqliteConnection) -> Result<Self, diesel::result::Error> {
         task::table.order(task::task_id.desc()).first(conn)
     }
@@ -28,11 +27,21 @@ impl Task {
     }
 
     pub fn get_all_tasks_by_user(conn: &mut SqliteConnection, user_id: i32) -> Vec<Self> {
-        task::table.filter(task::user_id.eq(user_id)).load(conn).unwrap()
+        task::table
+            .filter(task::user_id.eq(user_id))
+            .load(conn)
+            .unwrap()
     }
 
-    pub fn get_task_by_id(conn: &mut SqliteConnection, user_id: i32, task_id: i32) -> Result<Self, diesel::result::Error> {
-        task::table.filter(task::user_id.eq(user_id)).find(task_id).first(conn)
+    pub fn get_task_by_id(
+        conn: &mut SqliteConnection,
+        user_id: i32,
+        task_id: i32,
+    ) -> Result<Self, diesel::result::Error> {
+        task::table
+            .filter(task::user_id.eq(user_id))
+            .find(task_id)
+            .first(conn)
     }
 }
 
@@ -60,16 +69,15 @@ impl NewTaskDTO {
         }
     }
 
-    pub fn insert_task(&self, conn: &mut SqliteConnection)-> Result<Task, StatusCode> {
-    diesel::insert_into(task::table)
-        .values(self)
-        .execute(conn)
-        .expect("Error while inserting task!");
-    let last_task = Task::last_inserted_row(conn);
-    match last_task {
-        Ok(t) => Ok(t),
-        Err(_) => Err(StatusCode::INTERNAL_SERVER_ERROR),
+    pub fn insert_task(&self, conn: &mut SqliteConnection) -> Result<Task, StatusCode> {
+        let task = diesel::insert_into(task::table)
+            .values(self)
+            .returning(Task::as_returning())
+            .get_result(conn);
+
+        match task {
+            Ok(t) => Ok(t),
+            Err(_) => Err(StatusCode::INTERNAL_SERVER_ERROR),
+        }
     }
 }
-}
-

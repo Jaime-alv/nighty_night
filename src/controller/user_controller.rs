@@ -4,13 +4,13 @@ use hyper::StatusCode;
 
 use crate::model::user_model::{NewUserDto, User, UserDto};
 
-pub async fn register_new_user(Json(new_user): Json<NewUserDto>) -> StatusCode {
+pub async fn register_new_user(Json(new_user): Json<NewUserDto>) -> Result<Json<User>, StatusCode> {
     let conn = &mut establish_connection();
     if new_user.get_username().is_empty() || new_user.get_password().is_empty() {
-        return StatusCode::BAD_REQUEST;
+        return Err(StatusCode::BAD_REQUEST);
     }
     if User::user_exists(conn, new_user.get_username()) {
-        return StatusCode::FOUND;
+        return Err(StatusCode::FOUND);
     }
     let new_user = match new_user.get_rol() {
         Some(_) => new_user,
@@ -22,8 +22,8 @@ pub async fn register_new_user(Json(new_user): Json<NewUserDto>) -> StatusCode {
     };
 
     match new_user.create_user(conn) {
-        Ok(_) => return StatusCode::ACCEPTED,
-        Err(_) => return StatusCode::BAD_REQUEST,
+        Ok(u) => return Ok(Json(u)),
+        Err(_) => return Err(StatusCode::BAD_REQUEST),
     }
 }
 
