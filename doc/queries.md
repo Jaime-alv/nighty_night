@@ -37,8 +37,11 @@ insert into roles VALUES(2, "anonymous");
 CREATE TABLE
     task (
         "task_id" INTEGER PRIMARY KEY not NULL,
+        "user_id" INTEGER not NULL,
+        "name" TEXT not NULL,
         "description" TEXT not NULL,
-        "done" BOOLEAN not null
+        "done" BOOLEAN not null,
+        Foreign KEY ("user_id") references user_model("user_id") ON DELETE CASCADE ON UPDATE CASCADE
     );
 ```
 
