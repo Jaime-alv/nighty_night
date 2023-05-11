@@ -1,28 +1,3 @@
-# SQLite3 Queries
-
-## Initial configuration
-
----
-
-Main tables and associations needed to run the app.
-
-There is another copy in the migrations folder for diesel.
-
-To create a new migration:
-
-```bash
-diesel migration generate new_migration
-```
-
-To apply new migration:
-
-```bash
-diesel migration run
-```
-
-### Up
-
-```sql
 -- Your SQL goes here
 -- create table users
 CREATE TABLE
@@ -86,6 +61,7 @@ CREATE TABLE
         user_id INTEGER not null references users(id) ON DELETE CASCADE ON UPDATE CASCADE
     );
 
+
 -- insert roles
 insert into
     roles
@@ -101,16 +77,3 @@ insert into
     roles
 VALUES
     (2, "anonymous");
-```
-
-### Down
-
-```sql
-drop TABLE users;
-drop TABLE roles;
-drop TABLE babies;
-drop TABLE dreams;
-drop TABLE meals;
-drop TABLE users_roles;
-drop TABLE users_babies;
-```
