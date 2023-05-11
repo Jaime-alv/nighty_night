@@ -1,11 +1,20 @@
-use webapp_test::{create_app_route, establish_connection};
+use app::create_app_route;
+
+mod app;
+mod controller;
+mod data;
+mod model;
+mod repository;
+mod schema;
+mod service;
+mod error;
+mod mapping;
+mod security;
 
 #[tokio::main]
 async fn main() {
-    // build our application with a single route
     let app = create_app_route();
-
-    let conn = &mut establish_connection();
+    // TODO: Add logger
 
     // run it with hyper on localhost:3000
     axum::Server::bind(&"127.0.0.0:3000".parse().unwrap())
