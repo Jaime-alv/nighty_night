@@ -1,36 +1,80 @@
 // @generated automatically by Diesel CLI.
 
 diesel::table! {
-    roles (rol_id) {
-        rol_id -> Integer,
+    babies (id) {
+        id -> Integer,
         name -> Text,
     }
 }
 
 diesel::table! {
-    task (task_id) {
-        task_id -> Integer,
-        user_id -> Integer,
-        name -> Text,
-        description -> Text,
-        done -> Bool,
+    dreams (id) {
+        id -> Integer,
+        baby_id -> Integer,
+        from_date -> Timestamp,
+        from_time -> Timestamp,
+        to_date -> Nullable<Timestamp>,
+        to_time -> Nullable<Timestamp>,
     }
 }
 
 diesel::table! {
-    user_model (user_id) {
-        user_id -> Integer,
+    meals (id) {
+        id -> Integer,
+        baby_id -> Integer,
+        date -> Timestamp,
+        quantity -> Nullable<Integer>,
+        elapsed -> Nullable<Integer>,
+    }
+}
+
+diesel::table! {
+    roles (id) {
+        id -> Integer,
+        name -> Text,
+    }
+}
+
+diesel::table! {
+    users (id) {
+        id -> Integer,
         username -> Text,
         password -> Text,
-        rol -> Integer,
-        task -> Nullable<Integer>,
+        name -> Nullable<Text>,
+        surname -> Nullable<Text>,
+        email -> Text,
     }
 }
 
-diesel::joinable!(user_model -> roles (rol));
+diesel::table! {
+    users_babies (id) {
+        id -> Integer,
+        baby_id -> Integer,
+        user_id -> Integer,
+    }
+}
+
+diesel::table! {
+    users_roles (id) {
+        id -> Integer,
+        rol_id -> Integer,
+        user_id -> Integer,
+    }
+}
+
+diesel::joinable!(dreams -> babies (baby_id));
+diesel::joinable!(meals -> babies (baby_id));
+diesel::joinable!(users_babies -> babies (baby_id));
+diesel::joinable!(users_babies -> users (user_id));
+diesel::joinable!(users_roles -> roles (rol_id));
+diesel::joinable!(users_roles -> users (user_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
+    babies,
+    dreams,
+    meals,
     roles,
-    task,
-    user_model,
+    users,
+    users_babies,
+    users_roles,
 );
