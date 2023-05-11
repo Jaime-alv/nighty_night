@@ -9,7 +9,8 @@ Rust backend with [axum](https://github.com/tokio-rs/axum) and [diesel](https://
 ---
 
 It is a backend written in Rust to understand how the Axum framework works.
-It allows the creation of users and tasks, marking them as completed.
+
+Users can register themselves and add new babies to track their sleeping and eating patterns.
 
 ## How to run it
 
@@ -23,53 +24,26 @@ Launch application
 
 Endpoint => <http://127.0.0.0:3000>
 
-### Migrations
-
-Create a new migration
-
-`diesel migration generate X`
-
-inside up.sql:
-
-```sql
-ALTER TABLE user_model
-add COLUMN email TEXT;
-```
-
-Apply a migration
-
-`diesel migration run`
-
-Re apply a migration
-
-`diesel migration redo`
-
-`diesel migration redo --all`
-
-Revert a migration
-
-`diesel migration revert`
-
 ## Endpoints
 
  ---
 
 ### Users: `/api/auth`
 
-| Route     | Method | Function              | Parameters | Arguments            |
-| --------- | ------ | --------------------- | ---------- | -------------------- |
-| /register | `post` | Create a new user     | Body: Json | {username, password} |
+| Route     | Method | Function              | Parameters | Arguments                                  |
+| --------- | ------ | --------------------- | ---------- | ------------------------------------------ |
+| /register | `post` | Create a new user     | Body: Json | {username, password, email, name, surname} |
 | /all      | `get`  | Get all users         |
-| /user     | `post` | find user by username | Body: Json | {username}           |
+| /user     | `post` | find user by username | Body: Json | {username}                                 |
+| /login    | `post` | login user            | Body: Json | {username, password}                       |
 
-### Tasks: `/api/task`
+### Tasks: `/api/baby`
 
-| Route         | Method | Function                    | Parameters                        | Arguments                      |
-| ------------- | ------ | --------------------------- | --------------------------------- | ------------------------------ |
-| /             | `get`  | Get all task from all users |                                   |                                |
-| /:user_id/new | `post` | Create a new task           | Body: Json \| Path: i32           | {name, description} \| user_id |
-| /:user_id     | `get`  | Get all task from user      | Path: i32                         |                                |
-| /:user_id/    | `get`  | Get concrete task    | Path: i32 \| Query: <String, i32> | user_id \|?task=               |
+| Route      | Method | Function                 | Parameters                            | Arguments            |
+| ---------- | ------ | ------------------------ | ------------------------------------- | -------------------- |
+| /new       | `post` | Add new baby             | Path: i32 \| Body: Json               | user_id \| {name}    |
+| /new       | `post` | Add new baby by username | Body: Json \| Query: <String, String> | {name} \| ?username= |
+| /all       | `get`  | Get all babies in system |                                       |                      |
 
 ## Dependencies
 
