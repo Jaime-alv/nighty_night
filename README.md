@@ -9,6 +9,7 @@ Rust backend with [axum](https://github.com/tokio-rs/axum) and [diesel](https://
 ---
 
 It is a backend written in Rust to understand how the Axum framework works.
+
 Users can register themselves and add new babies to track their sleeping and eating patterns.
 
 ## How to run it
@@ -22,33 +23,6 @@ Launch application
 `cargo run`
 
 Endpoint => <http://127.0.0.0:3000>
-
-### Migrations
-
-Create a new migration
-
-`diesel migration generate X`
-
-inside up.sql:
-
-```sql
-ALTER TABLE user_model
-add COLUMN email TEXT;
-```
-
-Apply a migration
-
-`diesel migration run`
-
-Re apply a migration
-
-`diesel migration redo`
-
-`diesel migration redo --all`
-
-Revert a migration
-
-`diesel migration revert`
 
 ## Endpoints
 
