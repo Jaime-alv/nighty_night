@@ -4,52 +4,113 @@
 
 ---
 
+Main tables and associations needed to run the app.
+
+There is another copy in the migrations folder for diesel.
+
+To create a new migration:
+
+```bash
+diesel migration generate new_migration
+```
+
+To apply new migration:
+
+```bash
+diesel migration run
+```
+
 ### Up
 
 ```sql
 -- Your SQL goes here
-
--- create table user_model
+-- create table users
 CREATE TABLE
-    user_model (
-        "user_id" INTEGER PRIMARY KEY not NULL,
-        "username" TEXT not NULL,
-        "password" TEXT not null,
-        "rol" INTEGER references roles (rol_id) not null,
-        "task" INTEGER references task (task_id)
+    users (
+        id INTEGER PRIMARY KEY not NULL,
+        username TEXT not NULL,
+        password TEXT not null,
+        name TEXT,
+        surname TEXT,
+        email TEXT not null
     );
--- Insert admin user into user_model
-insert into user_model values(0, "admin", "admin", 0, null);
 
 -- create table roles
 CREATE TABLE
     roles (
-        "rol_id" INTEGER PRIMARY KEY not null,
-        "name" TEXT not NULL
+        id INTEGER PRIMARY KEY not null,
+        name TEXT not NULL
+    );
+
+-- create table babies
+CREATE TABLE
+    babies (
+        id INTEGER PRIMARY KEY not NULL,
+        name TEXT not NULL
+    );
+
+-- create table dreams
+CREATE TABLE
+    dreams (
+        id INTEGER PRIMARY KEY not NULL,
+        baby_id INTEGER not null references babies (id),
+        from_date TIMESTAMP not null,
+        from_time TIMESTAMP not null,
+        to_date TIMESTAMP,
+        to_time TIMESTAMP
+    );
+
+-- create tables meals
+CREATE TABLE
+    meals (
+        id INTEGER PRIMARY KEY not NULL,
+        baby_id INTEGER not null references babies (id),
+        date TIMESTAMP not null,
+        quantity INTEGER,
+        elapsed INTEGER
+    );
+
+-- create intermediate table roles-users
+CREATE TABLE
+    users_roles (
+        id INTEGER PRIMARY KEY not null,
+        rol_id INTEGER not null references roles (id),
+        user_id INTEGER not null references users (id) ON DELETE CASCADE ON UPDATE CASCADE
+    );
+
+-- create intermediate table baby-user
+CREATE TABLE
+    users_babies (
+        id INTEGER PRIMARY KEY not null,
+        baby_id INTEGER not null references babies(id),
+        user_id INTEGER not null references users(id) ON DELETE CASCADE ON UPDATE CASCADE
     );
 
 -- insert roles
-insert into roles VALUES(0, "admin");
-insert into roles VALUES(1, "user");
-insert into roles VALUES(2, "anonymous");
+insert into
+    roles
+VALUES
+    (0, "admin");
 
--- create table tasks
-CREATE TABLE
-    task (
-        "task_id" INTEGER PRIMARY KEY not NULL,
-        "user_id" INTEGER not NULL,
-        "name" TEXT not NULL,
-        "description" TEXT not NULL,
-        "done" BOOLEAN not null,
-        Foreign KEY ("user_id") references user_model("user_id") ON DELETE CASCADE ON UPDATE CASCADE
-    );
+insert into
+    roles
+VALUES
+    (1, "user");
+
+insert into
+    roles
+VALUES
+    (2, "anonymous");
 ```
 
 ### Down
 
 ```sql
--- This file should undo anything in `up.sql`
-drop TABLE user_model;
+drop TABLE users;
 drop TABLE roles;
-drop TABLE task;
+drop TABLE babies;
+drop TABLE dreams;
+drop TABLE meals;
+drop TABLE users_roles;
+drop TABLE users_babies;
 ```
