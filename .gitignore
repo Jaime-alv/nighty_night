@@ -1,8 +1,13 @@
 /target
 /Cargo.lock
 
-### Environmet keys ###
+### Env
 .env
+.Environmet/
+
+### Documents ###
+doc/
+!queries.md
 
 ### IDE ###
 .vscode/
@@ -24,3 +29,5 @@ Cargo.lock
 
 ### DB ###
 database/
+migrations/**mock_data
+migrations/**test_data
