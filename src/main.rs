@@ -1,23 +1,31 @@
 use app::create_app_route;
+use configuration::settings::{check_env_file, set_server};
+
 
 mod app;
+mod configuration;
 mod controller;
 mod data;
+mod error;
+mod mapping;
 mod model;
 mod repository;
 mod schema;
-mod service;
-mod error;
-mod mapping;
 mod security;
+mod service;
+mod utils;
+
+// pub const APP_SETTING: Settings = Settings::new();
 
 #[tokio::main]
 async fn main() {
-    let app = create_app_route();
-    // TODO: Add logger
+    check_env_file();
 
+    let app = create_app_route().await;
+
+    let host = set_server();
     // run it with hyper on localhost:3000
-    axum::Server::bind(&"127.0.0.0:3000".parse().unwrap())
+    axum::Server::bind(&host.parse().unwrap())
         .serve(app.into_make_service())
         .await
         .unwrap();
