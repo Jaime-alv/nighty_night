@@ -1,6 +1,6 @@
 /// Checks if all fields have some value.
 pub fn validate_fields(fields: &[&str]) -> bool {
-    fields.iter().all(|f| !f.is_empty())
+    fields.iter().any(|f| f.is_empty())
 }
 
 
@@ -14,14 +14,14 @@ mod test_validator {
 
     #[test]
     fn test_validate_fields() {
-        assert!(validate_fields(&[&"d", &"d"]));
-        assert!(!validate_fields(&[&"", &"d"]));
-        assert!(!validate_fields(&[&"", &""]));
+        assert!(!validate_fields(&[&"d", &"d"]));
+        assert!(validate_fields(&[&"", &"d"]));
+        assert!(validate_fields(&[&"", &""]));
     }
 
     #[test]
     fn test_with_vector() {
         let v = vec!["d", "d"];
-        assert!(validate_fields(&v));
+        assert!(!validate_fields(&v));
     }
 }
