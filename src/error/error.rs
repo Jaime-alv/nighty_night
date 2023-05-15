@@ -1,7 +1,10 @@
+use std::fmt::Display;
+
 use axum::{response::IntoResponse, Json};
 use hyper::StatusCode;
 use serde_json::json;
 
+#[derive(Clone, Copy)]
 pub enum ApiError {
     EmptyBody,
     IncorrectPassword,
@@ -40,6 +43,15 @@ impl IntoResponse for ApiError {
         let body = Json(json!({ "code": code, "message": msg }));
 
         (status_code, body).into_response()
+    }
+}
+
+
+impl Display for ApiError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let (status_code, msg) = self.get_error();
+        let readable_msg = format!("{status_code}: {msg}");
+        write!(f, "{}", readable_msg)
     }
 }
 
