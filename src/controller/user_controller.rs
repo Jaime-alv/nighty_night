@@ -22,7 +22,8 @@ pub(crate) fn route_user() -> Router {
 async fn register_new_user(Json(new_user): Json<NewUserDto>) -> impl IntoResponse {
     match create_user_service(new_user).await {
         Ok(user) => Ok(Json(user)),
-        Err(e) => Err(e),
+        Err(e) => {tracing::error!("{}", e);
+            Err(e)},
     }
 }
 
