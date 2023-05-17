@@ -34,14 +34,14 @@ async fn register_baby(
     };
     match ingest_new_baby(new_baby, current_user).await {
         Ok(baby) => Ok(Json(baby)),
-        Err(e) => Err(e),
+        Err(error) => Err(error),
     }
 }
 
 async fn find_baby_by_id(Path(baby_id): Path<i32>) -> impl IntoResponse {
     match find_baby_service(baby_id).await {
         Ok(baby) => Ok(Json(baby)),
-        Err(e) => Err(e),
+        Err(error) => Err(error),
     }
 }
 
@@ -56,7 +56,7 @@ async fn register_baby_with_username(
     };
     match ingest_new_baby(new_baby, current_user).await {
         Ok(baby) => Ok(Json(baby)),
-        Err(e) => Err(e),
+        Err(error) => Err(error),
     }
 }
 

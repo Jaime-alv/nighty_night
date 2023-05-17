@@ -11,11 +11,14 @@
 //         .unwrap()
 // }
 
+use tracing::error;
+
 use crate::{
     data::baby_dto::{BabyDto, NewBabyDto},
     error::error::ApiError,
+    mapping::baby_mapper::babies_to_babies_dto,
     model::user_model::User,
-    repository::baby_repository::{ingest_new_baby_in_db, load_baby_by_id, query_babies}, mapping::baby_mapper::babies_to_babies_dto,
+    repository::baby_repository::{ingest_new_baby_in_db, load_baby_by_id, query_babies},
 };
 
 pub async fn ingest_new_baby(
@@ -24,7 +27,10 @@ pub async fn ingest_new_baby(
 ) -> Result<BabyDto, ApiError> {
     match ingest_new_baby_in_db(new_baby) {
         Ok(baby) => Ok(BabyDto::from(baby)),
-        Err(_) => Err(ApiError::DBError),
+        Err(msg) => {
+            error!("{msg}");
+            Err(ApiError::DBError(msg))
+        }
     }
 }
 
@@ -38,6 +44,9 @@ pub async fn find_baby_service(baby_id: i32) -> Result<BabyDto, ApiError> {
 pub async fn get_all_babies_service() -> Result<Vec<BabyDto>, ApiError> {
     match query_babies() {
         Ok(babies) => Ok(babies_to_babies_dto(babies)),
-        Err(_) => Err(ApiError::DBError),
+        Err(msg) => {
+            error!("{msg}");
+            Err(ApiError::DBError(msg))
+        }
     }
 }

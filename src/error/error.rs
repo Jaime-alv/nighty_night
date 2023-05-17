@@ -1,34 +1,37 @@
+use std::fmt::Display;
+
 use axum::{response::IntoResponse, Json};
+use diesel::result::Error;
 use hyper::StatusCode;
 use serde_json::json;
 
 pub enum ApiError {
     EmptyBody,
     IncorrectPassword,
-    DBError,
+    DBError(Error),
     DuplicateUser,
     NoUser,
     NoEntryFound,
-    Generic50XError(&'static str),
-    Generic403Error(&'static str),
+    Generic500Error(String),
+    Generic400Error(String),
 }
 
 impl ApiError {
-    fn get_error<'a>(self) -> (StatusCode, &'a str) {
+    fn get_error<'a>(&self) -> (StatusCode, String) {
         match self {
             // 40X Error
-            ApiError::EmptyBody => (StatusCode::BAD_REQUEST, "Empty body."),
+            ApiError::EmptyBody => (StatusCode::BAD_REQUEST, String::from("Empty body.")),
             ApiError::IncorrectPassword => {
-                (StatusCode::BAD_REQUEST, "Incorrect username or password.")
+                (StatusCode::BAD_REQUEST, String::from("Incorrect username or password."))
             }
-            ApiError::NoUser => (StatusCode::BAD_REQUEST, "No user found."),
-            ApiError::DuplicateUser => (StatusCode::BAD_REQUEST, "User already exists."),
-            ApiError::Generic403Error(msg) => (StatusCode::BAD_REQUEST, msg),
-            ApiError::NoEntryFound => (StatusCode::BAD_REQUEST, "No entry found."),
+            ApiError::NoUser => (StatusCode::BAD_REQUEST, String::from("No user found.")),
+            ApiError::DuplicateUser => (StatusCode::BAD_REQUEST, String::from("User already exists.")),
+            ApiError::Generic400Error(msg) => (StatusCode::BAD_REQUEST, String::from(msg)),
+            ApiError::NoEntryFound => (StatusCode::BAD_REQUEST, String::from("No entry found.")),
 
             // 50X Error
-            ApiError::DBError => (StatusCode::INTERNAL_SERVER_ERROR, "Could not create entry."),
-            ApiError::Generic50XError(msg) => (StatusCode::INTERNAL_SERVER_ERROR, msg),
+            ApiError::DBError(error) => (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()),
+            ApiError::Generic500Error(msg) => (StatusCode::INTERNAL_SERVER_ERROR, String::from(msg)),
         }
     }
 }
@@ -43,18 +46,11 @@ impl IntoResponse for ApiError {
     }
 }
 
-struct BodyError<'a> {
-    code: u16,
-    message: &'a str,
-    sub_message: Option<&'a str>,
-}
 
-impl<'a> BodyError<'a> {
-    fn new(code: u16, message: &'a str, sub_message: Option<&'a str>) -> Self {
-        Self {
-            code,
-            message,
-            sub_message,
-        }
+impl Display for ApiError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let (status_code, msg) = self.get_error();
+        let readable_msg = format!("{status_code}: {msg}");
+        write!(f, "{}", readable_msg)
     }
 }
