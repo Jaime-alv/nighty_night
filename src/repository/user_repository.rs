@@ -9,9 +9,9 @@ use super::connection::establish_connection;
 
 ///
 /// Get all users from database.
-pub fn query_users() -> Vec<User> {
+pub fn query_users() -> Result<Vec<User>, Error> {
     let conn = &mut establish_connection();
-    users::table.load(conn).unwrap()
+    users::table.load(conn)
 }
 
 pub fn load_user<T: Into<String>>(username: T) -> Result<User, Error> {
