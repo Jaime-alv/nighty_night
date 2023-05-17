@@ -1,11 +1,14 @@
+use tracing::error;
+
 use crate::{
     data::{
         traits::Mandatory,
         user_dto::{FindUserDto, LoginDto, NewUserDto, UserDto},
     },
     error::error::ApiError,
+    mapping::user_mapper::users_to_users_dto,
     model::user_model::User,
-    repository::user_repository::{create_user, exists, load_user, query_users, load_user_by_id}, mapping::user_mapper::users_to_users_dto,
+    repository::user_repository::{create_user, exists, load_user, load_user_by_id, query_users},
 };
 
 use super::validation::validator::{valid_password, validate_fields};
@@ -18,17 +21,25 @@ pub async fn create_user_service(new_user: NewUserDto) -> Result<UserDto, ApiErr
         return Err(ApiError::DuplicateUser);
     }
     if valid_password(&new_user.password) {
-        return Err(ApiError::Generic403Error("Password too short."));
+        return Err(ApiError::Generic400Error("Password too short.".into()));
     }
     match create_user(new_user) {
         Ok(user) => Ok(UserDto::from(user)),
-        Err(_) => Err(ApiError::DBError),
+        Err(msg) => {
+            error!("{msg}");
+            Err(ApiError::DBError(msg))
+        }
     }
 }
 
-pub async fn get_all_users_service() -> Vec<UserDto> {
-    let users = query_users();
-    users_to_users_dto(users)
+pub async fn get_all_users_service() -> Result<Vec<UserDto>, ApiError> {
+    match query_users() {
+        Ok(users) => Ok(users_to_users_dto(users)),
+        Err(msg) => {
+            error!("{msg}");
+            Err(ApiError::DBError(msg))
+        }
+    }
 }
 
 pub async fn find_user_service(user: FindUserDto) -> Result<UserDto, ApiError> {
