@@ -1,6 +1,7 @@
 use crate::{
     data::user_dto::{NewUserDto, UserDto},
-    model::user_model::{InsertableUser, User}, security::security::hash_password,
+    model::user_model::{InsertableUser, User},
+    security::security::hash_password,
 };
 
 impl From<User> for UserDto {
