@@ -1,7 +1,11 @@
 [package]
 name = "webapp_test"
-version = "0.1.0"
+version = "0.2.0"
+authors = ["Jaime Alvarez <jaime.af.git@gmail.com>"]
+description = "Axum backend"
+readme = "README.md"
 edition = "2021"
+repository = "https://github.com/Jaime-alv/axum_demo"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
