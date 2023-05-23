@@ -43,6 +43,7 @@ diesel::table! {
         name -> Nullable<Text>,
         surname -> Nullable<Text>,
         email -> Text,
+        active -> Bool,
     }
 }
 
