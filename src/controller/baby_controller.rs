@@ -6,12 +6,16 @@ use axum::{
     routing::{get, post},
     Json, Router,
 };
+use axum_session::SessionRedisPool;
+use axum_session_auth::AuthSession;
 
 use crate::{
     data::baby_dto::NewBabyDto,
+    error::error::ApiError,
+    model::session_model::CurrentUser,
     service::{
         baby_service::{find_baby_service, get_all_babies_service, ingest_new_baby},
-        user_service::{find_user_by_id_service, find_user_by_username_service},
+        user_service::{find_user_by_username_service},
     },
 };
 
@@ -25,16 +29,17 @@ pub(crate) fn route_baby() -> Router {
 }
 
 async fn register_baby(
-    Path(user_id): Path<i32>,
+    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     Json(new_baby): Json<NewBabyDto>,
 ) -> impl IntoResponse {
-    let current_user = match find_user_by_id_service(user_id).await {
-        Ok(u) => u,
-        Err(error) => return Err(error),
-    };
-    match ingest_new_baby(new_baby, current_user).await {
-        Ok(baby) => Ok(Json(baby)),
-        Err(error) => Err(error),
+    if auth.is_authenticated() {
+        let id = auth.id;
+        match ingest_new_baby(new_baby, id).await {
+            Ok(baby) => Ok(Json(baby)),
+            Err(error) => Err(error),
+        }
+    } else {
+        Err(ApiError::Forbidden)
     }
 }
 
@@ -54,7 +59,7 @@ async fn register_baby_with_username(
         Ok(u) => u,
         Err(error) => return Err(error),
     };
-    match ingest_new_baby(new_baby, current_user).await {
+    match ingest_new_baby(new_baby, current_user.id()).await {
         Ok(baby) => Ok(Json(baby)),
         Err(error) => Err(error),
     }
