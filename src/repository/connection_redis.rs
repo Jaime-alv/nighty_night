@@ -13,7 +13,7 @@ pub async fn poll() -> Client {
 
 /// This Defaults as normal Cookies.
 pub fn session_config() -> SessionConfig {
-    SessionConfig::default().with_table_name("sessions_table")
+    SessionConfig::default()
 }
 
 /// Private cookies.
@@ -24,7 +24,6 @@ pub fn session_config() -> SessionConfig {
 /// also ensures the authenticity of the cookie.
 pub fn private_cookies_session() -> SessionConfig {
     SessionConfig::default()
-        .with_table_name("sessions_table")
         // 'Key::generate()' will generate a new key each restart of the server.
         // If you want it to be more permanent then generate and set it to a config file.
         // If with_key() is used it will set all cookies as private, which guarantees integrity, and authenticity.
