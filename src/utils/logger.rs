@@ -1,7 +1,7 @@
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
 
-use crate::configuration::settings::set_logger_level;
+use crate::configuration::settings::logger_level;
 
 pub fn setup_logger() {
     let level = set_level();
@@ -13,7 +13,7 @@ pub fn setup_logger() {
 }
 
 fn set_level() -> Level {
-    let binding = set_logger_level();
+    let binding = logger_level();
     let input = binding.as_str();
     match input {
         "debug" => Level::DEBUG,
