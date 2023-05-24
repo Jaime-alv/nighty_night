@@ -52,3 +52,9 @@ Endpoint => <http://127.0.0.0:3000>
 [redis](https://redis.io/)
 
 [SQlite3](https://sqlite.org/index.html)
+
+## License
+
+[Apache-2.0](http://www.apache.org/licenses/LICENSE-2.0)
+
+Copyright 2023 Jaime Alvarez Fernandez
