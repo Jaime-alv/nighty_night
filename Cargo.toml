@@ -1,8 +1,8 @@
 [package]
-name = "webapp_test"
+name = "Nighty_night"
 version = "0.2.0"
 authors = ["Jaime Alvarez <jaime.af.git@gmail.com>"]
-description = "Axum backend"
+description = "Axum backend with sessions."
 readme = "README.md"
 edition = "2021"
 repository = "https://github.com/Jaime-alv/axum_demo"
