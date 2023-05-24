@@ -1,8 +1,8 @@
 use app::create_app_route;
-use configuration::settings::{check_env_file, server};
+use dotenvy::dotenv;
 use tracing::info;
 
-use crate::{app::shutdown_signal, core_checks::check_database_status};
+use crate::{app::shutdown_signal, configuration::settings::Setting, core_checks::checking_status};
 
 mod app;
 mod configuration;
@@ -17,15 +17,16 @@ mod security;
 mod service;
 mod utils;
 
-// pub const APP_SETTING: Settings = Settings::new();
-
 #[tokio::main]
 async fn main() {
-    check_env_file();
+    match dotenv() {
+        Ok(_) => (),
+        Err(error) => panic!("{error}"),
+    };
 
     let app = create_app_route().await;
 
-    match check_database_status().await {
+    match checking_status().await {
         Ok(msg) => info!("{msg}"),
         Err(error) => {
             tracing::error!("{error}");
@@ -33,11 +34,11 @@ async fn main() {
         }
     }
 
-    let host = server();
+    let host = Setting::Host.get();
     // run it with hyper on localhost:3000
     info!("Start server, listening on {host}");
 
-    axum::Server::bind(&host.parse().unwrap())
+    axum::Server::bind(&host.parse().expect("Something went wrong with the address"))
         .serve(app.into_make_service())
         .with_graceful_shutdown(shutdown_signal())
         .await
@@ -45,17 +46,15 @@ async fn main() {
 }
 
 mod core_checks {
-    
+
     use tracing::{debug, error, info};
 
-    use crate::{
-        repository::{connection_redis::ping_redis, connection_sqlite::check_sqlite_status},
-    };
+    use crate::repository::{connection_redis::ping_redis, connection_sqlite::check_sqlite_status};
 
-    pub(super) async fn check_database_status() -> Result<&'static str, &'static str>{
-        info!("Checking database connection.");
-
+    pub(super) async fn checking_status() -> Result<&'static str, &'static str> {
         let mut status = Vec::<bool>::new();
+
+        info!("Checking databases connection...");
 
         debug!("PING");
         match ping_redis().await {
@@ -74,7 +73,7 @@ mod core_checks {
             Ok(msg) => {
                 status.push(true);
                 debug!("{msg}")
-            },
+            }
             Err(error) => {
                 status.push(false);
                 error!("SQLite: {error}")
@@ -82,8 +81,8 @@ mod core_checks {
         };
 
         match !status.iter().any(|checks| checks.eq(&false)) {
-            true => Ok("DBs ready."),
-            false => Err("Check DB status."),
+            true => Ok("All checks are OK."),
+            false => Err("Something went wrong."),
         }
     }
 }
