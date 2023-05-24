@@ -7,7 +7,7 @@ use crate::{
     },
     error::error::ApiError,
     mapping::user_mapper::users_to_users_dto,
-    model::{user_model::User},
+    model::user_model::User,
     repository::user_repository::{create_user, exists, load_user, load_user_by_id, query_users},
 };
 
@@ -61,10 +61,7 @@ pub async fn login_service(login: LoginDto) -> Result<(UserDto, i32), ApiError> 
         return Err(ApiError::NoActiveUser);
     }
     if current_user.is_password_match(&login.password) {
-        return Ok((
-            UserDto::from(&current_user),
-            current_user.id(),
-        ));
+        return Ok((UserDto::from(&current_user), current_user.id()));
     }
     Err(ApiError::IncorrectPassword)
 }

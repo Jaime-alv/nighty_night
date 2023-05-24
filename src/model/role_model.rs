@@ -1,4 +1,4 @@
-use diesel::{Selectable, Identifiable, Queryable};
+use diesel::{Identifiable, Queryable, Selectable};
 
 use crate::schema::roles;
 
@@ -6,27 +6,27 @@ use crate::schema::roles;
 #[diesel(table_name = roles)]
 pub struct Role {
     id: i32,
-    name: String
+    name: String,
 }
 
 impl From<Role> for Rol {
     fn from(value: Role) -> Self {
-        match value.id {            
+        match value.id {
             0 => Rol::Admin,
             1 => Rol::User,
             2 => Rol::Anonymous,
-            _ => Rol::Anonymous
+            _ => Rol::Anonymous,
         }
     }
 }
 
 impl From<u8> for Rol {
     fn from(value: u8) -> Self {
-        match value {            
+        match value {
             0 => Rol::Admin,
             1 => Rol::User,
             2 => Rol::Anonymous,
-            _ => Rol::Anonymous
+            _ => Rol::Anonymous,
         }
     }
 }
@@ -35,5 +35,5 @@ impl From<u8> for Rol {
 pub enum Rol {
     Anonymous,
     User,
-    Admin
+    Admin,
 }
