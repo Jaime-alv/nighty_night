@@ -72,7 +72,8 @@ impl Authentication<CurrentUser, i64, redis::Client> for CurrentUser {
         _pool: Option<&redis::Client>,
     ) -> Result<CurrentUser, anyhow::Error> {
         if user_session_exists(user_id).await {
-            return Ok(load_user_session(user_id).await);
+            let user = load_user_session(user_id).await;
+            return Ok(user);
         } else {
             let current_user = load_user_by_id(user_id.try_into().unwrap()).unwrap();
             let roles: Vec<u8> = current_user.find_roles_id().into_iter().collect();
@@ -86,7 +87,11 @@ impl Authentication<CurrentUser, i64, redis::Client> for CurrentUser {
                 translate_roles,
                 current_user.active(),
             );
-            save_user_session(&user_session, roles).await?;
+            let tmp_response = save_user_session(&user_session, roles).await;
+            if tmp_response.is_err() {
+                let error = tmp_response.err().unwrap();
+                return Err(anyhow::anyhow!("{error}"));
+            }
             Ok(user_session)
         }
     }

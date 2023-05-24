@@ -39,7 +39,7 @@ impl ApiError {
             // 50X Error
             ApiError::DBError(error) => (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()),
             ApiError::Generic500Error(msg) => (StatusCode::INTERNAL_SERVER_ERROR, String::from(msg)),
-            ApiError::Redis(error) => (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()),
+            ApiError::Redis(error) => (StatusCode::INTERNAL_SERVER_ERROR, format!("Redis error: {error}")),
         }
     }
 }

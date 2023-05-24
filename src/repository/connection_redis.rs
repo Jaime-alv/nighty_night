@@ -2,10 +2,10 @@ use axum_session::{Key, SecurityMode, SessionConfig};
 use axum_session_auth::AuthConfig;
 use redis::{Client, RedisError};
 
-use crate::configuration::settings::redis_server;
+use crate::configuration::settings::Setting;
 
 pub async fn poll() -> Client {
-    let address = redis_server();
+    let address = Setting::RedisHost.get();
     Client::open(address).expect("Can't connect to redis")
 }
 

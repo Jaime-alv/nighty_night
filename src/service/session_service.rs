@@ -1,12 +1,13 @@
 use axum_session::SessionRedisPool;
 use axum_session_auth::AuthSession;
-use redis::RedisError;
 
 use crate::{
+    configuration::settings::Setting,
     data::session_dto::CurrentUserDto,
+    error::error::ApiError,
     mapping::rol_mapper::translate_roles,
     model::session_model::CurrentUser,
-    repository::session_repository::{get_user, set_user, exists_user}, configuration::settings::session_default_duration,
+    repository::session_repository::{exists_user, get_user, set_user},
 };
 
 pub async fn login_session<T: Into<i64>>(
@@ -16,21 +17,25 @@ pub async fn login_session<T: Into<i64>>(
     auth.login_user(user_id.into())
 }
 
-pub async fn save_user_session(user: &CurrentUser, roles: Vec<u8>) -> Result<(), RedisError> {
+pub async fn save_user_session(user: &CurrentUser, roles: Vec<u8>) -> Result<(), ApiError> {
     let current_user_dto = CurrentUserDto::new(
         user.id(),
         user.anonymous(),
         user.username(),
         roles.into_iter().collect(),
-        user.active()
+        user.active(),
     );
     let key = user_redis_key(user.id());
-    let duration = session_default_duration();
+    let duration = match Setting::SessionDuration.get().parse::<usize>() {
+        Ok(time) => time,
+        Err(_) => 600,
+    };
     match set_user(&key, current_user_dto, duration).await {
         Ok(_) => Ok(()),
         Err(error) => {
             tracing::error!("{error}");
-            Err(error)},
+            Err(ApiError::Redis(error))
+        }
     }
 }
 
@@ -43,7 +48,7 @@ pub async fn load_user_session(id: i64) -> CurrentUser {
         user.anonymous,
         user.username,
         translate_roles(&user.roles),
-        user.active
+        user.active,
     )
 }
 

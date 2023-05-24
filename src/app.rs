@@ -1,18 +1,18 @@
 use axum::{extract::MatchedPath, Router};
 
 use axum_session::{SessionLayer, SessionRedisPool, SessionStore};
-use axum_session_auth::{AuthSessionLayer};
+use axum_session_auth::AuthSessionLayer;
 use controller::{baby_controller::route_baby, user_controller::route_user};
 use hyper::Request;
 use tokio::signal;
 use tower_http::trace::TraceLayer;
-use tracing::{error, info_span, debug};
+use tracing::{error, info_span};
 
 use crate::{
-    configuration::settings::branch,
+    configuration::settings::Setting,
     controller,
     model::session_model::CurrentUser,
-    repository::connection_redis::{auth_config, poll, private_cookies_session, session_config, ping_redis},
+    repository::connection_redis::{auth_config, poll, private_cookies_session, session_config},
     utils::logger::setup_logger,
 };
 
@@ -21,7 +21,7 @@ use crate::{
 pub(super) async fn create_app_route() -> Router {
     setup_logger();
 
-    let config = if branch().eq("local") {
+    let config = if Setting::Branch.get().eq("local") {
         session_config()
     } else {
         private_cookies_session()
