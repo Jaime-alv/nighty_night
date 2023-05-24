@@ -6,13 +6,13 @@ use controller::{baby_controller::route_baby, user_controller::route_user};
 use hyper::Request;
 use tokio::signal;
 use tower_http::trace::TraceLayer;
-use tracing::{error, info_span};
+use tracing::{error, info_span, debug};
 
 use crate::{
     configuration::settings::branch,
     controller,
     model::session_model::CurrentUser,
-    repository::connection_redis::{auth_config, poll, private_cookies_session, session_config},
+    repository::connection_redis::{auth_config, poll, private_cookies_session, session_config, ping_redis},
     utils::logger::setup_logger,
 };
 
