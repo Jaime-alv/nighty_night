@@ -17,14 +17,13 @@ use crate::{
     data::baby_dto::{BabyDto, NewBabyDto},
     error::error::ApiError,
     mapping::baby_mapper::babies_to_babies_dto,
-    model::user_model::User,
     repository::baby_repository::{ingest_new_baby_in_db, load_baby_by_id, query_babies},
 };
 
-pub async fn ingest_new_baby(
-    new_baby: NewBabyDto,
-    current_user: User,
-) -> Result<BabyDto, ApiError> {
+pub async fn ingest_new_baby<T>(new_baby: NewBabyDto, current_user: T) -> Result<BabyDto, ApiError>
+where
+    T: Into<i64>,
+{
     match ingest_new_baby_in_db(new_baby) {
         Ok(baby) => Ok(BabyDto::from(baby)),
         Err(msg) => {

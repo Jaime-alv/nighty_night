@@ -13,7 +13,7 @@ use crate::{
 
 use super::validation::validator::{valid_password, validate_fields};
 
-pub async fn create_user_service(new_user: NewUserDto) -> Result<UserDto, ApiError> {
+pub async fn create_user_service(new_user: NewUserDto) -> Result<(UserDto, i32), ApiError> {
     if validate_fields(&new_user.data()) {
         return Err(ApiError::EmptyBody);
     }
@@ -24,7 +24,7 @@ pub async fn create_user_service(new_user: NewUserDto) -> Result<UserDto, ApiErr
         return Err(ApiError::Generic400Error("Password too short.".into()));
     }
     match create_user(new_user) {
-        Ok(user) => Ok(UserDto::from(user)),
+        Ok(user) => Ok((UserDto::from(&user), user.id())),
         Err(msg) => {
             error!("{msg}");
             Err(ApiError::DBError(msg))
@@ -49,7 +49,7 @@ pub async fn find_user_service(user: FindUserDto) -> Result<UserDto, ApiError> {
     }
 }
 
-pub async fn login_service(login: LoginDto) -> Result<UserDto, ApiError> {
+pub async fn login_service(login: LoginDto) -> Result<(UserDto, i32), ApiError> {
     if validate_fields(&login.data()) {
         return Err(ApiError::EmptyBody);
     }
@@ -57,8 +57,11 @@ pub async fn login_service(login: LoginDto) -> Result<UserDto, ApiError> {
         Ok(u) => u,
         Err(_) => return Err(ApiError::IncorrectPassword),
     };
+    if !current_user.active() {
+        return Err(ApiError::NoActiveUser);
+    }
     if current_user.is_password_match(&login.password) {
-        return Ok(UserDto::from(current_user));
+        return Ok((UserDto::from(&current_user), current_user.id()));
     }
     Err(ApiError::IncorrectPassword)
 }

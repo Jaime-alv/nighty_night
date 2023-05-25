@@ -1,11 +1,17 @@
+use std::collections::HashSet;
+
 use crate::{
-    model::{associations_model::UserBaby, baby_model::Baby, user_model::{User, InsertableUser}},
-    schema::{babies, users, users_babies},
+    model::{
+        associations_model::{UserBaby},
+        baby_model::Baby,
+        user_model::{InsertableUser, User},
+    },
+    schema::{babies, users, users_babies, users_roles},
 };
 use diesel::prelude::*;
 use diesel::result::Error;
 
-use super::connection::establish_connection;
+use super::connection_sqlite::establish_connection;
 
 ///
 /// Get all users from database.
@@ -50,4 +56,19 @@ pub fn exists<T: Into<String>>(username: T) -> bool {
         Ok(_) => true,
         Err(_) => false,
     }
+}
+
+pub fn find_roles_id(user_id: i32) -> HashSet<u8> {
+    let mut roles: HashSet<u8> = HashSet::new();
+    let conn = &mut establish_connection();
+    users_roles::table
+        .filter(users_roles::user_id.eq(user_id))
+        .select(users_roles::rol_id)
+        .load::<i32>(conn)
+        .unwrap()
+        .iter()
+        .for_each(|id| {
+            roles.insert((*id).try_into().unwrap());
+        });
+    roles
 }

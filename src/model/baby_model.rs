@@ -14,4 +14,8 @@ impl Baby {
     pub fn name(&self) -> String {
         self.name.to_string()
     }
+
+    pub fn id(&self) -> i32 {
+        self.id
+    }
 }

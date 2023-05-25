@@ -1,47 +1,55 @@
 use std::env;
 
-use dotenvy::dotenv;
-
-#[derive(Debug, Clone)]
-pub struct Server {
-    pub address: String,
-    pub port: String,
+pub enum Setting {
+    Host,
+    Branch,
+    DatabaseUrl,
+    LoggerLevel,
+    RedisHost,
+    SessionDuration,
 }
 
-#[derive(Debug, Clone)]
-pub struct Logger {
-    pub level: String,
+impl Setting {
+    pub fn get(&self) -> String {
+        match self {
+            Setting::Host => {
+                let address = read_environment_key("ADDRESS");
+                let port = read_environment_key("PORT");
+                format!("{address}:{port}")
+            }
+            Setting::Branch => read_environment_key("BRANCH"),
+            Setting::DatabaseUrl => read_environment_key("DATABASE_URL"),
+            Setting::LoggerLevel => read_environment_key("LOGGER_LEVEL"),
+            Setting::RedisHost => {
+                let address = read_environment_key("REDIS_ADDRESS");
+                let port = read_environment_key("REDIS_PORT");
+                format!("redis://{address}:{port}/")
+            }
+            Setting::SessionDuration => read_environment_key("SESSION_DURATION"),
+        }
+    }
 }
 
-#[derive(Debug, Clone)]
-pub struct Database {
-    pub uri: String,
+fn read_environment_key(key: &str) -> String {
+    match env::var(key) {
+        Ok(var) => var,
+        Err(error) => {
+            tracing::error!("{error}: {key} must be set");
+            return format!("{key} must be set");
+        }
+    }
 }
 
-pub struct Settings {
-    pub database_url: Database,
-    pub logger_level: Logger,
-    pub server: Server,
-}
+#[cfg(test)]
+mod test_setting {
+    use dotenvy::dotenv;
 
-pub fn set_database_url() -> String {
-    let uri = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    uri
-}
+    use super::*;
 
-pub fn set_logger_level() -> String {
-    env::var("LOGGER_LEVEL").expect("LOGGER_LEVEL must be set")
-}
-
-pub fn set_server() -> String {
-    let address = env::var("ADDRESS").expect("ADDRESS must be set");
-    let port = env::var("PORT").expect("PORT must be set");
-    format!("{address}:{port}")
-}
-
-pub fn check_env_file() {
-    match dotenv() {
-        Ok(_) => (),
-        Err(_) => panic!("No .env file"),
-    };
+    #[test]
+    fn test_branch() {
+        dotenv().ok();
+        assert_eq!(Setting::Branch.get(), "local");
+        assert_eq!(Setting::RedisHost.get(), "redis://127.0.0.1:6379/");
+    }
 }

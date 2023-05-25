@@ -4,7 +4,7 @@ use crate::schema::{users_roles, users_babies};
 
 use super::{user_model::{User}, baby_model::Baby, role_model::Role};
 
-#[derive(Associations)]
+#[derive(Identifiable, Associations)]
 #[diesel(belongs_to(User, foreign_key = user_id))]
 #[diesel(belongs_to(Role, foreign_key = rol_id))]
 #[diesel(table_name = users_roles)]

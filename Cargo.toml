@@ -1,7 +1,12 @@
 [package]
-name = "webapp_test"
-version = "0.1.0"
+name = "nighty_night"
+version = "0.2.0"
+authors = ["Jaime Alvarez <jaime.af.git@gmail.com>"]
+description = "Axum backend with sessions."
+readme = "README.md"
 edition = "2021"
+repository = "https://github.com/Jaime-alv/axum_demo"
+license = "Apache-2.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -23,3 +28,9 @@ bcrypt = "0.14"
 tracing = "0.1.37"
 tracing-subscriber = {version = "0.3.17"}
 tower-http = { version = "0.4.0", features = ["trace"] }
+
+# Session
+axum_session = { version = "0.2.3", features = [ "redis-db" ] }
+axum_session_auth = { version = "0.2.1", features = [ "redis-db" ] }
+redis = { version = "0.23.0", features = ["tokio-comp", "json"] }
+anyhow = "1.0.71"

@@ -3,15 +3,20 @@ use std::fmt::Display;
 use axum::{response::IntoResponse, Json};
 use diesel::result::Error;
 use hyper::StatusCode;
+use redis::RedisError;
 use serde_json::json;
 
+#[derive(Debug)]
 pub enum ApiError {
     EmptyBody,
     IncorrectPassword,
-    DBError(Error),
+    Forbidden,
     DuplicateUser,
     NoUser,
     NoEntryFound,
+    NoActiveUser,
+    DBError(Error),
+    Redis(RedisError),
     Generic500Error(String),
     Generic400Error(String),
 }
@@ -28,10 +33,13 @@ impl ApiError {
             ApiError::DuplicateUser => (StatusCode::BAD_REQUEST, String::from("User already exists.")),
             ApiError::Generic400Error(msg) => (StatusCode::BAD_REQUEST, String::from(msg)),
             ApiError::NoEntryFound => (StatusCode::BAD_REQUEST, String::from("No entry found.")),
+            ApiError::Forbidden => (StatusCode::FORBIDDEN, String::from("Forbidden.")),
+            ApiError::NoActiveUser => (StatusCode::UNAUTHORIZED, String::from("User is not active.")),
 
             // 50X Error
             ApiError::DBError(error) => (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()),
             ApiError::Generic500Error(msg) => (StatusCode::INTERNAL_SERVER_ERROR, String::from(msg)),
+            ApiError::Redis(error) => (StatusCode::INTERNAL_SERVER_ERROR, format!("Redis error: {error}")),
         }
     }
 }
