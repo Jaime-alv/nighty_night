@@ -7,29 +7,41 @@ use crate::{
     },
     error::error::ApiError,
     mapping::user_mapper::users_to_users_dto,
-    model::user_model::User,
-    repository::user_repository::{create_user, load_user_by_username, load_user_by_id, query_users, exists_username},
+    model::{role_model::Rol, user_model::User},
+    repository::user_repository::{
+        create_user, load_user_by_id, load_user_by_username, query_users,
+    },
 };
 
-use super::validation::validator::{valid_password, validate_fields};
+use super::{
+    association_service::add_rol_to_user_service,
+    validation::validator::{valid_password, validate_fields},
+};
 
 pub async fn create_user_service(new_user: NewUserDto) -> Result<(UserDto, i32), ApiError> {
     if validate_fields(&new_user.data()) {
         return Err(ApiError::EmptyBody);
     }
-    // if exists_username(&new_user.username) {
-    //     return Err(ApiError::DuplicateUser);
-    // }
     if valid_password(&new_user.password) {
         return Err(ApiError::Generic400Error("Password too short.".into()));
     }
     match create_user(new_user) {
-        Ok(user) => Ok((UserDto::from(&user), user.id())),
+        Ok(user) => {
+            match assign_rol_as_user(user.id()).await {
+                Ok(_) => (),
+                Err(msg) => return Err(msg),
+            };
+            Ok((UserDto::from(&user), user.id()))
+        }
         Err(msg) => {
             error!("{msg}");
             Err(ApiError::DBError(msg))
         }
     }
+}
+
+async fn assign_rol_as_user(user_id: i32) -> Result<(), ApiError> {
+    add_rol_to_user_service(user_id, Rol::User).await
 }
 
 pub async fn get_all_users_service() -> Result<Vec<UserDto>, ApiError> {
