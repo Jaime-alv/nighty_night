@@ -21,8 +21,8 @@ use crate::{
 
 pub(crate) fn route_baby() -> Router {
     let routes: Router = Router::new()
-        .route("/new/:user_id", post(register_baby))
-        .route("/new", post(register_baby_with_username))
+        .route("/new", post(register_baby))
+        // .route("/new", post(register_baby_with_username))
         .route("/:baby_id", get(find_baby_by_id))
         .route("/all", get(get_all_babies));
     Router::new().nest("/baby", routes)
@@ -33,7 +33,7 @@ async fn register_baby(
     Json(new_baby): Json<NewBabyDto>,
 ) -> impl IntoResponse {
     if auth.is_authenticated() {
-        let id = auth.id;
+        let id: i32 = auth.id.try_into().unwrap();
         match ingest_new_baby(new_baby, id).await {
             Ok(baby) => Ok(Json(baby)),
             Err(error) => Err(error),

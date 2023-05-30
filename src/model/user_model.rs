@@ -56,7 +56,7 @@ impl User {
 
     pub fn find_related_babies_names(&self) -> Vec<String> {
         let babies = Self::find_related_babies(self);
-        babies.iter().map(|baby| baby.name()).collect()
+        babies.iter().map(|baby: &Baby| baby.name()).collect()
     }
 
     pub fn active(&self) -> bool {
