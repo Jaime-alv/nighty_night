@@ -11,7 +11,8 @@ use crate::{
 use diesel::prelude::*;
 use diesel::result::Error;
 
-use super::connection_sqlite::establish_connection;
+use super::connection_psql::establish_connection;
+
 
 ///
 /// Get all users from database.
@@ -20,7 +21,7 @@ pub fn query_users() -> Result<Vec<User>, Error> {
     users::table.load(conn)
 }
 
-pub fn load_user<T: Into<String>>(username: T) -> Result<User, Error> {
+pub fn load_user_by_username<T: Into<String>>(username: T) -> Result<User, Error> {
     let conn = &mut establish_connection();
     users::table
         .filter(users::username.eq(username.into()))
@@ -51,8 +52,8 @@ pub fn find_related_babies(user: &User) -> Vec<Baby> {
         .expect("could not load babies from user.")
 }
 
-pub fn exists<T: Into<String>>(username: T) -> bool {
-    match load_user(username.into()) {
+pub fn exists_username<T: Into<String>>(username: T) -> bool {
+    match load_user_by_username(username.into()) {
         Ok(_) => true,
         Err(_) => false,
     }
@@ -64,7 +65,7 @@ pub fn find_roles_id(user_id: i32) -> HashSet<u8> {
     users_roles::table
         .filter(users_roles::user_id.eq(user_id))
         .select(users_roles::rol_id)
-        .load::<i32>(conn)
+        .load::<i16>(conn)
         .unwrap()
         .iter()
         .for_each(|id| {

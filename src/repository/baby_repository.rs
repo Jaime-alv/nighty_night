@@ -3,7 +3,8 @@ use diesel::result::Error;
 
 use crate::{data::baby_dto::NewBabyDto, model::baby_model::Baby, schema::babies};
 
-use super::connection_sqlite::establish_connection;
+use super::connection_psql::establish_connection;
+
 
 pub fn ingest_new_baby_in_db(
     new_user: NewBabyDto,

@@ -75,9 +75,13 @@ impl Authentication<CurrentUser, i64, redis::Client> for CurrentUser {
             let user = load_user_session(user_id).await;
             return Ok(user);
         } else {
-            let current_user = load_user_by_id(user_id.try_into().unwrap()).unwrap();
-            let roles: Vec<u8> = current_user.find_roles_id().into_iter().collect();
+            let tmp_user = load_user_by_id(user_id.try_into().unwrap());
+            if tmp_user.is_err() {
+                return Err(anyhow::anyhow!("{:#?}", tmp_user.err()))
+            }
+            let current_user = tmp_user.unwrap();
 
+            let roles: Vec<u8> = current_user.find_roles_id().into_iter().collect();
             let translate_roles: Vec<Rol> = translate_roles(&roles);
 
             let user_session = CurrentUser::new(

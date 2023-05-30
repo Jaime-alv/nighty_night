@@ -5,7 +5,7 @@ use crate::schema::roles;
 #[derive(Queryable, Selectable, Identifiable, Debug)]
 #[diesel(table_name = roles)]
 pub struct Role {
-    id: i32,
+    id: i16,
     name: String,
 }
 
@@ -27,6 +27,16 @@ impl From<u8> for Rol {
             1 => Rol::User,
             2 => Rol::Anonymous,
             _ => Rol::Anonymous,
+        }
+    }
+}
+
+impl From<Rol> for i16 {
+    fn from(rol: Rol) -> Self {
+        match rol {
+            Rol::Anonymous => 2,
+            Rol::User => 1,
+            Rol::Admin => 0,
         }
     }
 }

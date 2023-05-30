@@ -2,15 +2,15 @@
 
 diesel::table! {
     babies (id) {
-        id -> Integer,
-        name -> Text,
+        id -> Int4,
+        name -> Varchar,
     }
 }
 
 diesel::table! {
     dreams (id) {
-        id -> Integer,
-        baby_id -> Integer,
+        id -> Int4,
+        baby_id -> Int4,
         from_date -> Timestamp,
         from_time -> Timestamp,
         to_date -> Nullable<Timestamp>,
@@ -20,46 +20,46 @@ diesel::table! {
 
 diesel::table! {
     meals (id) {
-        id -> Integer,
-        baby_id -> Integer,
+        id -> Int4,
+        baby_id -> Int4,
         date -> Timestamp,
-        quantity -> Nullable<Integer>,
-        elapsed -> Nullable<Integer>,
+        quantity -> Nullable<Int2>,
+        elapsed -> Nullable<Int2>,
     }
 }
 
 diesel::table! {
     roles (id) {
-        id -> Integer,
-        name -> Text,
+        id -> Int2,
+        name -> Varchar,
     }
 }
 
 diesel::table! {
     users (id) {
-        id -> Integer,
-        username -> Text,
-        password -> Text,
-        name -> Nullable<Text>,
-        surname -> Nullable<Text>,
-        email -> Text,
+        id -> Int4,
+        username -> Varchar,
+        password -> Varchar,
+        name -> Nullable<Varchar>,
+        surname -> Nullable<Varchar>,
+        email -> Varchar,
         active -> Bool,
     }
 }
 
 diesel::table! {
     users_babies (id) {
-        id -> Integer,
-        baby_id -> Integer,
-        user_id -> Integer,
+        id -> Int4,
+        baby_id -> Int4,
+        user_id -> Int4,
     }
 }
 
 diesel::table! {
     users_roles (id) {
-        id -> Integer,
-        rol_id -> Integer,
-        user_id -> Integer,
+        id -> Int4,
+        rol_id -> Int2,
+        user_id -> Int4,
     }
 }
 
