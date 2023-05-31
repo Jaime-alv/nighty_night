@@ -10,21 +10,21 @@ use axum_session::SessionRedisPool;
 use axum_session_auth::AuthSession;
 
 use crate::{
-    data::baby_dto::NewBabyDto,
-    error::error::ApiError,
+    data::{baby_dto::NewBabyDto, meal_dto::NewMealDto},
     model::session_model::CurrentUser,
     service::{
         baby_service::{find_baby_service, get_all_babies_service, ingest_new_baby},
-        user_service::{find_user_by_username_service},
+        user_service::find_user_by_username_service,
+        util_service::forbidden,
     },
 };
 
 pub(crate) fn route_baby() -> Router {
     let routes: Router = Router::new()
         .route("/new", post(register_baby))
-        // .route("/new", post(register_baby_with_username))
         .route("/:baby_id", get(find_baby_by_id))
-        .route("/all", get(get_all_babies));
+        .route("/all", get(get_all_babies))
+        .route("/:baby_id/meals", get(get_meals).post(post_meal));
     Router::new().nest("/baby", routes)
 }
 
@@ -39,7 +39,7 @@ async fn register_baby(
             Err(error) => Err(error),
         }
     } else {
-        Err(ApiError::Forbidden)
+        Err(forbidden())
     }
 }
 
@@ -50,7 +50,7 @@ async fn find_baby_by_id(Path(baby_id): Path<i32>) -> impl IntoResponse {
     }
 }
 
-async fn register_baby_with_username(
+async fn _register_baby_with_username(
     Query(user): Query<HashMap<String, String>>,
     Json(new_baby): Json<NewBabyDto>,
 ) -> impl IntoResponse {
@@ -65,9 +65,29 @@ async fn register_baby_with_username(
     }
 }
 
-async fn get_all_babies() -> impl IntoResponse {
-    match get_all_babies_service().await {
-        Ok(list) => Ok(Json(list)),
-        Err(error) => Err(error),
+async fn get_all_babies(
+    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
+) -> impl IntoResponse {
+    if auth.current_user.unwrap().is_admin() {
+        match get_all_babies_service().await {
+            Ok(list) => Ok(Json(list)),
+            Err(error) => Err(error),
+        }
+    } else {
+        Err(forbidden())
     }
+}
+
+async fn get_meals(
+    Path(baby_id): Path<i32>,
+    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
+) -> impl IntoResponse {
+}
+
+async fn post_meal(
+    Path(baby_id): Path<i32>,
+    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
+    Json(new_meal): Json<NewMealDto>
+) -> impl IntoResponse {
+    
 }
