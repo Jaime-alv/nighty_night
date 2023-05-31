@@ -5,7 +5,7 @@ use crate::{
         session_service::login_session,
         user_service::{
             create_user_service, find_user_service, get_all_users_service, login_service,
-        }, util_service::forbidden,
+        }, util_service::{forbidden, is_admin},
     },
 };
 use axum::{
@@ -41,7 +41,7 @@ async fn register_new_user(
 async fn get_all_users(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
 ) -> impl IntoResponse {
-    if auth.current_user.unwrap().is_admin() {
+    if is_admin(auth) {
         match get_all_users_service().await {
             Ok(list) => Ok(Json(list)),
             Err(error) => Err(error),

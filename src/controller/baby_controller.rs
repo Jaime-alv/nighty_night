@@ -15,7 +15,7 @@ use crate::{
     service::{
         baby_service::{find_baby_service, get_all_babies_service, ingest_new_baby},
         user_service::find_user_by_username_service,
-        util_service::forbidden,
+        util_service::{forbidden, is_admin, has_baby},
     },
 };
 
@@ -68,7 +68,7 @@ async fn _register_baby_with_username(
 async fn get_all_babies(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
 ) -> impl IntoResponse {
-    if auth.current_user.unwrap().is_admin() {
+    if is_admin(auth) {
         match get_all_babies_service().await {
             Ok(list) => Ok(Json(list)),
             Err(error) => Err(error),
@@ -89,5 +89,4 @@ async fn post_meal(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     Json(new_meal): Json<NewMealDto>
 ) -> impl IntoResponse {
-    
 }
