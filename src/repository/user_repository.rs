@@ -2,7 +2,7 @@ use std::collections::HashSet;
 
 use crate::{
     model::{
-        associations_model::{UserBaby},
+        associations_model::UserBaby,
         baby_model::Baby,
         user_model::{InsertableUser, User},
     },
@@ -12,7 +12,6 @@ use diesel::prelude::*;
 use diesel::result::Error;
 
 use super::connection_psql::establish_connection;
-
 
 ///
 /// Get all users from database.
@@ -72,4 +71,13 @@ pub fn find_roles_id(user_id: i32) -> HashSet<u8> {
             roles.insert((*id).try_into().unwrap());
         });
     roles
+}
+
+pub fn find_babies_id(user_id: i32) -> Vec<i32> {
+    let conn = &mut establish_connection();
+    users_babies::table
+        .filter(users_babies::user_id.eq(user_id))
+        .select(users_babies::baby_id)
+        .load::<i32>(conn)
+        .unwrap()
 }

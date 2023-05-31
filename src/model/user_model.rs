@@ -3,11 +3,12 @@ use std::collections::HashSet;
 use diesel::prelude::*;
 
 use crate::{
-    repository::user_repository::{find_related_babies, find_roles_id}, schema::users,
+    repository::user_repository::{find_babies_id, find_related_babies, find_roles_id},
+    schema::users,
     security::security::verify_password,
 };
 
-use super::{baby_model::Baby};
+use super::baby_model::Baby;
 
 #[derive(Queryable, Selectable, Identifiable)]
 #[diesel(table_name = users)]
@@ -54,6 +55,10 @@ impl User {
         find_roles_id(self.id)
     }
 
+    pub fn find_babies_id(&self) -> Vec<i32> {
+        find_babies_id(self.id)
+    }
+
     pub fn find_related_babies_names(&self) -> Vec<String> {
         let babies = Self::find_related_babies(self);
         babies.iter().map(|baby: &Baby| baby.name()).collect()
@@ -72,7 +77,7 @@ pub struct InsertableUser {
     email: String,
     name: Option<String>,
     surname: Option<String>,
-    active: bool
+    active: bool,
 }
 
 impl InsertableUser {
@@ -89,8 +94,7 @@ impl InsertableUser {
             email,
             name,
             surname,
-            active: true
+            active: true,
         }
     }
 }
-
