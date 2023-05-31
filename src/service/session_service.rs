@@ -23,6 +23,7 @@ pub async fn save_user_session(user: &CurrentUser, roles: Vec<u8>) -> Result<(),
         user.anonymous(),
         user.username(),
         roles.into_iter().collect(),
+        user.babies(),
         user.active(),
     );
     let key = user_redis_key(user.id());
@@ -48,6 +49,7 @@ pub async fn load_user_session(id: i64) -> CurrentUser {
         user.anonymous,
         user.username,
         translate_roles(&user.roles),
+        user.babies,
         user.active,
     )
 }
