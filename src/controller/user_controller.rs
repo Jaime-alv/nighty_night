@@ -1,12 +1,11 @@
 use crate::{
     data::user_dto::{FindUserDto, LoginDto, NewUserDto},
-    error::error::ApiError,
     model::session_model::CurrentUser,
     service::{
         session_service::login_session,
         user_service::{
             create_user_service, find_user_service, get_all_users_service, login_service,
-        },
+        }, util_service::forbidden,
     },
 };
 use axum::{
@@ -48,7 +47,7 @@ async fn get_all_users(
             Err(error) => Err(error),
         }
     } else {
-        Err(ApiError::Forbidden)
+        Err(forbidden())
     }
 }
 
