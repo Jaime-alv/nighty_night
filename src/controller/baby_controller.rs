@@ -14,8 +14,9 @@ use crate::{
     model::session_model::CurrentUser,
     service::{
         baby_service::{find_baby_service, get_all_babies_service, ingest_new_baby},
+        meal_service::{get_meals_service, post_meal_service},
         user_service::find_user_by_username_service,
-        util_service::{forbidden, is_admin, has_baby},
+        util_service::{forbidden, has_baby, is_admin},
     },
 };
 
@@ -39,7 +40,7 @@ async fn register_baby(
             Err(error) => Err(error),
         }
     } else {
-        Err(forbidden())
+        Err(forbidden().await)
     }
 }
 
@@ -68,13 +69,13 @@ async fn _register_baby_with_username(
 async fn get_all_babies(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
 ) -> impl IntoResponse {
-    if is_admin(auth) {
+    if is_admin(auth).await {
         match get_all_babies_service().await {
             Ok(list) => Ok(Json(list)),
             Err(error) => Err(error),
         }
     } else {
-        Err(forbidden())
+        Err(forbidden().await)
     }
 }
 
@@ -82,11 +83,27 @@ async fn get_meals(
     Path(baby_id): Path<i32>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
 ) -> impl IntoResponse {
+    if has_baby(auth, baby_id).await {
+        match get_meals_service(baby_id).await {
+            Ok(meals) => Ok(Json(meals)),
+            Err(error) => Err(error),
+        }
+    } else {
+        Err(forbidden().await)
+    }
 }
 
 async fn post_meal(
     Path(baby_id): Path<i32>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
-    Json(new_meal): Json<NewMealDto>
+    Json(new_meal): Json<NewMealDto>,
 ) -> impl IntoResponse {
+    if has_baby(auth, baby_id).await {
+        match post_meal_service(new_meal, baby_id).await {
+            Ok(response) => Ok(response),
+            Err(error) => Err(error),
+        }
+    } else {
+        Err(forbidden().await)
+    }
 }
