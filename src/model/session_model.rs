@@ -93,7 +93,7 @@ impl Authentication<CurrentUser, i64, redis::Client> for CurrentUser {
             let current_user = tmp_user.unwrap();
 
             let roles: Vec<u8> = current_user.find_roles_id().into_iter().collect();
-            let translate_roles: Vec<Rol> = translate_roles(&roles);
+            let translate_roles: Vec<Rol> = translate_roles(&roles).await;
 
             let user_session = CurrentUser::new(
                 user_id,

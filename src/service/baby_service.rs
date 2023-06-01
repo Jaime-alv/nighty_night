@@ -37,7 +37,7 @@ pub async fn find_baby_service(baby_id: i32) -> Result<BabyDto, ApiError> {
 
 pub async fn get_all_babies_service() -> Result<Vec<BabyDto>, ApiError> {
     match query_babies() {
-        Ok(babies) => Ok(babies_to_babies_dto(babies)),
+        Ok(babies) => Ok(babies_to_babies_dto(babies).await),
         Err(msg) => {
             error!("{msg}");
             Err(ApiError::DBError(msg))

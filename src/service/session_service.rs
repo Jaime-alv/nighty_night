@@ -48,7 +48,7 @@ pub async fn load_user_session(id: i64) -> CurrentUser {
         user.id,
         user.anonymous,
         user.username,
-        translate_roles(&user.roles),
+        translate_roles(&user.roles).await,
         user.babies,
         user.active,
     )

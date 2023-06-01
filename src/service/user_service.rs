@@ -46,7 +46,7 @@ async fn assign_rol_as_user(user_id: i32) -> Result<(), ApiError> {
 
 pub async fn get_all_users_service() -> Result<Vec<UserDto>, ApiError> {
     match query_users() {
-        Ok(users) => Ok(users_to_users_dto(users)),
+        Ok(users) => Ok(users_to_users_dto(users).await),
         Err(msg) => {
             error!("{msg}");
             Err(ApiError::DBError(msg))
