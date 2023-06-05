@@ -10,13 +10,15 @@ use axum_session::SessionRedisPool;
 use axum_session_auth::AuthSession;
 
 use crate::{
-    data::{baby_dto::NewBabyDto, meal_dto::NewMealDto},
+    data::{baby_dto::NewBabyDto, dream_dto::NewDreamDto, meal_dto::NewMealDto},
     model::session_model::CurrentUser,
     service::{
         baby_service::{find_baby_service, get_all_babies_service, ingest_new_baby},
+        dream_service::{get_all_dreams_from_baby_service, post_dream_service},
         meal_service::{get_meals_service, post_meal_service},
+        response_service::forbidden,
+        session_service::{has_baby, is_admin},
         user_service::find_user_by_username_service,
-        util_service::{forbidden, has_baby, is_admin},
     },
 };
 
@@ -25,7 +27,8 @@ pub(crate) fn route_baby() -> Router {
         .route("/new", post(register_baby))
         .route("/:baby_id", get(find_baby_by_id))
         .route("/all", get(get_all_babies))
-        .route("/:baby_id/meals", get(get_meals).post(post_meal));
+        .route("/:baby_id/meals", get(get_meals).post(post_meal))
+        .route("/:baby_id/dreams", get(get_dreams).post(post_dream));
     Router::new().nest("/baby", routes)
 }
 
@@ -36,7 +39,10 @@ async fn register_baby(
     if auth.is_authenticated() {
         let id: i32 = auth.id.try_into().unwrap();
         match ingest_new_baby(new_baby, id).await {
-            Ok(baby) => Ok(Json(baby)),
+            Ok(baby) => {
+                auth.cache_clear_user(id.into());
+                Ok(Json(baby))
+            }
             Err(error) => Err(error),
         }
     } else {
@@ -100,6 +106,35 @@ async fn post_meal(
 ) -> impl IntoResponse {
     if has_baby(auth, baby_id).await {
         match post_meal_service(new_meal, baby_id).await {
+            Ok(response) => Ok(response),
+            Err(error) => Err(error),
+        }
+    } else {
+        Err(forbidden().await)
+    }
+}
+
+async fn get_dreams(
+    Path(baby_id): Path<i32>,
+    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
+) -> impl IntoResponse {
+    if has_baby(auth, baby_id).await {
+        match get_all_dreams_from_baby_service(baby_id).await {
+            Ok(dreams) => Ok(Json(dreams)),
+            Err(error) => Err(error),
+        }
+    } else {
+        Err(forbidden().await)
+    }
+}
+
+async fn post_dream(
+    Path(baby_id): Path<i32>,
+    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
+    Json(new_dream): Json<NewDreamDto>,
+) -> impl IntoResponse {
+    if has_baby(auth, baby_id).await {
+        match post_dream_service(new_dream, baby_id).await {
             Ok(response) => Ok(response),
             Err(error) => Err(error),
         }
