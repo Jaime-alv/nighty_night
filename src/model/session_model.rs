@@ -16,28 +16,22 @@ pub struct CurrentUser {
     anonymous: bool,
     username: String,
     roles: Vec<Rol>,
-    babies: Vec<i32>,
     active: bool,
 }
 
 impl CurrentUser {
-    pub fn new(id: i64, anonymous: bool, username: String, roles: Vec<Rol>,babies: Vec<i32>, active: bool) -> Self {
+    pub fn new(id: i64, anonymous: bool, username: String, roles: Vec<Rol>,active: bool) -> Self {
         Self {
             id,
             anonymous,
             username,
             roles,
-            babies,
             active,
         }
     }
 
     pub fn is_admin(&self) -> bool {
         self.roles.contains(&Rol::Admin)
-    }
-
-    pub fn has_baby(&self, baby: i32) -> bool {
-        self.babies.contains(&baby)
     }
 
     pub fn id(&self) -> i64 {
@@ -56,9 +50,6 @@ impl CurrentUser {
         self.active
     }
 
-    pub fn babies(&self) -> Vec<i32> {
-        self.babies.to_owned()
-    } 
 }
 
 impl Default for CurrentUser {
@@ -70,7 +61,6 @@ impl Default for CurrentUser {
             anonymous: true,
             username: "GUEST".to_string(),
             roles: anonymous,
-            babies: vec![],
             active: true,
         }
     }
@@ -100,7 +90,6 @@ impl Authentication<CurrentUser, i64, redis::Client> for CurrentUser {
                 translate_roles.contains(&Rol::Anonymous),
                 current_user.username(),
                 translate_roles,
-                current_user.find_babies_id(),
                 current_user.active(),
             );
             let tmp_response = save_user_session(&user_session, roles).await;

@@ -67,6 +67,11 @@ impl User {
     pub fn active(&self) -> bool {
         self.active
     }
+
+    pub fn has_baby(&self, baby_id: i32) -> bool {
+        let babies = Self::find_babies_id(&self);
+        babies.contains(&baby_id)
+    }
 }
 
 #[derive(Insertable)]
