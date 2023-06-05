@@ -2,10 +2,10 @@ use crate::{
     data::user_dto::{FindUserDto, LoginDto, NewUserDto},
     model::session_model::CurrentUser,
     service::{
-        session_service::login_session,
+        session_service::{login_session, is_admin},
         user_service::{
             create_user_service, find_user_service, get_all_users_service, login_service,
-        }, util_service::{forbidden, is_admin},
+        }, response_service::forbidden,
     },
 };
 use axum::{

@@ -10,12 +10,11 @@ use crate::{
     model::{role_model::Rol, user_model::User},
     repository::user_repository::{
         create_user, load_user_by_id, load_user_by_username, query_users,
-    },
+    }, utils::validator::{validate_fields, valid_password},
 };
 
 use super::{
     association_service::add_rol_to_user_service,
-    validation::validator::{valid_password, validate_fields},
 };
 
 pub async fn create_user_service(new_user: NewUserDto) -> Result<(UserDto, i32), ApiError> {
