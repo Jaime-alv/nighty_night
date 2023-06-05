@@ -1,7 +1,10 @@
-use chrono::{NaiveDateTime};
+use chrono::NaiveDateTime;
 use diesel::{Identifiable, Insertable, Queryable};
 
-use crate::schema::meals;
+use crate::{
+    schema::meals,
+    utils::datetime::{format_date, format_time},
+};
 
 #[derive(Queryable, Identifiable)]
 #[diesel(table_name = meals)]
@@ -36,14 +39,12 @@ impl Meal {
         }
     }
 
-
-
     pub fn formatted_date(&self) -> String {
-        self.date.date().format("%Y-%m-%d").to_string()
+        format_date(self.date.date())
     }
 
     pub fn formatted_time(&self) -> String {
-        self.date.time().format("%H:%M:%S").to_string()
+        format_time(self.date.time())
     }
 }
 
