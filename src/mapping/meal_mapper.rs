@@ -11,7 +11,6 @@ impl From<Meal> for MealDto {
     }
 }
 
-
 pub async fn from_meal_to_meal_dto_vector(meals: Vec<Meal>) -> Vec<MealDto> {
     meals.into_iter().map(|meal| MealDto::from(meal)).collect()
 }
