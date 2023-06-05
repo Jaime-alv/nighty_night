@@ -5,7 +5,8 @@ pub fn now() -> NaiveDateTime {
 }
 
 pub fn to_date_time(date: &str) -> NaiveDateTime {
-    NaiveDateTime::parse_from_str(&date, "%Y-%m-%d %H:%M").expect("Date format should be like: %Y-%m-%d %H:%M")
+    NaiveDateTime::parse_from_str(&date, "%Y-%m-%d %H:%M")
+        .expect("Date format should be like: %Y-%m-%d %H:%M")
 }
 
 pub fn format_date(date: NaiveDate) -> String {
