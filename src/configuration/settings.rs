@@ -17,7 +17,7 @@ impl Setting {
                 let port = read_environment_key("PORT");
                 format!("{address}:{port}")
             }
-            Setting::Branch => read_environment_key("BRANCH"),
+            Setting::Branch => env::var("BRANCH").unwrap_or("local".to_string()),
             Setting::DatabaseUrl => read_environment_key("DATABASE_URL"),
             Setting::LoggerLevel => read_environment_key("LOGGER_LEVEL"),
             Setting::RedisHost => {
