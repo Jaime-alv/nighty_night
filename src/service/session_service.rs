@@ -9,7 +9,7 @@ use crate::{
     model::session_model::CurrentUser,
     repository::{
         session_repository::{exists_user, get_user, set_user},
-        user_repository::load_user_by_id,
+        user_repository::find_babies_id,
     },
 };
 
@@ -75,6 +75,6 @@ pub async fn has_baby(
     baby_id: i32,
 ) -> bool {
     let user_id: i32 = auth.id.try_into().unwrap();
-    let user = load_user_by_id(user_id).unwrap();
-    user.has_baby(baby_id)
+    let babies = find_babies_id(user_id);
+    babies.contains(&baby_id)
 }
