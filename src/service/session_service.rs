@@ -7,7 +7,10 @@ use crate::{
     error::error::ApiError,
     mapping::rol_mapper::translate_roles,
     model::session_model::CurrentUser,
-    repository::session_repository::{exists_user, get_user, set_user},
+    repository::{
+        session_repository::{exists_user, get_user, set_user},
+        user_repository::find_babies_id,
+    },
 };
 
 pub async fn login_session<T: Into<i64>>(
@@ -47,7 +50,7 @@ pub async fn load_user_session(id: i64) -> CurrentUser {
         user.id,
         user.anonymous,
         user.username,
-        translate_roles(&user.roles),
+        translate_roles(&user.roles).await,
         user.active,
     )
 }
@@ -59,4 +62,19 @@ pub async fn user_session_exists(id: i64) -> bool {
 
 fn user_redis_key(id: i64) -> String {
     format!("user_{}", id)
+}
+
+pub async fn is_admin(
+    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
+) -> bool {
+    auth.current_user.unwrap().is_admin()
+}
+
+pub async fn has_baby(
+    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
+    baby_id: i32,
+) -> bool {
+    let user_id: i32 = auth.id.try_into().unwrap();
+    let babies = find_babies_id(user_id);
+    babies.contains(&baby_id)
 }

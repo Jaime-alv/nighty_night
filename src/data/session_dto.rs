@@ -1,4 +1,4 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
 pub struct CurrentUserDto {
@@ -10,13 +10,19 @@ pub struct CurrentUserDto {
 }
 
 impl CurrentUserDto {
-    pub fn new(id: i64, anonymous: bool, username: String, roles: Vec<u8>, active: bool) -> Self {
+    pub fn new(
+        id: i64,
+        anonymous: bool,
+        username: String,
+        roles: Vec<u8>,
+        active: bool,
+    ) -> Self {
         Self {
             id,
             anonymous,
             username,
             roles,
-            active
+            active,
         }
     }
 }

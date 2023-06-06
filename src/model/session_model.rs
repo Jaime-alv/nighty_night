@@ -20,7 +20,7 @@ pub struct CurrentUser {
 }
 
 impl CurrentUser {
-    pub fn new(id: i64, anonymous: bool, username: String, roles: Vec<Rol>, active: bool) -> Self {
+    pub fn new(id: i64, anonymous: bool, username: String, roles: Vec<Rol>,active: bool) -> Self {
         Self {
             id,
             anonymous,
@@ -49,6 +49,7 @@ impl CurrentUser {
     pub fn active(&self) -> bool {
         self.active
     }
+
 }
 
 impl Default for CurrentUser {
@@ -82,7 +83,7 @@ impl Authentication<CurrentUser, i64, redis::Client> for CurrentUser {
             let current_user = tmp_user.unwrap();
 
             let roles: Vec<u8> = current_user.find_roles_id().into_iter().collect();
-            let translate_roles: Vec<Rol> = translate_roles(&roles);
+            let translate_roles: Vec<Rol> = translate_roles(&roles).await;
 
             let user_session = CurrentUser::new(
                 user_id,

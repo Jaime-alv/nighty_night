@@ -1,12 +1,11 @@
 use crate::{
     data::user_dto::{FindUserDto, LoginDto, NewUserDto},
-    error::error::ApiError,
     model::session_model::CurrentUser,
     service::{
-        session_service::login_session,
+        session_service::{login_session, is_admin},
         user_service::{
             create_user_service, find_user_service, get_all_users_service, login_service,
-        },
+        }, response_service::forbidden,
     },
 };
 use axum::{
@@ -42,13 +41,13 @@ async fn register_new_user(
 async fn get_all_users(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
 ) -> impl IntoResponse {
-    if auth.current_user.unwrap().is_admin() {
+    if is_admin(auth).await {
         match get_all_users_service().await {
             Ok(list) => Ok(Json(list)),
             Err(error) => Err(error),
         }
     } else {
-        Err(ApiError::Forbidden)
+        Err(forbidden().await)
     }
 }
 

@@ -12,9 +12,7 @@ diesel::table! {
         id -> Int4,
         baby_id -> Int4,
         from_date -> Timestamp,
-        from_time -> Timestamp,
         to_date -> Nullable<Timestamp>,
-        to_time -> Nullable<Timestamp>,
     }
 }
 
