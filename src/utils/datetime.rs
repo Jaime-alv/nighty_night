@@ -4,9 +4,13 @@ pub fn now() -> NaiveDateTime {
     Utc::now().naive_utc()
 }
 
-pub fn to_date_time(date: &str) -> NaiveDateTime {
-    NaiveDateTime::parse_from_str(&date, "%Y-%m-%d %H:%M")
+pub fn to_date_time(date_time: &str) -> NaiveDateTime {
+    NaiveDateTime::parse_from_str(&date_time, "%Y-%m-%d %H:%M")
         .expect("Date format should be like: %Y-%m-%d %H:%M")
+}
+
+pub fn to_date(date: &str) -> NaiveDate {
+    NaiveDate::parse_from_str(&date, "%Y-%m-%d").expect("Date format should be like: %Y-%m-%d")
 }
 
 pub fn format_date(date: NaiveDate) -> String {
@@ -30,6 +34,14 @@ mod test_timestamp {
     use chrono::NaiveDate;
 
     use super::*;
+
+    #[test]
+    fn test_date() {
+        assert_eq!(
+            NaiveDate::from_ymd_opt(2023, 6, 7).unwrap(),
+            to_date("2023-06-07")
+        )
+    }
 
     #[test]
     fn test_parse_date() {
