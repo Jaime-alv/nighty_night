@@ -61,12 +61,22 @@ diesel::table! {
     }
 }
 
+diesel::table! {
+    weights (id) {
+        id -> Int4,
+        baby_id -> Int4,
+        date -> Date,
+        value -> Float4,
+    }
+}
+
 diesel::joinable!(dreams -> babies (baby_id));
 diesel::joinable!(meals -> babies (baby_id));
 diesel::joinable!(users_babies -> babies (baby_id));
 diesel::joinable!(users_babies -> users (user_id));
 diesel::joinable!(users_roles -> roles (rol_id));
 diesel::joinable!(users_roles -> users (user_id));
+diesel::joinable!(weights -> babies (baby_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
     babies,
@@ -76,4 +86,5 @@ diesel::allow_tables_to_appear_in_same_query!(
     users,
     users_babies,
     users_roles,
+    weights,
 );
