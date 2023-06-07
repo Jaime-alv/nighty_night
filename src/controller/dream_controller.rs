@@ -36,10 +36,7 @@ async fn post_dream(
     Json(new_dream): Json<NewDreamDto>,
 ) -> impl IntoResponse {
     if has_baby(auth, baby_id).await {
-        match post_dream_service(new_dream, baby_id).await {
-            Ok(response) => Ok(response),
-            Err(error) => Err(error),
-        }
+        post_dream_service(new_dream, baby_id).await
     } else {
         Err(forbidden().await)
     }
