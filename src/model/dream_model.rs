@@ -45,6 +45,10 @@ impl Dream {
             None => NaiveDateTime::default(),
         }
     }
+
+    pub(crate) fn id(&self) -> i32 {
+        self.id
+    }
 }
 
 #[derive(Insertable)]

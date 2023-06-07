@@ -11,11 +11,6 @@ pub struct NewBabyDto {
 
 #[derive(Serialize)]
 pub struct BabyDto {
-    name: String,
-}
-
-impl BabyDto {
-    pub fn new(name: String) -> Self {
-        Self { name }
-    }
+    pub id: i32,
+    pub name: String,
 }

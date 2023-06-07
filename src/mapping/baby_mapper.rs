@@ -1,8 +1,8 @@
-use crate::{model::baby_model::Baby, data::baby_dto::BabyDto};
+use crate::{data::baby_dto::BabyDto, model::baby_model::Baby};
 
 impl From<Baby> for BabyDto {
     fn from(baby: Baby) -> Self {
-        BabyDto::new(baby.name())
+        BabyDto { id: baby.id(), name: baby.name() }
     }
 }
 
