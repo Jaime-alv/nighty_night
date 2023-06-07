@@ -3,3 +3,4 @@ pub mod baby_mapper;
 pub mod rol_mapper;
 pub mod meal_mapper;
 pub mod dream_mapper;
+pub mod weight_mapper;

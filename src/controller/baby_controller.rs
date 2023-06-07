@@ -20,7 +20,9 @@ use crate::{
     },
 };
 
-use super::{dream_controller::route_dream, meal_controller::route_meal};
+use super::{
+    dream_controller::route_dream, meal_controller::route_meal, weight_controller::route_weight,
+};
 
 pub(crate) fn route_baby() -> Router {
     let routes: Router = Router::new()
@@ -28,7 +30,8 @@ pub(crate) fn route_baby() -> Router {
         .route("/:baby_id", get(find_baby_by_id))
         .route("/all", get(get_all_babies))
         .merge(route_meal())
-        .merge(route_dream());
+        .merge(route_dream())
+        .merge(route_weight());
     Router::new().nest("/baby", routes)
 }
 
