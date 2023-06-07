@@ -10,6 +10,7 @@ pub struct NewDreamDto {
 
 #[derive(Serialize)]
 pub struct DreamDto {
+    pub id: i32,
     pub from_date: String,
     pub from_time: String,
     pub to_date: String,

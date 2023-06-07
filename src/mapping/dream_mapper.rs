@@ -6,6 +6,7 @@ use crate::{
 impl From<Dream> for DreamDto {
     fn from(dream: Dream) -> Self {
         DreamDto {
+            id: dream.id(),
             from_date: dream.formatted_from_date(),
             from_time: dream.formatted_from_time(),
             to_date: dream.formatted_to_date(),
