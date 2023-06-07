@@ -49,6 +49,17 @@ CREATE TABLE
         CONSTRAINT fk_baby_meals FOREIGN KEY (baby_id) REFERENCES babies (id) ON DELETE CASCADE ON UPDATE CASCADE
     );
 
+-- create table weights
+CREATE TABLE
+    IF NOT EXISTS weights (
+        "id" SERIAL PRIMARY KEY not NULL,
+        "baby_id" INTEGER not null,
+        "date" DATE not null,
+        "value" REAL not null,
+        UNIQUE (date),
+        CONSTRAINT fk_baby_weights FOREIGN KEY (baby_id) REFERENCES babies (id) ON DELETE CASCADE ON UPDATE CASCADE
+    );
+
 -- create intermediate table roles-users
 CREATE TABLE
     IF NOT EXISTS users_roles (
