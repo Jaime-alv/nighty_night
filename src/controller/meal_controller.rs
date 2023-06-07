@@ -36,10 +36,7 @@ async fn post_meal(
     Json(new_meal): Json<NewMealDto>,
 ) -> impl IntoResponse {
     if has_baby(auth, baby_id).await {
-        match post_meal_service(new_meal, baby_id).await {
-            Ok(response) => Ok(response),
-            Err(error) => Err(error),
-        }
+        post_meal_service(new_meal, baby_id).await
     } else {
         Err(forbidden().await)
     }
