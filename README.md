@@ -1,8 +1,6 @@
 # Nighty night
 
-## UNDER CONSTRUCTION!
-
----
+## UNDER CONSTRUCTION
 
 ![Sign](docs/img/work-in-progress-yellow.png)
 
@@ -10,7 +8,6 @@ Project is not ready. Work in progress!
 
 ## Objective
 
----
 It is an application for recording and monitoring a newborn's sleeping and eating patterns.
 
 Users can register in the application and add entries as they see fit.
@@ -19,8 +16,6 @@ It is a backend written in Rust with the help of the Axum framework.
 It has a session service provided by Redis. The main database is in PostgreSQL.
 
 ## How to run it
-
----
 
 ### DB
 
@@ -90,8 +85,6 @@ Test Endpoint => <http://127.0.0.0:3000/api/auth>
 
 ## Endpoints
 
----
-
 ### Users: `/api/auth`
 
 | Route     | Method | Function              | Parameters | Arguments                                  |
@@ -102,7 +95,7 @@ Test Endpoint => <http://127.0.0.0:3000/api/auth>
 | /user     | `post` | find user by username | Body: Json | {username}                                 |
 | /login    | `post` | login user            | Body: Json | {username, password}                       |
 
-### Tasks: `/api/baby`
+### Baby: `/api/baby`
 
 | Route             | Method | Function                                     | Parameters              | Arguments                 |
 | ----------------- | ------ | -------------------------------------------- | ----------------------- | ------------------------- |
@@ -118,8 +111,6 @@ Test Endpoint => <http://127.0.0.0:3000/api/auth>
 
 ## Docs
 
----
-
 [Axum](https://docs.rs/axum/latest/axum/)
 
 [Diesel](https://docs.rs/diesel/latest/diesel/)
@@ -130,8 +121,6 @@ Test Endpoint => <http://127.0.0.0:3000/api/auth>
 
 ## APP ROADMAP
 
----
-
 Proposed layout.
 
 - [X] Implement tracing system.
@@ -141,6 +130,8 @@ Proposed layout.
 - [X] Time and dates.
 - [X] Implement meals and dreams tables.
 - [X] Set up associations.
+- [ ] User profile.
+- [ ] Elapsed times.
 - [ ] Recovery system.
 - [ ] Docker.
 - [ ] Kubernetes.
@@ -148,8 +139,6 @@ Proposed layout.
 This layout is not set in stone. It can, and possibly will, change.
 
 ## License
-
----
 
 [Apache-2.0](http://www.apache.org/licenses/LICENSE-2.0)
 
