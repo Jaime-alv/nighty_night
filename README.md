@@ -54,7 +54,7 @@ SESSION_DURATION=600
 
 ### Diesel-cli
 
-Install libpq
+Install [libpq](https://www.postgresql.org/docs/current/libpq.html)
 
 ```bash
 sudo apt-get update
