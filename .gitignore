@@ -6,9 +6,9 @@
 .Environmet/
 
 ### Documents ###
-doc/
-!doc/img/
 example/
+notes/
+resources/
 
 ### IDE ###
 .vscode/
