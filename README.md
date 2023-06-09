@@ -1,6 +1,8 @@
 # Nighty night
 
-## UNDER CONSTRUCTION
+## UNDER CONSTRUCTION!
+
+---
 
 ![Sign](docs/img/work-in-progress-yellow.png)
 
@@ -88,7 +90,7 @@ Test Endpoint => <http://127.0.0.0:3000/api/auth>
 
 ## Endpoints
 
- ---
+---
 
 ### Users: `/api/auth`
 
@@ -116,6 +118,8 @@ Test Endpoint => <http://127.0.0.0:3000/api/auth>
 
 ## Docs
 
+---
+
 [Axum](https://docs.rs/axum/latest/axum/)
 
 [Diesel](https://docs.rs/diesel/latest/diesel/)
@@ -125,6 +129,8 @@ Test Endpoint => <http://127.0.0.0:3000/api/auth>
 [PostgreSQL](https://www.postgresql.org/)
 
 ## APP ROADMAP
+
+---
 
 Proposed layout.
 
@@ -142,6 +148,8 @@ Proposed layout.
 This layout is not set in stone. It can, and possibly will, change.
 
 ## License
+
+---
 
 [Apache-2.0](http://www.apache.org/licenses/LICENSE-2.0)
 
