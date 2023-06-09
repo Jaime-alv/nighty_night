@@ -1,5 +1,6 @@
 use std::collections::HashSet;
 
+use chrono::NaiveDateTime;
 use diesel::prelude::*;
 
 use crate::{
@@ -18,8 +19,10 @@ pub struct User {
     password: String,
     name: Option<String>,
     surname: Option<String>,
-    email: String,
+    email: Option<String>,
     active: bool,
+    created_at: NaiveDateTime,
+    updated_at: Option<NaiveDateTime>,
 }
 
 impl User {
@@ -31,8 +34,8 @@ impl User {
         self.id
     }
 
-    pub fn email(&self) -> String {
-        self.email.to_string()
+    pub fn email(&self) -> Option<String> {
+        self.email.to_owned()
     }
 
     pub fn is_password_match(&self, input_password: &str) -> bool {
@@ -79,19 +82,21 @@ impl User {
 pub struct InsertableUser {
     username: String,
     password: String,
-    email: String,
+    email: Option<String>,
     name: Option<String>,
     surname: Option<String>,
     active: bool,
+    created_at: NaiveDateTime,
 }
 
 impl InsertableUser {
     pub fn new(
         username: String,
         password: String,
-        email: String,
+        email: Option<String>,
         name: Option<String>,
         surname: Option<String>,
+        created_at: NaiveDateTime,
     ) -> Self {
         Self {
             username,
@@ -100,6 +105,7 @@ impl InsertableUser {
             name,
             surname,
             active: true,
+            created_at,
         }
     }
 }

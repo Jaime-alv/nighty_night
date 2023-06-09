@@ -5,10 +5,12 @@ CREATE TABLE
         "id" SERIAL PRIMARY KEY not NULL,
         "username" VARCHAR(64) not NULL,
         "password" VARCHAR(128) not null,
-        "name" VARCHAR(32),
-        "surname" VARCHAR(32),
-        "email" VARCHAR not null,
+        "name" VARCHAR(64),
+        "surname" VARCHAR(64),
+        "email" VARCHAR,
         "active" BOOLEAN not null DEFAULT TRUE,
+        "created_at" TIMESTAMP not NULL,
+        "updated_at" TIMESTAMP,
         UNIQUE (username)
     );
 
@@ -23,7 +25,8 @@ CREATE TABLE
 CREATE TABLE
     IF NOT EXISTS babies (
         "id" SERIAL PRIMARY KEY not NULL,
-        "name" VARCHAR(32) not NULL
+        "name" VARCHAR(64) not NULL,
+        "birthdate" DATE not NULL
     );
 
 -- create table dreams
@@ -33,7 +36,6 @@ CREATE TABLE
         "baby_id" INTEGER not null,
         "from_date" TIMESTAMP not null,
         "to_date" TIMESTAMP,
-        UNIQUE (from_date),
         CONSTRAINT fk_baby_dreams FOREIGN KEY (baby_id) REFERENCES babies (id) ON DELETE CASCADE ON UPDATE CASCADE
     );
 
@@ -45,7 +47,6 @@ CREATE TABLE
         "date" TIMESTAMP not null,
         "quantity" smallint,
         "elapsed" smallint,
-        UNIQUE (date),
         CONSTRAINT fk_baby_meals FOREIGN KEY (baby_id) REFERENCES babies (id) ON DELETE CASCADE ON UPDATE CASCADE
     );
 
@@ -56,7 +57,6 @@ CREATE TABLE
         "baby_id" INTEGER not null,
         "date" DATE not null,
         "value" REAL not null,
-        UNIQUE (date),
         CONSTRAINT fk_baby_weights FOREIGN KEY (baby_id) REFERENCES babies (id) ON DELETE CASCADE ON UPDATE CASCADE
     );
 
@@ -104,7 +104,8 @@ insert into
         name,
         surname,
         email,
-        active
+        active,
+        created_at
     )
 values
     (
@@ -113,7 +114,8 @@ values
         'Test',
         'User',
         'admin@a.a',
-        true
+        true,
+        CURRENT_TIMESTAMP AT TIME ZONE 'Europe/Berlin'
     );
 
 -- Insert admin user into users
@@ -124,7 +126,8 @@ insert into
         name,
         surname,
         email,
-        active
+        active,
+        created_at
     )
 values
     (
@@ -133,7 +136,8 @@ values
         'Test',
         'User',
         'admin@a.a',
-        true
+        true,
+        CURRENT_TIMESTAMP AT TIME ZONE 'Europe/Berlin'
     );
 
 -- associate admin user and roles

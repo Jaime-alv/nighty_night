@@ -4,6 +4,7 @@ diesel::table! {
     babies (id) {
         id -> Int4,
         name -> Varchar,
+        birthdate -> Date,
     }
 }
 
@@ -40,8 +41,10 @@ diesel::table! {
         password -> Varchar,
         name -> Nullable<Varchar>,
         surname -> Nullable<Varchar>,
-        email -> Varchar,
+        email -> Nullable<Varchar>,
         active -> Bool,
+        created_at -> Timestamp,
+        updated_at -> Nullable<Timestamp>,
     }
 }
 
