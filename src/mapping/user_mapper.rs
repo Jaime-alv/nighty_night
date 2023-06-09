@@ -1,7 +1,7 @@
 use crate::{
     data::user_dto::{NewUserDto, UserDto},
     model::user_model::{InsertableUser, User},
-    security::security::hash_password,
+    security::security::hash_password, utils::datetime::now,
 };
 
 impl From<User> for UserDto {
@@ -37,6 +37,7 @@ impl From<NewUserDto> for InsertableUser {
             new_user.email,
             new_user.name,
             new_user.surname,
+            now()
         )
     }
 }

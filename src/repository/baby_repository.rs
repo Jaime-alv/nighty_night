@@ -1,22 +1,24 @@
 use diesel::prelude::*;
 use diesel::result::Error;
 
-use crate::{data::baby_dto::NewBabyDto, model::baby_model::Baby, schema::babies};
+use crate::{
+    model::baby_model::{Baby, InsertableBaby},
+    schema::babies,
+};
 
 use super::connection_psql::establish_connection;
 
-
-pub fn ingest_new_baby_in_db(
-    new_user: NewBabyDto,
-) -> Result<Baby, Error> {
+pub fn ingest_new_baby_in_db<T>(new_baby: T) -> Result<Baby, Error>
+where
+    T: Into<InsertableBaby>,
+{
     let conn = &mut establish_connection();
     diesel::insert_into(babies::table)
-        .values(new_user)
+        .values(new_baby.into())
         .returning(Baby::as_returning())
         .get_result(conn)
     // .execute(conn)
 }
-
 
 pub fn load_baby_by_id(id: i32) -> Result<Baby, Error> {
     let conn = &mut establish_connection();

@@ -1,7 +1,7 @@
 use chrono::{NaiveDate, NaiveDateTime, NaiveTime, Utc};
 
 pub fn now() -> NaiveDateTime {
-    Utc::now().naive_utc()
+    Utc::now().naive_local()
 }
 
 pub fn to_date_time(date_time: &str) -> NaiveDateTime {
