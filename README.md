@@ -131,12 +131,13 @@ Proposed layout.
 - [X] Implement meals and dreams tables.
 - [X] Set up associations.
 - [ ] User profile.
+- [ ] Update fields.
 - [ ] Elapsed times.
 - [ ] Recovery system.
 - [ ] Docker.
 - [ ] Kubernetes.
 
-This layout is not set in stone. It can, and possibly will, change.
+This layout is not set in stone. It can, and possibly will, change, neither they're in order.
 
 ## License
 
