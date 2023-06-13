@@ -1,7 +1,10 @@
-use chrono::NaiveDateTime;
-use diesel::{Identifiable, Insertable, Queryable};
+use chrono::{NaiveDateTime, NaiveTime};
+use diesel::{data_types::PgInterval, Identifiable, Insertable, Queryable};
 
-use crate::{schema::dreams, utils::datetime::{format_date, format_time, now}};
+use crate::{
+    schema::dreams,
+    utils::datetime::{duration_as_time, format_date, format_time, now},
+};
 
 #[derive(Queryable, Identifiable)]
 #[diesel(table_name = dreams)]
@@ -10,6 +13,7 @@ pub struct Dream {
     baby_id: i32,
     from_date: NaiveDateTime,
     to_date: Option<NaiveDateTime>,
+    elapsed: Option<PgInterval>,
 }
 
 impl Dream {
@@ -44,6 +48,19 @@ impl Dream {
             Some(date) => date,
             None => NaiveDateTime::default(),
         }
+    }
+
+    pub fn formatted_elapsed(&self) -> String {
+        format_time(self.elapsed())
+    }
+
+    pub fn elapsed(&self) -> NaiveTime {
+        let time = match self.elapsed {
+            Some(time) => time.microseconds,
+            None => PgInterval::new(0, 0, 0).microseconds,
+        };
+        let minutes = time / 60000000;
+        duration_as_time(minutes)
     }
 
     pub(crate) fn id(&self) -> i32 {

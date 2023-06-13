@@ -1,4 +1,4 @@
-use chrono::{NaiveDate, NaiveDateTime, NaiveTime, Utc};
+use chrono::{Duration, NaiveDate, NaiveDateTime, NaiveTime, Utc};
 
 pub fn now() -> NaiveDateTime {
     Utc::now().naive_local()
@@ -17,8 +17,8 @@ pub fn format_date(date: NaiveDate) -> String {
     date.format("%Y-%m-%d").to_string()
 }
 
-pub fn format_time(date: NaiveTime) -> String {
-    date.format("%H:%M").to_string()
+pub fn format_time(time: NaiveTime) -> String {
+    time.format("%H:%M").to_string()
 }
 
 pub async fn date_is_higher(date: NaiveDateTime, other_date: NaiveDateTime) -> bool {
@@ -27,6 +27,12 @@ pub async fn date_is_higher(date: NaiveDateTime, other_date: NaiveDateTime) -> b
     } else {
         false
     }
+}
+
+pub fn duration_as_time(elapsed_minutes: i64) -> NaiveTime {
+    let hours: u32 = (elapsed_minutes / 60).try_into().unwrap();
+    let minutes: u32 = (elapsed_minutes % 60).try_into().unwrap();
+    NaiveTime::from_hms_opt(hours, minutes, 0).expect("Invalid time format.")
 }
 
 #[cfg(test)]
@@ -71,4 +77,25 @@ mod test_timestamp {
             .await
         );
     }
+
+    #[test]
+    fn test_duration() {
+        assert_eq!(
+            duration_as_time(60),
+            NaiveTime::from_hms_opt(1, 0, 0).unwrap()
+        );
+        assert_eq!(
+            duration_as_time(90),
+            NaiveTime::from_hms_opt(1, 30, 0).unwrap()
+        );
+        assert_eq!(
+            duration_as_time(45),
+            NaiveTime::from_hms_opt(0, 45, 0).unwrap()
+        );
+        assert_eq!(
+            duration_as_time(0),
+            NaiveTime::from_hms_opt(0, 0, 0).unwrap()
+        );
+    }
 }
+

@@ -15,4 +15,5 @@ pub struct DreamDto {
     pub from_time: String,
     pub to_date: String,
     pub to_time: String,
+    pub elapsed: String
 }

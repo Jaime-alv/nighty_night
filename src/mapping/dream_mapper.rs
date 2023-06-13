@@ -11,6 +11,7 @@ impl From<Dream> for DreamDto {
             from_time: dream.formatted_from_time(),
             to_date: dream.formatted_to_date(),
             to_time: dream.formatted_to_time(),
+            elapsed: dream.formatted_elapsed()
         }
     }
 }
