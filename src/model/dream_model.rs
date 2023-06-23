@@ -1,9 +1,12 @@
-use chrono::NaiveDateTime;
+use chrono::{Duration, NaiveDateTime};
 use diesel::{Identifiable, Insertable, Queryable};
 
-use crate::{schema::dreams, utils::datetime::{format_date, format_time, now}};
+use crate::{
+    schema::dreams,
+    utils::datetime::{format_date, format_duration, format_time, now},
+};
 
-#[derive(Queryable, Identifiable)]
+#[derive(Queryable, Identifiable, Debug)]
 #[diesel(table_name = dreams)]
 pub struct Dream {
     id: i32,
@@ -43,6 +46,21 @@ impl Dream {
         match self.to_date {
             Some(date) => date,
             None => NaiveDateTime::default(),
+        }
+    }
+
+    pub fn formatted_elapsed(&self) -> String {
+        let time = match self.to_date {
+            Some(time) => time - self.from_date,
+            None => Duration::minutes(0),
+        };
+        format_duration(time.num_minutes())
+    }
+
+    pub fn elapsed(&self) -> Duration {
+        match self.to_date {
+            Some(to) => to - self.from_date,
+            None => Duration::minutes(0),
         }
     }
 

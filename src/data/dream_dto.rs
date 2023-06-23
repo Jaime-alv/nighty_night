@@ -15,4 +15,12 @@ pub struct DreamDto {
     pub from_time: String,
     pub to_date: String,
     pub to_time: String,
+    pub elapsed: String
+}
+
+
+#[derive(Serialize)]
+pub struct DreamSummary {
+    pub date: String,
+    pub summary: String
 }
