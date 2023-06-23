@@ -36,7 +36,6 @@ CREATE TABLE
         "baby_id" INTEGER not null,
         "from_date" TIMESTAMP not null,
         "to_date" TIMESTAMP,
-        "elapsed" INTERVAL,
         CONSTRAINT fk_baby_dreams FOREIGN KEY (baby_id) REFERENCES babies (id) ON DELETE CASCADE ON UPDATE CASCADE
     );
 

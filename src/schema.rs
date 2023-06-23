@@ -14,7 +14,6 @@ diesel::table! {
         baby_id -> Int4,
         from_date -> Timestamp,
         to_date -> Nullable<Timestamp>,
-        elapsed -> Nullable<Interval>,
     }
 }
 
