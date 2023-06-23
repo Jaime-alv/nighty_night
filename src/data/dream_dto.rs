@@ -17,3 +17,10 @@ pub struct DreamDto {
     pub to_time: String,
     pub elapsed: String
 }
+
+
+#[derive(Serialize)]
+pub struct DreamSummary {
+    pub date: String,
+    pub summary: String
+}
