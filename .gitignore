@@ -9,6 +9,9 @@
 example/
 notes/
 resources/
+batch
+sql
+
 
 ### IDE ###
 .vscode/
