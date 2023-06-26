@@ -9,8 +9,8 @@
 example/
 notes/
 resources/
-batch
-sql
+eat*
+sleep*
 
 
 ### IDE ###
