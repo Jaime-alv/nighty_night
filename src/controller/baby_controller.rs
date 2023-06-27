@@ -11,20 +11,27 @@ use axum_session_auth::AuthSession;
 
 use crate::{
     data::baby_dto::NewBabyDto,
-    error::error::ApiError,
     model::session_model::CurrentUser,
     service::{
         baby_service::{find_baby_service, get_all_babies_service, ingest_new_baby},
-        user_service::{find_user_by_username_service},
+        response_service::forbidden,
+        session_service::{is_admin, update_user_session},
+        user_service::find_user_by_username_service,
     },
+};
+
+use super::{
+    dream_controller::route_dream, meal_controller::route_meal, weight_controller::route_weight,
 };
 
 pub(crate) fn route_baby() -> Router {
     let routes: Router = Router::new()
-        .route("/new/:user_id", post(register_baby))
-        .route("/new", post(register_baby_with_username))
+        .route("/new", post(register_baby))
         .route("/:baby_id", get(find_baby_by_id))
-        .route("/all", get(get_all_babies));
+        .route("/all", get(get_all_babies))
+        .merge(route_meal())
+        .merge(route_dream())
+        .merge(route_weight());
     Router::new().nest("/baby", routes)
 }
 
@@ -33,13 +40,16 @@ async fn register_baby(
     Json(new_baby): Json<NewBabyDto>,
 ) -> impl IntoResponse {
     if auth.is_authenticated() {
-        let id = auth.id;
+        let id: i32 = auth.id.try_into().unwrap();
         match ingest_new_baby(new_baby, id).await {
-            Ok(baby) => Ok(Json(baby)),
+            Ok(baby) => {
+                update_user_session(&auth.current_user.unwrap()).await?;
+                Ok(Json(baby))
+            }
             Err(error) => Err(error),
         }
     } else {
-        Err(ApiError::Forbidden)
+        Err(forbidden().await)
     }
 }
 
@@ -50,7 +60,7 @@ async fn find_baby_by_id(Path(baby_id): Path<i32>) -> impl IntoResponse {
     }
 }
 
-async fn register_baby_with_username(
+async fn _register_baby_with_username(
     Query(user): Query<HashMap<String, String>>,
     Json(new_baby): Json<NewBabyDto>,
 ) -> impl IntoResponse {
@@ -65,9 +75,15 @@ async fn register_baby_with_username(
     }
 }
 
-async fn get_all_babies() -> impl IntoResponse {
-    match get_all_babies_service().await {
-        Ok(list) => Ok(Json(list)),
-        Err(error) => Err(error),
+async fn get_all_babies(
+    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
+) -> impl IntoResponse {
+    if is_admin(auth).await {
+        match get_all_babies_service().await {
+            Ok(list) => Ok(Json(list)),
+            Err(error) => Err(error),
+        }
+    } else {
+        Err(forbidden().await)
     }
 }

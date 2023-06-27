@@ -6,7 +6,7 @@ use super::traits::Mandatory;
 pub struct NewUserDto {
     pub username: String,
     pub password: String,
-    pub email: String,
+    pub email: Option<String>,
     pub name: Option<String>,
     pub surname: Option<String>,
 }
@@ -16,7 +16,6 @@ impl Mandatory for NewUserDto {
         vec![
             self.username.as_str(),
             self.password.as_str(),
-            self.email.as_str(),
         ]
     }
 }
@@ -24,26 +23,23 @@ impl Mandatory for NewUserDto {
 #[derive(Debug, Serialize)]
 pub struct UserDto {
     username: String,
-    email: String,
+    email: Option<String>,
     name: Option<String>,
     surname: Option<String>,
-    babies: Vec<String>,
 }
 
 impl UserDto {
     pub fn new(
         username: String,
-        email: String,
+        email: Option<String>,
         name: Option<String>,
         surname: Option<String>,
-        babies: Vec<String>,
     ) -> Self {
         Self {
             username,
             email,
             name,
             surname,
-            babies,
         }
     }
 }

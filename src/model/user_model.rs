@@ -1,13 +1,7 @@
-use std::collections::HashSet;
-
+use chrono::NaiveDateTime;
 use diesel::prelude::*;
 
-use crate::{
-    repository::user_repository::{find_related_babies, find_roles_id}, schema::users,
-    security::security::verify_password,
-};
-
-use super::{baby_model::Baby};
+use crate::{schema::users, security::security::verify_password};
 
 #[derive(Queryable, Selectable, Identifiable)]
 #[diesel(table_name = users)]
@@ -17,8 +11,10 @@ pub struct User {
     password: String,
     name: Option<String>,
     surname: Option<String>,
-    email: String,
+    email: Option<String>,
     active: bool,
+    created_at: NaiveDateTime,
+    updated_at: Option<NaiveDateTime>,
 }
 
 impl User {
@@ -30,8 +26,8 @@ impl User {
         self.id
     }
 
-    pub fn email(&self) -> String {
-        self.email.to_string()
+    pub fn email(&self) -> Option<String> {
+        self.email.to_owned()
     }
 
     pub fn is_password_match(&self, input_password: &str) -> bool {
@@ -45,20 +41,7 @@ impl User {
     pub fn surname(&self) -> Option<String> {
         self.surname.to_owned()
     }
-
-    pub fn find_related_babies(&self) -> Vec<Baby> {
-        find_related_babies(self)
-    }
-
-    pub fn find_roles_id(&self) -> HashSet<u8> {
-        find_roles_id(self.id)
-    }
-
-    pub fn find_related_babies_names(&self) -> Vec<String> {
-        let babies = Self::find_related_babies(self);
-        babies.iter().map(|baby| baby.name()).collect()
-    }
-
+    
     pub fn active(&self) -> bool {
         self.active
     }
@@ -69,19 +52,21 @@ impl User {
 pub struct InsertableUser {
     username: String,
     password: String,
-    email: String,
+    email: Option<String>,
     name: Option<String>,
     surname: Option<String>,
-    active: bool
+    active: bool,
+    created_at: NaiveDateTime,
 }
 
 impl InsertableUser {
     pub fn new(
         username: String,
         password: String,
-        email: String,
+        email: Option<String>,
         name: Option<String>,
         surname: Option<String>,
+        created_at: NaiveDateTime,
     ) -> Self {
         Self {
             username,
@@ -89,8 +74,8 @@ impl InsertableUser {
             email,
             name,
             surname,
-            active: true
+            active: true,
+            created_at,
         }
     }
 }
-

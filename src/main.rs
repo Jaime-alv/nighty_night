@@ -32,9 +32,11 @@ mod utils;
 
 #[tokio::main]
 async fn main() {
-    match dotenv() {
-        Ok(_) => (),
-        Err(error) => panic!("{error}"),
+    if Setting::Branch.get().eq("local") {
+        match dotenv() {
+            Ok(_) => (),
+            Err(error) => panic!("{error}"),
+        }
     };
 
     let app = create_app_route().await;
@@ -62,7 +64,7 @@ mod core_checks {
 
     use tracing::{debug, error, info};
 
-    use crate::repository::{connection_redis::ping_redis, connection_sqlite::check_sqlite_status};
+    use crate::repository::{connection_psql::check_db_status, connection_redis::ping_redis};
 
     pub(super) async fn checking_status() -> Result<&'static str, &'static str> {
         let mut status = Vec::<bool>::new();
@@ -81,15 +83,15 @@ mod core_checks {
             }
         }
 
-        debug!("SQlite status...");
-        match check_sqlite_status() {
+        debug!("PostgreSQL status...");
+        match check_db_status() {
             Ok(msg) => {
                 status.push(true);
                 debug!("{msg}")
             }
             Err(error) => {
                 status.push(false);
-                error!("SQLite: {error}")
+                error!("{error}")
             }
         };
 

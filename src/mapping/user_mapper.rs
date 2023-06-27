@@ -1,7 +1,7 @@
 use crate::{
     data::user_dto::{NewUserDto, UserDto},
     model::user_model::{InsertableUser, User},
-    security::security::hash_password,
+    security::security::hash_password, utils::datetime::now,
 };
 
 impl From<User> for UserDto {
@@ -11,7 +11,6 @@ impl From<User> for UserDto {
             user.email(),
             user.name(),
             user.surname(),
-            user.find_related_babies_names(),
         )
     }
 }
@@ -23,7 +22,6 @@ impl From<&User> for UserDto {
             user.email(),
             user.name(),
             user.surname(),
-            user.find_related_babies_names(),
         )
     }
 }
@@ -37,10 +35,11 @@ impl From<NewUserDto> for InsertableUser {
             new_user.email,
             new_user.name,
             new_user.surname,
+            now()
         )
     }
 }
 
-pub fn users_to_users_dto(users: Vec<User>) -> Vec<UserDto> {
+pub async fn users_to_users_dto(users: Vec<User>) -> Vec<UserDto> {
     users.into_iter().map(|u| UserDto::from(u)).collect()
 }
