@@ -2,34 +2,33 @@ use std::collections::HashSet;
 
 use crate::{
     model::{
-        associations_model::UserBaby,
-        baby_model::Baby,
         user_model::{InsertableUser, User},
     },
-    schema::{babies, users, users_babies, users_roles},
+    schema::{users, users_babies, users_roles},
 };
 use diesel::prelude::*;
 use diesel::result::Error;
+use diesel_async::RunQueryDsl;
 
-use super::connection_psql::{establish_async_connection, establish_connection};
+use super::connection_psql::{establish_async_connection};
 
 ///
 /// Get all users from database.
 pub async fn query_users() -> Result<Vec<User>, Error> {
     let conn = &mut establish_async_connection().await;
-    users::table.load(conn)
+    users::table.load(conn).await
 }
 
 pub async fn load_user_by_username<T: Into<String>>(username: T) -> Result<User, Error> {
     let conn = &mut establish_async_connection().await;
     users::table
         .filter(users::username.eq(username.into()))
-        .first(conn)
+        .first(conn).await
 }
 
 pub async fn load_user_by_id(user_id: i32) -> Result<User, Error> {
     let conn = &mut establish_async_connection().await;
-    users::table.find(user_id).first(conn)
+    users::table.find(user_id).first(conn).await
 }
 
 pub async fn create_user<T: Into<InsertableUser>>(new_user: T) -> Result<User, Error> {
@@ -37,19 +36,19 @@ pub async fn create_user<T: Into<InsertableUser>>(new_user: T) -> Result<User, E
     diesel::insert_into(users::table)
         .values(new_user.into())
         .returning(User::as_returning())
-        .get_result(conn)
+        .get_result(conn).await
     // .execute(conn)
 }
 
 // #[axum_macros::debug_handler]
-pub fn find_related_babies(user: &User) -> Vec<Baby> {
-    let conn = &mut establish_connection();
-    let baby_id = UserBaby::belonging_to(user).select(users_babies::baby_id);
-    babies::table
-        .filter(babies::id.eq_any(baby_id))
-        .load::<Baby>(conn)
-        .expect("could not load babies from user.")
-}
+// pub fn find_related_babies(user: &User) -> Vec<Baby> {
+//     let conn = &mut establish_connection();
+//     let baby_id = UserBaby::belonging_to(user).select(users_babies::baby_id);
+//     babies::table
+//         .filter(babies::id.eq_any(baby_id))
+//         .load::<Baby>(conn)
+//         .expect("could not load babies from user.")
+// }
 
 pub async fn exists_username<T: Into<String>>(username: T) -> bool {
     match load_user_by_username(username.into()).await {
@@ -64,7 +63,7 @@ pub async fn find_roles_id(user_id: i32) -> HashSet<u8> {
     users_roles::table
         .filter(users_roles::user_id.eq(user_id))
         .select(users_roles::rol_id)
-        .load::<i16>(conn)
+        .load::<i16>(conn).await
         .unwrap()
         .iter()
         .for_each(|id| {
@@ -78,6 +77,6 @@ pub async fn find_babies_id(user_id: i32) -> Vec<i32> {
     users_babies::table
         .filter(users_babies::user_id.eq(user_id))
         .select(users_babies::baby_id)
-        .load::<i32>(conn)
+        .load::<i32>(conn).await
         .unwrap()
 }

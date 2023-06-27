@@ -1,12 +1,7 @@
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
 
-use crate::{
-    repository::user_repository::find_related_babies, schema::users,
-    security::security::verify_password,
-};
-
-use super::baby_model::Baby;
+use crate::{schema::users, security::security::verify_password};
 
 #[derive(Queryable, Selectable, Identifiable)]
 #[diesel(table_name = users)]
@@ -46,16 +41,7 @@ impl User {
     pub fn surname(&self) -> Option<String> {
         self.surname.to_owned()
     }
-
-    pub fn find_related_babies(&self) -> Vec<Baby> {
-        find_related_babies(self)
-    }
-
-    pub fn find_related_babies_names(&self) -> Vec<String> {
-        let babies = Self::find_related_babies(self);
-        babies.iter().map(|baby: &Baby| baby.name()).collect()
-    }
-
+    
     pub fn active(&self) -> bool {
         self.active
     }

@@ -1,4 +1,5 @@
 use diesel::{prelude::*, result::Error};
+use diesel_async::RunQueryDsl;
 
 use crate::{
     model::weight_model::{InsertableWeight, Weight},
@@ -14,10 +15,10 @@ where
     let conn = &mut establish_async_connection().await;
     diesel::insert_into(weights::table)
         .values(new_measure.into())
-        .execute(conn)
+        .execute(conn).await
 }
 
 pub async fn get_all_weights_from_baby(baby: i32) -> Result<Vec<Weight>, Error> {
     let conn = &mut establish_async_connection().await;
-    weights::table.filter(weights::baby_id.eq(baby)).load(conn)
+    weights::table.filter(weights::baby_id.eq(baby)).load(conn).await
 }

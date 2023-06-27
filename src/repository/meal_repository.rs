@@ -1,5 +1,6 @@
 use chrono::NaiveDate;
 use diesel::{prelude::*, result::Error};
+use diesel_async::RunQueryDsl;
 
 use crate::{
     model::meals_model::{InsertableMeal, Meal},
@@ -15,12 +16,12 @@ where
     let conn = &mut establish_async_connection().await;
     diesel::insert_into(meals::table)
         .values(new_meal.into())
-        .execute(conn)
+        .execute(conn).await
 }
 
 pub async fn get_all_meals_from_baby(baby: i32) -> Result<Vec<Meal>, Error> {
     let conn = &mut establish_async_connection().await;
-    meals::table.filter(meals::baby_id.eq(baby)).load(conn)
+    meals::table.filter(meals::baby_id.eq(baby)).load(conn).await
 }
 
 pub async fn find_meals_by_date(baby: i32, date: NaiveDate) -> Result<Vec<Meal>, Error> {
@@ -31,5 +32,5 @@ pub async fn find_meals_by_date(baby: i32, date: NaiveDate) -> Result<Vec<Meal>,
         .filter(meals::baby_id.eq(baby))
         .filter(meals::date.ge(down))
         .filter(meals::date.le(top))
-        .load::<Meal>(conn)
+        .load::<Meal>(conn).await
 }
