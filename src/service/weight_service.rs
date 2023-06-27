@@ -12,14 +12,14 @@ pub async fn post_weight_service(
     baby_id: i32,
 ) -> Result<Response, ApiError> {
     let measure = InsertableWeight::new(baby_id, to_date(&new_measure.date), new_measure.value);
-    match ingest_weight(measure) {
+    match ingest_weight(measure).await {
         Ok(_) => Ok(ok("New measure added").await),
         Err(error) => Err(ApiError::DBError(error)),
     }
 }
 
 pub async fn get_weights_service(baby_id: i32) -> Result<Vec<WeightDto>, ApiError> {
-    match get_all_weights_from_baby(baby_id) {
+    match get_all_weights_from_baby(baby_id).await {
         Ok(measures) => Ok(from_weight_to_weight_dto_vector(measures).await),
         Err(error) => Err(ApiError::DBError(error)),
     }

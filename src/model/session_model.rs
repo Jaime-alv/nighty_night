@@ -4,7 +4,7 @@ use axum_session_auth::Authentication;
 
 use crate::{
     mapping::rol_mapper::translate_roles,
-    repository::user_repository::load_user_by_id,
+    repository::user_repository::{find_roles_id, load_user_by_id},
     service::session_service::{load_user_session, save_user_session, user_session_exists},
 };
 
@@ -20,7 +20,7 @@ pub struct CurrentUser {
 }
 
 impl CurrentUser {
-    pub fn new(id: i64, anonymous: bool, username: String, roles: Vec<Rol>,active: bool) -> Self {
+    pub fn new(id: i64, anonymous: bool, username: String, roles: Vec<Rol>, active: bool) -> Self {
         Self {
             id,
             anonymous,
@@ -49,7 +49,6 @@ impl CurrentUser {
     pub fn active(&self) -> bool {
         self.active
     }
-
 }
 
 impl Default for CurrentUser {
@@ -76,13 +75,13 @@ impl Authentication<CurrentUser, i64, redis::Client> for CurrentUser {
             let user = load_user_session(user_id).await;
             return Ok(user);
         } else {
-            let tmp_user = load_user_by_id(user_id.try_into().unwrap());
+            let tmp_user = load_user_by_id(user_id.try_into().unwrap()).await;
             if tmp_user.is_err() {
-                return Err(anyhow::anyhow!("{:#?}", tmp_user.err()))
+                return Err(anyhow::anyhow!("{:#?}", tmp_user.err()));
             }
             let current_user = tmp_user.unwrap();
 
-            let roles: Vec<u8> = current_user.find_roles_id().into_iter().collect();
+            let roles: Vec<u8> = find_roles_id(current_user.id()).await.into_iter().collect();
             let translate_roles: Vec<Rol> = translate_roles(&roles).await;
 
             let user_session = CurrentUser::new(

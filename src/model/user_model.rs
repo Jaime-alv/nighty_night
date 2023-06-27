@@ -1,10 +1,8 @@
-use std::collections::HashSet;
-
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
 
 use crate::{
-    repository::user_repository::{find_babies_id, find_related_babies, find_roles_id},
+    repository::user_repository::{find_babies_id, find_related_babies},
     schema::users,
     security::security::verify_password,
 };
@@ -52,10 +50,6 @@ impl User {
 
     pub fn find_related_babies(&self) -> Vec<Baby> {
         find_related_babies(self)
-    }
-
-    pub fn find_roles_id(&self) -> HashSet<u8> {
-        find_roles_id(self.id)
     }
 
     pub fn find_babies_id(&self) -> Vec<i32> {
