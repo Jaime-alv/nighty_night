@@ -4,7 +4,7 @@ use axum_session_auth::Authentication;
 
 use crate::{
     mapping::rol_mapper::translate_roles,
-    repository::user_repository::{find_roles_id, load_user_by_id},
+    repository::user_repository::{find_roles_id, load_user_by_id, find_babies_id},
     service::session_service::{load_user_session, save_user_session, user_session_exists},
 };
 
@@ -17,16 +17,18 @@ pub struct CurrentUser {
     username: String,
     roles: Vec<Rol>,
     active: bool,
+    baby_id: Vec<i32>
 }
 
 impl CurrentUser {
-    pub fn new(id: i64, anonymous: bool, username: String, roles: Vec<Rol>, active: bool) -> Self {
+    pub fn new(id: i64, anonymous: bool, username: String, roles: Vec<Rol>, active: bool, baby_id: Vec<i32>) -> Self {
         Self {
             id,
             anonymous,
             username,
             roles,
             active,
+            baby_id
         }
     }
 
@@ -49,6 +51,18 @@ impl CurrentUser {
     pub fn active(&self) -> bool {
         self.active
     }
+
+    pub fn baby_id(&self) -> Vec<i32> {
+        self.baby_id.to_owned()
+    }
+
+    pub fn roles(&self) -> Vec<Rol> {
+        self.roles.to_owned()
+    }
+
+    pub fn roles_id(&self) -> Vec<u8> {
+        self.roles.to_owned().into_iter().map(|rol| rol.into()).collect()
+    }
 }
 
 impl Default for CurrentUser {
@@ -61,6 +75,7 @@ impl Default for CurrentUser {
             username: "GUEST".to_string(),
             roles: anonymous,
             active: true,
+            baby_id: vec![]
         }
     }
 }
@@ -82,7 +97,9 @@ impl Authentication<CurrentUser, i64, redis::Client> for CurrentUser {
             let current_user = tmp_user.unwrap();
 
             let roles: Vec<u8> = find_roles_id(current_user.id()).await.into_iter().collect();
-            let translate_roles: Vec<Rol> = translate_roles(&roles).await;
+            let translate_roles: Vec<Rol> = translate_roles(&roles);
+
+            let babies: Vec<i32> = find_babies_id(current_user.id()).await;
 
             let user_session = CurrentUser::new(
                 user_id,
@@ -90,8 +107,9 @@ impl Authentication<CurrentUser, i64, redis::Client> for CurrentUser {
                 current_user.username(),
                 translate_roles,
                 current_user.active(),
+                babies
             );
-            let tmp_response = save_user_session(&user_session, roles).await;
+            let tmp_response = save_user_session(&user_session).await;
             if tmp_response.is_err() {
                 let error = tmp_response.err().unwrap();
                 return Err(anyhow::anyhow!("{error}"));

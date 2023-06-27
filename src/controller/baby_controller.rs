@@ -15,7 +15,7 @@ use crate::{
     service::{
         baby_service::{find_baby_service, get_all_babies_service, ingest_new_baby},
         response_service::forbidden,
-        session_service::is_admin,
+        session_service::{is_admin, update_user_session},
         user_service::find_user_by_username_service,
     },
 };
@@ -43,7 +43,7 @@ async fn register_baby(
         let id: i32 = auth.id.try_into().unwrap();
         match ingest_new_baby(new_baby, id).await {
             Ok(baby) => {
-                auth.cache_clear_user(id.into());
+                update_user_session(&auth.current_user.unwrap(), baby.id).await?;
                 Ok(Json(baby))
             }
             Err(error) => Err(error),

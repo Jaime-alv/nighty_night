@@ -7,10 +7,7 @@ use crate::{
     error::error::ApiError,
     mapping::rol_mapper::translate_roles,
     model::session_model::CurrentUser,
-    repository::{
-        session_repository::{exists_user, get_user, set_user},
-        user_repository::find_babies_id,
-    },
+    repository::session_repository::{exists_user, get_user, set_user},
 };
 
 pub async fn login_session<T: Into<i64>>(
@@ -20,13 +17,14 @@ pub async fn login_session<T: Into<i64>>(
     auth.login_user(user_id.into())
 }
 
-pub async fn save_user_session(user: &CurrentUser, roles: Vec<u8>) -> Result<(), ApiError> {
+pub async fn save_user_session(user: &CurrentUser) -> Result<(), ApiError> {
     let current_user_dto = CurrentUserDto::new(
         user.id(),
         user.anonymous(),
         user.username(),
-        roles.into_iter().collect(),
+        user.roles_id(),
         user.active(),
+        user.baby_id(),
     );
     let key = user_redis_key(user.id());
     let duration = match Setting::SessionDuration.get().parse::<usize>() {
@@ -42,6 +40,20 @@ pub async fn save_user_session(user: &CurrentUser, roles: Vec<u8>) -> Result<(),
     }
 }
 
+pub async fn update_user_session(user: &CurrentUser, baby_id: i32) -> Result<(), ApiError> {
+    let mut babies_id = user.baby_id();
+    babies_id.push(baby_id);
+    let update_user = CurrentUser::new(
+        user.id(),
+        user.anonymous(),
+        user.username(),
+        user.roles(),
+        user.active(),
+        babies_id,
+    );
+    save_user_session(&update_user).await
+}
+
 pub async fn load_user_session(id: i64) -> CurrentUser {
     let key = user_redis_key(id);
     let string_user = get_user(&key).await.unwrap();
@@ -50,8 +62,9 @@ pub async fn load_user_session(id: i64) -> CurrentUser {
         user.id,
         user.anonymous,
         user.username,
-        translate_roles(&user.roles).await,
+        translate_roles(&user.roles),
         user.active,
+        user.baby_id,
     )
 }
 
@@ -74,7 +87,6 @@ pub async fn has_baby(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     baby_id: i32,
 ) -> bool {
-    let user_id: i32 = auth.id.try_into().unwrap();
-    let babies = find_babies_id(user_id);
+    let babies = auth.current_user.unwrap().baby_id();
     babies.contains(&baby_id)
 }
