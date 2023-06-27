@@ -40,16 +40,6 @@ pub async fn create_user<T: Into<InsertableUser>>(new_user: T) -> Result<User, E
     // .execute(conn)
 }
 
-// #[axum_macros::debug_handler]
-// pub fn find_related_babies(user: &User) -> Vec<Baby> {
-//     let conn = &mut establish_connection();
-//     let baby_id = UserBaby::belonging_to(user).select(users_babies::baby_id);
-//     babies::table
-//         .filter(babies::id.eq_any(baby_id))
-//         .load::<Baby>(conn)
-//         .expect("could not load babies from user.")
-// }
-
 pub async fn exists_username<T: Into<String>>(username: T) -> bool {
     match load_user_by_username(username.into()).await {
         Ok(_) => true,
