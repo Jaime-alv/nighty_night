@@ -75,6 +75,7 @@ async fn login_user(
 async fn test_welcome(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
 ) -> String {
+    auth.cache_clear_user(auth.id);
     format!(
         "Hello, {}.\n>>>This is a debug endpoint.<<<\nCredentials:\n{:#?}",
         auth.current_user.clone().unwrap().username(), auth.current_user.unwrap()
