@@ -24,7 +24,7 @@ use crate::{
 pub(super) fn route_dream() -> Router {
     Router::new()
         .route("/:baby_id/dreams", get(get_dreams).post(post_dream))
-        .route("/:baby_id/dreams/summary", get(filter_dream_by_date))
+        .route("/:baby_id/dreams/summary", get(dream_summary))
 }
 
 async fn get_dreams(
@@ -60,7 +60,7 @@ async fn post_dream(
     }
 }
 
-async fn filter_dream_by_date(
+async fn dream_summary(
     Path(baby_id): Path<i32>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     Query(date): Query<HashMap<String, String>>,
