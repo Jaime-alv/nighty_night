@@ -11,7 +11,6 @@ impl From<User> for UserDto {
             user.email(),
             user.name(),
             user.surname(),
-            user.find_related_babies_names(),
         )
     }
 }
@@ -23,7 +22,6 @@ impl From<&User> for UserDto {
             user.email(),
             user.name(),
             user.surname(),
-            user.find_related_babies_names(),
         )
     }
 }

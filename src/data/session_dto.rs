@@ -7,6 +7,7 @@ pub struct CurrentUserDto {
     pub username: String,
     pub roles: Vec<u8>,
     pub active: bool,
+    pub baby_id: Vec<i32>
 }
 
 impl CurrentUserDto {
@@ -16,6 +17,7 @@ impl CurrentUserDto {
         username: String,
         roles: Vec<u8>,
         active: bool,
+        baby_id: Vec<i32>
     ) -> Self {
         Self {
             id,
@@ -23,6 +25,7 @@ impl CurrentUserDto {
             username,
             roles,
             active,
+            baby_id
         }
     }
 }

@@ -41,6 +41,16 @@ impl From<Rol> for i16 {
     }
 }
 
+impl From<Rol> for u8 {
+    fn from(rol: Rol) -> Self {
+        match rol {
+            Rol::Anonymous => 2,
+            Rol::User => 1,
+            Rol::Admin => 0,
+        }
+    }
+}
+
 #[derive(PartialEq, Clone, Debug)]
 pub enum Rol {
     Anonymous,

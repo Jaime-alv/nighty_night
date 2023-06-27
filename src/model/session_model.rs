@@ -2,11 +2,7 @@ use anyhow::Ok;
 use axum::async_trait;
 use axum_session_auth::Authentication;
 
-use crate::{
-    mapping::rol_mapper::translate_roles,
-    repository::user_repository::load_user_by_id,
-    service::session_service::{load_user_session, save_user_session, user_session_exists},
-};
+use crate::service::session_service::{load_user_session, read_from_db, user_session_exists};
 
 use super::role_model::Rol;
 
@@ -17,16 +13,25 @@ pub struct CurrentUser {
     username: String,
     roles: Vec<Rol>,
     active: bool,
+    baby_id: Vec<i32>,
 }
 
 impl CurrentUser {
-    pub fn new(id: i64, anonymous: bool, username: String, roles: Vec<Rol>,active: bool) -> Self {
+    pub fn new(
+        id: i64,
+        anonymous: bool,
+        username: String,
+        roles: Vec<Rol>,
+        active: bool,
+        baby_id: Vec<i32>,
+    ) -> Self {
         Self {
             id,
             anonymous,
             username,
             roles,
             active,
+            baby_id,
         }
     }
 
@@ -50,6 +55,21 @@ impl CurrentUser {
         self.active
     }
 
+    pub fn baby_id(&self) -> Vec<i32> {
+        self.baby_id.to_owned()
+    }
+
+    pub fn roles(&self) -> Vec<Rol> {
+        self.roles.to_owned()
+    }
+
+    pub fn roles_id(&self) -> Vec<u8> {
+        self.roles
+            .to_owned()
+            .into_iter()
+            .map(|rol| rol.into())
+            .collect()
+    }
 }
 
 impl Default for CurrentUser {
@@ -62,6 +82,7 @@ impl Default for CurrentUser {
             username: "GUEST".to_string(),
             roles: anonymous,
             active: true,
+            baby_id: vec![],
         }
     }
 }
@@ -73,31 +94,14 @@ impl Authentication<CurrentUser, i64, redis::Client> for CurrentUser {
         _pool: Option<&redis::Client>,
     ) -> Result<CurrentUser, anyhow::Error> {
         if user_session_exists(user_id).await {
-            let user = load_user_session(user_id).await;
+            let user = load_user_session(user_id)
+                .await
+                .expect("User session from redis.");
             return Ok(user);
         } else {
-            let tmp_user = load_user_by_id(user_id.try_into().unwrap());
-            if tmp_user.is_err() {
-                return Err(anyhow::anyhow!("{:#?}", tmp_user.err()))
-            }
-            let current_user = tmp_user.unwrap();
-
-            let roles: Vec<u8> = current_user.find_roles_id().into_iter().collect();
-            let translate_roles: Vec<Rol> = translate_roles(&roles).await;
-
-            let user_session = CurrentUser::new(
-                user_id,
-                translate_roles.contains(&Rol::Anonymous),
-                current_user.username(),
-                translate_roles,
-                current_user.active(),
-            );
-            let tmp_response = save_user_session(&user_session, roles).await;
-            if tmp_response.is_err() {
-                let error = tmp_response.err().unwrap();
-                return Err(anyhow::anyhow!("{error}"));
-            }
-            Ok(user_session)
+            Ok(read_from_db(user_id.try_into().unwrap())
+                .await
+                .expect("User session from redis."))
         }
     }
 

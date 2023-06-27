@@ -23,13 +23,13 @@ pub async fn post_dream_service(
     let dream: InsertableDream;
     if new_dream.from_date.is_some() {
         dream = create_new_dream_entry(new_dream, baby_id).await;
-        match ingest_new_dream(dream) {
+        match ingest_new_dream(dream).await {
             Ok(_) => return Ok(ok("New dream added.").await),
             Err(error) => return Err(ApiError::DBError(error)),
         }
     } else {
         dream = create_new_dream_entry(new_dream, baby_id).await;
-        match update_last_dream(dream) {
+        match update_last_dream(dream).await {
             Ok(_) => return Ok(ok("Dream update.").await),
             Err(error) => return Err(ApiError::DBError(error)),
         }
@@ -51,7 +51,7 @@ async fn uncover_date(date: Option<String>) -> Option<NaiveDateTime> {
 }
 
 pub async fn get_all_dreams_from_baby_service(baby_id: i32) -> Result<Vec<DreamDto>, ApiError> {
-    match get_all_dreams_from_baby(baby_id) {
+    match get_all_dreams_from_baby(baby_id).await {
         Ok(dreams) => Ok(from_dream_to_dream_dto_vector(dreams).await),
         Err(error) => Err(ApiError::DBError(error)),
     }
@@ -62,7 +62,7 @@ pub async fn filter_dreams_by_date_service(
     string_date: &str,
 ) -> Result<Vec<DreamDto>, ApiError> {
     let date = to_date(&string_date);
-    match find_dreams_by_date(baby_id, date) {
+    match find_dreams_by_date(baby_id, date).await {
         Ok(dreams) => Ok(from_dream_to_dream_dto_vector(dreams).await),
         Err(error) => Err(ApiError::DBError(error)),
     }
@@ -73,7 +73,7 @@ pub async fn dream_summary_service(
     string_date: &str,
 ) -> Result<DreamSummary, ApiError> {
     let date = to_date(&string_date);
-    let selected_dreams = match find_dreams_by_date(baby_id, date) {
+    let selected_dreams = match find_dreams_by_date(baby_id, date).await {
         Ok(dreams) => dreams
             .iter()
             .map(|d| d.elapsed())

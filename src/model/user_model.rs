@@ -1,15 +1,7 @@
-use std::collections::HashSet;
-
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
 
-use crate::{
-    repository::user_repository::{find_babies_id, find_related_babies, find_roles_id},
-    schema::users,
-    security::security::verify_password,
-};
-
-use super::baby_model::Baby;
+use crate::{schema::users, security::security::verify_password};
 
 #[derive(Queryable, Selectable, Identifiable)]
 #[diesel(table_name = users)]
@@ -49,31 +41,9 @@ impl User {
     pub fn surname(&self) -> Option<String> {
         self.surname.to_owned()
     }
-
-    pub fn find_related_babies(&self) -> Vec<Baby> {
-        find_related_babies(self)
-    }
-
-    pub fn find_roles_id(&self) -> HashSet<u8> {
-        find_roles_id(self.id)
-    }
-
-    pub fn find_babies_id(&self) -> Vec<i32> {
-        find_babies_id(self.id)
-    }
-
-    pub fn find_related_babies_names(&self) -> Vec<String> {
-        let babies = Self::find_related_babies(self);
-        babies.iter().map(|baby: &Baby| baby.name()).collect()
-    }
-
+    
     pub fn active(&self) -> bool {
         self.active
-    }
-
-    pub fn has_baby(&self, baby_id: i32) -> bool {
-        let babies = Self::find_babies_id(&self);
-        babies.contains(&baby_id)
     }
 }
 

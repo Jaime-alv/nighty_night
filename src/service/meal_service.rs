@@ -22,14 +22,14 @@ pub async fn post_meal_service(new_meal: NewMealDto, baby_id: i32) -> Result<Res
         None => None,
     };
     let meal = InsertableMeal::new(baby_id, timestamp, new_meal.quantity, timestamp_to_time);
-    match ingest_meal(meal) {
+    match ingest_meal(meal).await {
         Ok(_) => Ok(ok("New meal added").await),
         Err(error) => Err(ApiError::DBError(error)),
     }
 }
 
 pub async fn get_meals_service(baby_id: i32) -> Result<Vec<MealDto>, ApiError> {
-    match get_all_meals_from_baby(baby_id) {
+    match get_all_meals_from_baby(baby_id).await {
         Ok(meals) => Ok(from_meal_to_meal_dto_vector(meals).await),
         Err(error) => Err(ApiError::DBError(error)),
     }
@@ -40,7 +40,7 @@ pub async fn filter_meals_by_date_service(
     string_date: &str,
 ) -> Result<Vec<MealDto>, ApiError> {
     let date = to_date(&string_date);
-    match find_meals_by_date(baby_id, date) {
+    match find_meals_by_date(baby_id, date).await {
         Ok(meals) => Ok(from_meal_to_meal_dto_vector(meals).await),
         Err(error) => Err(ApiError::DBError(error)),
     }
@@ -51,7 +51,7 @@ pub async fn meal_summary_service(
     string_date: &str,
 ) -> Result<MealSummary, ApiError> {
     let date = to_date(&string_date);
-    let selected_meals = match find_meals_by_date(baby_id, date) {
+    let selected_meals = match find_meals_by_date(baby_id, date).await {
         Ok(dreams) => dreams,
         Err(error) => return Err(ApiError::DBError(error)),
     };
