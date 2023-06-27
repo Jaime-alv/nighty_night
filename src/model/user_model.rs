@@ -2,8 +2,7 @@ use chrono::NaiveDateTime;
 use diesel::prelude::*;
 
 use crate::{
-    repository::user_repository::{find_babies_id, find_related_babies},
-    schema::users,
+    repository::user_repository::find_related_babies, schema::users,
     security::security::verify_password,
 };
 
@@ -52,10 +51,6 @@ impl User {
         find_related_babies(self)
     }
 
-    pub fn find_babies_id(&self) -> Vec<i32> {
-        find_babies_id(self.id)
-    }
-
     pub fn find_related_babies_names(&self) -> Vec<String> {
         let babies = Self::find_related_babies(self);
         babies.iter().map(|baby: &Baby| baby.name()).collect()
@@ -63,11 +58,6 @@ impl User {
 
     pub fn active(&self) -> bool {
         self.active
-    }
-
-    pub fn has_baby(&self, baby_id: i32) -> bool {
-        let babies = Self::find_babies_id(&self);
-        babies.contains(&baby_id)
     }
 }
 

@@ -26,7 +26,6 @@ pub struct UserDto {
     email: Option<String>,
     name: Option<String>,
     surname: Option<String>,
-    babies: Vec<String>,
 }
 
 impl UserDto {
@@ -35,14 +34,12 @@ impl UserDto {
         email: Option<String>,
         name: Option<String>,
         surname: Option<String>,
-        babies: Vec<String>,
     ) -> Self {
         Self {
             username,
             email,
             name,
             surname,
-            babies,
         }
     }
 }
