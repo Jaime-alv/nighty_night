@@ -46,7 +46,7 @@ CREATE TABLE
         "baby_id" INTEGER not null,
         "date" TIMESTAMP not null,
         "quantity" smallint,
-        "elapsed" smallint,
+        "to_time" TIMESTAMP,
         CONSTRAINT fk_baby_meals FOREIGN KEY (baby_id) REFERENCES babies (id) ON DELETE CASCADE ON UPDATE CASCADE
     );
 
