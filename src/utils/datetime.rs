@@ -1,4 +1,4 @@
-use chrono::{Duration, NaiveDate, NaiveDateTime, NaiveTime, Utc};
+use chrono::{NaiveDate, NaiveDateTime, NaiveTime, Utc};
 
 pub fn now() -> NaiveDateTime {
     Utc::now().naive_local()
