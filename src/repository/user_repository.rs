@@ -73,8 +73,8 @@ pub async fn find_roles_id(user_id: i32) -> HashSet<u8> {
     roles
 }
 
-pub fn find_babies_id(user_id: i32) -> Vec<i32> {
-    let conn = &mut establish_connection();
+pub async fn find_babies_id(user_id: i32) -> Vec<i32> {
+    let conn = &mut establish_async_connection().await;
     users_babies::table
         .filter(users_babies::user_id.eq(user_id))
         .select(users_babies::baby_id)
