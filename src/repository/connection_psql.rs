@@ -1,6 +1,6 @@
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
-use diesel_async::{RunQueryDsl, AsyncConnection, AsyncPgConnection};
+use diesel_async::{AsyncConnection, AsyncPgConnection};
 
 use crate::configuration::settings::Setting;
 use crate::error::error::ApiError;
