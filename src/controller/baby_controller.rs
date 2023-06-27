@@ -43,7 +43,7 @@ async fn register_baby(
         let id: i32 = auth.id.try_into().unwrap();
         match ingest_new_baby(new_baby, id).await {
             Ok(baby) => {
-                update_user_session(&auth.current_user.unwrap(), baby.id).await?;
+                update_user_session(&auth.current_user.unwrap()).await?;
                 Ok(Json(baby))
             }
             Err(error) => Err(error),

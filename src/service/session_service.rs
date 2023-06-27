@@ -6,8 +6,11 @@ use crate::{
     data::session_dto::CurrentUserDto,
     error::error::ApiError,
     mapping::rol_mapper::translate_roles,
-    model::session_model::CurrentUser,
-    repository::session_repository::{exists_user, get_user, set_user},
+    model::{role_model::Rol, session_model::CurrentUser},
+    repository::{
+        session_repository::{exists_user, get_user, set_user},
+        user_repository::{find_babies_id, find_roles_id, load_user_by_id},
+    },
 };
 
 pub async fn login_session<T: Into<i64>>(
@@ -40,32 +43,51 @@ pub async fn save_user_session(user: &CurrentUser) -> Result<(), ApiError> {
     }
 }
 
-pub async fn update_user_session(user: &CurrentUser, baby_id: i32) -> Result<(), ApiError> {
-    let mut babies_id = user.baby_id();
-    babies_id.push(baby_id);
-    let update_user = CurrentUser::new(
-        user.id(),
-        user.anonymous(),
-        user.username(),
-        user.roles(),
-        user.active(),
-        babies_id,
-    );
+pub async fn update_user_session(user: &CurrentUser) -> Result<(), ApiError> {
+    let update_user = match read_from_db(user.id().try_into().unwrap()).await {
+        Ok(user) => user,
+        Err(error) => return Err(error),
+    };
     save_user_session(&update_user).await
 }
 
-pub async fn load_user_session(id: i64) -> CurrentUser {
+pub async fn load_user_session(id: i64) -> Result<CurrentUser, ApiError> {
     let key = user_redis_key(id);
     let string_user = get_user(&key).await.unwrap();
-    let user: CurrentUserDto = serde_json::from_str(&string_user).unwrap();
-    CurrentUser::new(
+    let user: CurrentUserDto = match serde_json::from_str(&string_user) {
+        Ok(user) => user,
+        Err(err) => return Err(ApiError::Redis(err.into())),
+    };
+    Ok(CurrentUser::new(
         user.id,
         user.anonymous,
         user.username,
         translate_roles(&user.roles),
         user.active,
         user.baby_id,
-    )
+    ))
+}
+
+pub async fn read_from_db(user: i32) -> Result<CurrentUser, ApiError> {
+    match load_user_by_id(user).await {
+        Ok(user) => {
+            let roles: Vec<u8> = find_roles_id(user.id()).await.into_iter().collect();
+            let translate_roles: Vec<Rol> = translate_roles(&roles);
+
+            let babies: Vec<i32> = find_babies_id(user.id()).await;
+
+            let user_session = CurrentUser::new(
+                user.id().into(),
+                translate_roles.contains(&Rol::Anonymous),
+                user.username(),
+                translate_roles,
+                user.active(),
+                babies,
+            );
+            Ok(user_session)
+        }
+        Err(error) => Err(ApiError::DBError(error)),
+    }
 }
 
 pub async fn user_session_exists(id: i64) -> bool {
