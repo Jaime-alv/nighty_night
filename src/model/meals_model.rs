@@ -1,9 +1,9 @@
-use chrono::NaiveDateTime;
+use chrono::{NaiveDateTime, Duration};
 use diesel::{Identifiable, Insertable, Queryable};
 
 use crate::{
     schema::meals,
-    utils::datetime::{format_date, format_time},
+    utils::datetime::{format_date, format_time, format_duration},
 };
 
 #[derive(Queryable, Identifiable)]
@@ -13,7 +13,7 @@ pub struct Meal {
     baby_id: i32,
     date: NaiveDateTime,
     quantity: Option<i16>,
-    elapsed: Option<i16>,
+    to_time: Option<NaiveDateTime>,
 }
 
 impl Meal {
@@ -32,11 +32,16 @@ impl Meal {
         }
     }
 
-    pub fn elapsed(&self) -> i16 {
-        match self.elapsed {
-            Some(e) => e,
-            None => 0,
+    pub fn elapsed(&self) -> Duration {
+        match self.to_time {
+            Some(e) => e - self.date,
+            None => Duration::seconds(0),
         }
+    }
+
+    pub fn formatted_elapsed(&self) -> String {
+        let duration: i64 = Self::elapsed(&self).num_minutes(); 
+        format_duration(duration)
     }
 
     pub fn formatted_date(&self) -> String {
@@ -54,7 +59,7 @@ pub struct InsertableMeal {
     baby_id: i32,
     date: NaiveDateTime,
     quantity: Option<i16>,
-    elapsed: Option<i16>,
+    to_time: Option<NaiveDateTime>,
 }
 
 impl InsertableMeal {
@@ -62,13 +67,13 @@ impl InsertableMeal {
         baby_id: i32,
         date: NaiveDateTime,
         quantity: Option<i16>,
-        elapsed: Option<i16>,
+        to_time: Option<NaiveDateTime>,
     ) -> Self {
         Self {
             baby_id,
             date,
             quantity,
-            elapsed,
+            to_time,
         }
     }
 }

@@ -7,7 +7,7 @@ impl From<Meal> for MealDto {
             date: meal.formatted_date(),
             time: meal.formatted_time(),
             quantity: meal.quantity(),
-            elapsed: meal.elapsed(),
+            elapsed: meal.formatted_elapsed(),
         }
     }
 }

@@ -23,7 +23,7 @@ diesel::table! {
         baby_id -> Int4,
         date -> Timestamp,
         quantity -> Nullable<Int2>,
-        elapsed -> Nullable<Int2>,
+        to_time -> Nullable<Timestamp>,
     }
 }
 
