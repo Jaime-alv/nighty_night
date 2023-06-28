@@ -24,14 +24,12 @@ pub async fn exists_user(key: &str) -> Result<bool, RedisError> {
     }
 }
 
-pub async fn get_user(key: &str) -> Option<String> {
+pub async fn get_user(key: &str) -> Result<String, RedisError> {
     let mut conn = poll().await.get_async_connection().await.unwrap();
-    let result: String = redis::cmd("GET")
+    redis::cmd("GET")
         .arg(key)
         .query_async(&mut conn)
         .await
-        .unwrap();
-    Some(result)
 }
 #[cfg(test)]
 mod redis_test {

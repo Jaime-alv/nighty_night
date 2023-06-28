@@ -53,7 +53,10 @@ pub async fn update_user_session(user: &CurrentUser) -> Result<(), ApiError> {
 
 pub async fn load_user_session(id: i64) -> Result<CurrentUser, ApiError> {
     let key = user_redis_key(id);
-    let string_user = get_user(&key).await.unwrap();
+    let string_user = match get_user(&key).await {
+        Ok(user) => user,
+        Err(e) => return Err(ApiError::Redis(e)),
+    };
     let user: CurrentUserDto = match serde_json::from_str(&string_user) {
         Ok(user) => user,
         Err(err) => return Err(ApiError::Redis(err.into())),

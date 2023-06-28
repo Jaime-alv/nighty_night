@@ -13,15 +13,19 @@ use crate::{
     data::meal_dto::NewMealDto,
     model::session_model::CurrentUser,
     service::{
-        meal_service::{filter_meals_by_date_service, get_meals_service, post_meal_service, meal_summary_service},
-        response_service::forbidden,
+        meal_service::{
+            filter_meals_by_date_service, get_meals_service, meal_summary_service,
+            post_meal_service,
+        },
+        response_service::{empty_query, forbidden},
         session_service::has_baby,
     },
 };
 
 pub(super) fn route_meal() -> Router {
-    Router::new().route("/:baby_id/meals", get(get_meals).post(post_meal))
-    .route("/:baby_id/meals/summary", get(meal_summary))
+    Router::new()
+        .route("/:baby_id/meals", get(get_meals).post(post_meal))
+        .route("/:baby_id/meals/summary", get(meal_summary))
 }
 
 async fn get_meals(
@@ -61,12 +65,14 @@ async fn meal_summary(
     Path(baby_id): Path<i32>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     Query(date): Query<HashMap<String, String>>,
-)-> impl IntoResponse {
-    let string_date = date.get("date").unwrap();
+) -> impl IntoResponse {
     if has_baby(auth, baby_id).await {
-        match meal_summary_service(baby_id, string_date).await {
-            Ok(meals) => Ok(Json(meals)),
-            Err(error) => Err(error),
+        match date.get("date") {
+            Some(string_date) => match meal_summary_service(baby_id, string_date).await {
+                Ok(meals) => Ok(Json(meals)),
+                Err(error) => Err(error),
+            },
+            None => Err(empty_query()),
         }
     } else {
         Err(forbidden().await)
