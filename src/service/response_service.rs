@@ -9,3 +9,7 @@ pub async fn forbidden() -> ApiError {
 pub async fn ok(msg: &str) -> Response {
     Response::new(StatusCode::OK, msg)
 }
+
+pub fn empty_query() -> ApiError {
+    ApiError::EmptyQuery
+}

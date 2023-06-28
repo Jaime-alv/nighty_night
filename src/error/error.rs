@@ -15,6 +15,7 @@ pub enum ApiError {
     NoUser,
     NoEntryFound,
     NoActiveUser,
+    EmptyQuery,
     DBError(Error),
     Redis(RedisError),
     Generic500Error(String),
@@ -35,6 +36,7 @@ impl ApiError {
             ApiError::NoEntryFound => (StatusCode::BAD_REQUEST, String::from("No entry found.")),
             ApiError::Forbidden => (StatusCode::FORBIDDEN, String::from("Forbidden.")),
             ApiError::NoActiveUser => (StatusCode::UNAUTHORIZED, String::from("User is not active.")),
+            ApiError::EmptyQuery => (StatusCode::BAD_REQUEST, String::from("Query option required.")),
 
             // 50X Error
             ApiError::DBError(error) => (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()),

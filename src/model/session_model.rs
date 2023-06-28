@@ -1,8 +1,7 @@
-use anyhow::Ok;
 use axum::async_trait;
 use axum_session_auth::Authentication;
 
-use crate::service::session_service::{load_user_session, read_from_db, user_session_exists};
+use crate::service::session_service::{load_user_session, read_from_db};
 
 use super::role_model::Rol;
 
@@ -92,16 +91,13 @@ impl Authentication<CurrentUser, i64, redis::Client> for CurrentUser {
     async fn load_user(
         user_id: i64,
         _pool: Option<&redis::Client>,
-    ) -> Result<CurrentUser, anyhow::Error> {
-        if user_session_exists(user_id).await {
-            let user = load_user_session(user_id)
-                .await
-                .expect("User session from redis.");
-            return Ok(user);
-        } else {
-            Ok(read_from_db(user_id.try_into().unwrap())
-                .await
-                .expect("User session from redis."))
+    ) -> Result<CurrentUser, anyhow::Error> {        
+        match load_user_session(user_id).await {
+            Ok(u) => return Ok(u),
+            Err(_) => match read_from_db(user_id.try_into().unwrap()).await {
+                Ok(u) => return Ok(u),
+                Err(error) => return Err(anyhow::anyhow!(error))
+            }
         }
     }
 

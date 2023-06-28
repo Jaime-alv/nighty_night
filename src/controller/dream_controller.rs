@@ -14,9 +14,10 @@ use crate::{
     model::session_model::CurrentUser,
     service::{
         dream_service::{
-            filter_dreams_by_date_service, get_all_dreams_from_baby_service, post_dream_service, dream_summary_service,
+            dream_summary_service, filter_dreams_by_date_service, get_all_dreams_from_baby_service,
+            post_dream_service,
         },
-        response_service::forbidden,
+        response_service::{empty_query, forbidden},
         session_service::has_baby,
     },
 };
@@ -65,11 +66,13 @@ async fn dream_summary(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     Query(date): Query<HashMap<String, String>>,
 ) -> impl IntoResponse {
-    let string_date = date.get("date").unwrap();
     if has_baby(auth, baby_id).await {
-        match dream_summary_service(baby_id, string_date).await {
-            Ok(dreams) => Ok(Json(dreams)),
-            Err(error) => Err(error),
+        match date.get("date") {
+            Some(string_date) => match dream_summary_service(baby_id, string_date).await {
+                Ok(dreams) => Ok(Json(dreams)),
+                Err(error) => Err(error),
+            },
+            None => Err(empty_query()),
         }
     } else {
         Err(forbidden().await)
