@@ -14,7 +14,7 @@ impl From<Baby> for BabyDto {
     }
 }
 
-pub async fn babies_to_babies_dto(babies: Vec<Baby>) -> Vec<BabyDto> {
+pub fn babies_to_babies_dto(babies: Vec<Baby>) -> Vec<BabyDto> {
     babies.into_iter().map(|b| BabyDto::from(b)).collect()
 }
 

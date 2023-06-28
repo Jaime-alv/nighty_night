@@ -16,7 +16,7 @@ impl From<Dream> for DreamDto {
     }
 }
 
-pub async fn from_dream_to_dream_dto_vector(dreams: Vec<Dream>) -> Vec<DreamDto> {
+pub fn from_dream_to_dream_dto_vector(dreams: Vec<Dream>) -> Vec<DreamDto> {
     dreams
         .into_iter()
         .map(|dream| DreamDto::from(dream))

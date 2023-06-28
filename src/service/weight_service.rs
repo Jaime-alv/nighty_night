@@ -21,7 +21,7 @@ pub async fn post_weight_service(
 
 pub async fn get_weights_service(baby_id: i32) -> Result<Vec<WeightDto>, ApiError> {
     match get_all_weights_from_baby(baby_id).await {
-        Ok(measures) => Ok(from_weight_to_weight_dto_vector(measures).await),
+        Ok(measures) => Ok(from_weight_to_weight_dto_vector(measures)),
         Err(error) => Err(ApiError::DBError(error)),
     }
 }
