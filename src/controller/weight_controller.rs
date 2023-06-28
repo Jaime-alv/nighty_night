@@ -18,7 +18,7 @@ async fn get_weights(
             Err(error) => Err(error),
         }
     } else {
-        Err(forbidden().await)
+        Err(forbidden())
     }
 }
 
@@ -30,6 +30,6 @@ async fn post_weight(
     if has_baby(auth, baby_id).await {
         post_weight_service(new_measure, baby_id).await
     } else {
-        Err(forbidden().await)
+        Err(forbidden())
     }
 }

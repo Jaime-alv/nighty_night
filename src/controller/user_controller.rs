@@ -47,7 +47,7 @@ async fn get_all_users(
             Err(error) => Err(error),
         }
     } else {
-        Err(forbidden().await)
+        Err(forbidden())
     }
 }
 

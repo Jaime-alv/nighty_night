@@ -4,13 +4,12 @@ pub fn now() -> NaiveDateTime {
     Utc::now().naive_local()
 }
 
-pub fn to_date_time(date_time: &str) -> NaiveDateTime {
+pub fn to_date_time(date_time: &str) -> Result<NaiveDateTime, chrono::ParseError> {
     NaiveDateTime::parse_from_str(&date_time, "%Y-%m-%d %H:%M")
-        .expect("Date format should be like: %Y-%m-%d %H:%M")
 }
 
-pub fn to_date(date: &str) -> NaiveDate {
-    NaiveDate::parse_from_str(&date, "%Y-%m-%d").expect("Date format should be like: %Y-%m-%d")
+pub fn to_date(date: &str) -> Result<NaiveDate, chrono::ParseError> {
+    NaiveDate::parse_from_str(&date, "%Y-%m-%d")
 }
 
 pub fn format_date(date: NaiveDate) -> String {
@@ -36,18 +35,15 @@ pub fn format_duration(elapsed_minutes: i64) -> String {
     // NaiveTime::from_hms_opt(hours, minutes, 0).expect("Invalid time format.")
 }
 
-
 /// Iter between to dates, excluding upper date.
-/// 
+///
 /// From 2023-06-06 To 2023-06-10:
-/// 
+///
 /// Vec \[2023-06-06, 2023-06-07, 2023-06-08, 2023-06-09\]
 pub fn iter_between_to_dates(from: NaiveDate, to: NaiveDate) -> Vec<NaiveDate> {
     let days: usize = ((to - from).num_days()).try_into().unwrap();
     dbg!(days);
-    from.iter_days()
-        .take(days)
-        .collect()
+    from.iter_days().take(days).collect()
 }
 
 #[cfg(test)]
@@ -60,14 +56,14 @@ mod test_timestamp {
     fn test_date() {
         assert_eq!(
             NaiveDate::from_ymd_opt(2023, 6, 7).unwrap(),
-            to_date("2023-06-07")
-        )
+            to_date("2023-06-07").unwrap()
+        );
     }
 
     #[test]
     fn test_parse_date() {
         assert_eq!(
-            to_date_time("2023-03-23 23:31"),
+            to_date_time("2023-03-23 23:31").unwrap(),
             NaiveDate::from_ymd_opt(2023, 3, 23)
                 .unwrap()
                 .and_hms_opt(23, 31, 00)
@@ -79,15 +75,15 @@ mod test_timestamp {
     async fn test_compare_dates() {
         assert!(
             date_is_higher(
-                to_date_time("2023-03-23 23:31"),
-                to_date_time("2023-03-23 23:32")
+                to_date_time("2023-03-23 23:31").unwrap(),
+                to_date_time("2023-03-23 23:32").unwrap()
             )
             .await
         );
         assert!(
             !date_is_higher(
-                to_date_time("2023-03-23 23:33"),
-                to_date_time("2023-03-23 23:32")
+                to_date_time("2023-03-23 23:33").unwrap(),
+                to_date_time("2023-03-23 23:32").unwrap()
             )
             .await
         );

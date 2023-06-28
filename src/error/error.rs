@@ -16,6 +16,7 @@ pub enum ApiError {
     NoEntryFound,
     NoActiveUser,
     EmptyQuery,
+    DateFormat(chrono::ParseError),
     DBError(Error),
     Redis(RedisError),
     Generic500Error(String),
@@ -37,6 +38,7 @@ impl ApiError {
             ApiError::Forbidden => (StatusCode::FORBIDDEN, String::from("Forbidden.")),
             ApiError::NoActiveUser => (StatusCode::UNAUTHORIZED, String::from("User is not active.")),
             ApiError::EmptyQuery => (StatusCode::BAD_REQUEST, String::from("Query option required.")),
+            ApiError::DateFormat(msg) => (StatusCode::BAD_REQUEST, String::from(msg.to_string())),
 
             // 50X Error
             ApiError::DBError(error) => (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()),
