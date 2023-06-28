@@ -36,6 +36,20 @@ pub fn format_duration(elapsed_minutes: i64) -> String {
     // NaiveTime::from_hms_opt(hours, minutes, 0).expect("Invalid time format.")
 }
 
+
+/// Iter between to dates, excluding upper date.
+/// 
+/// From 2023-06-06 To 2023-06-10:
+/// 
+/// Vec \[2023-06-06, 2023-06-07, 2023-06-08, 2023-06-09\]
+pub fn iter_between_to_dates(from: NaiveDate, to: NaiveDate) -> Vec<NaiveDate> {
+    let days: usize = ((to - from).num_days()).try_into().unwrap();
+    dbg!(days);
+    from.iter_days()
+        .take(days)
+        .collect()
+}
+
 #[cfg(test)]
 mod test_timestamp {
     use chrono::NaiveDate;
@@ -98,5 +112,17 @@ mod test_timestamp {
             format_time(NaiveTime::from_hms_opt(0, 0, 0).unwrap())
         );
     }
-}
 
+    #[test]
+    fn test_iter_days() {
+        let d1 = NaiveDate::from_ymd_opt(2023, 6, 6).unwrap();
+        let d2 = NaiveDate::from_ymd_opt(2023, 6, 9).unwrap();
+        let week = Vec::from([
+            NaiveDate::from_ymd_opt(2023, 6, 6).unwrap(),
+            NaiveDate::from_ymd_opt(2023, 6, 7).unwrap(),
+            NaiveDate::from_ymd_opt(2023, 6, 8).unwrap(),
+            NaiveDate::from_ymd_opt(2023, 6, 9).unwrap(),
+        ]);
+        assert_eq!(iter_between_to_dates(d1, d2), week);
+    }
+}
