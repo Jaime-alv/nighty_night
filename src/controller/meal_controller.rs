@@ -26,6 +26,7 @@ pub(super) fn route_meal() -> Router {
     Router::new()
         .route("/:baby_id/meals", get(get_meals).post(post_meal))
         .route("/:baby_id/meals/summary", get(meal_summary))
+        .route("/:baby_id/meals/summary/range", get(meal_summary_range))
 }
 
 async fn get_meals(
@@ -45,7 +46,7 @@ async fn get_meals(
             },
         }
     } else {
-        Err(forbidden().await)
+        Err(forbidden())
     }
 }
 
@@ -57,7 +58,7 @@ async fn post_meal(
     if has_baby(auth, baby_id).await {
         post_meal_service(new_meal, baby_id).await
     } else {
-        Err(forbidden().await)
+        Err(forbidden())
     }
 }
 
@@ -75,6 +76,24 @@ async fn meal_summary(
             None => Err(empty_query()),
         }
     } else {
-        Err(forbidden().await)
+        Err(forbidden())
+    }
+}
+
+async fn meal_summary_range(
+    Path(baby_id): Path<i32>,
+    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
+    Query(date): Query<HashMap<String, String>>,
+) -> impl IntoResponse {
+    if has_baby(auth, baby_id).await {
+        match date.get("from") {
+            Some(from_date) => match meal_summary_service(baby_id, from_date).await {
+                Ok(meals) => Ok(Json(meals)),
+                Err(error) => Err(error),
+            },
+            None => Err(empty_query()),
+        }
+    } else {
+        Err(forbidden())
     }
 }

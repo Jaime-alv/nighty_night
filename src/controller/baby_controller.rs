@@ -49,7 +49,7 @@ async fn register_baby(
             Err(error) => Err(error),
         }
     } else {
-        Err(forbidden().await)
+        Err(forbidden())
     }
 }
 
@@ -84,6 +84,6 @@ async fn get_all_babies(
             Err(error) => Err(error),
         }
     } else {
-        Err(forbidden().await)
+        Err(forbidden())
     }
 }

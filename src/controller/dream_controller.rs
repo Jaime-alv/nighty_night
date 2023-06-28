@@ -45,7 +45,7 @@ async fn get_dreams(
             },
         }
     } else {
-        Err(forbidden().await)
+        Err(forbidden())
     }
 }
 
@@ -57,7 +57,7 @@ async fn post_dream(
     if has_baby(auth, baby_id).await {
         post_dream_service(new_dream, baby_id).await
     } else {
-        Err(forbidden().await)
+        Err(forbidden())
     }
 }
 
@@ -75,6 +75,6 @@ async fn dream_summary(
             None => Err(empty_query()),
         }
     } else {
-        Err(forbidden().await)
+        Err(forbidden())
     }
 }

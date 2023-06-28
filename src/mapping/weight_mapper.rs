@@ -10,6 +10,6 @@ impl From<Weight> for WeightDto {
     }
 }
 
-pub async fn from_weight_to_weight_dto_vector(weights: Vec<Weight>) -> Vec<WeightDto> {
+pub fn from_weight_to_weight_dto_vector(weights: Vec<Weight>) -> Vec<WeightDto> {
     weights.into_iter().map(|value| value.into()).collect()
 }

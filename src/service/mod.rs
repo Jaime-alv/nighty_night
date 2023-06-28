@@ -6,3 +6,4 @@ pub mod meal_service;
 pub mod dream_service;
 pub mod response_service;
 pub mod weight_service;
+pub(self) mod date_service;
