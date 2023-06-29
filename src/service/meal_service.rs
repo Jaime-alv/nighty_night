@@ -1,19 +1,16 @@
 use crate::{
     data::meal_dto::{MealDto, MealSummary, NewMealDto},
     error::error::ApiError,
-    mapping::meal_mapper::from_meal_to_meal_dto_vector,
+    mapping::meal_mapper::{from_meal_to_meal_dto_vector, VecMeal},
     model::meals_model::InsertableMeal,
     repository::meal_repository::{find_meals_by_date, get_all_meals_from_baby, ingest_meal},
     utils::{
-        datetime::{format_date, format_duration, now},
+        datetime::{format_date, format_duration, now, to_date},
         response::Response,
     },
 };
 
-use super::{
-    date_service::{parse_date, uncover_date},
-    response_service::ok,
-};
+use super::{date_service::uncover_date, response_service::ok};
 
 pub async fn post_meal_service(new_meal: NewMealDto, baby_id: i32) -> Result<Response, ApiError> {
     let timestamp = uncover_date(new_meal.date)?;
@@ -24,46 +21,37 @@ pub async fn post_meal_service(new_meal: NewMealDto, baby_id: i32) -> Result<Res
         new_meal.quantity,
         timestamp_to_time,
     );
-    match ingest_meal(meal).await {
-        Ok(_) => Ok(ok("New meal added")),
-        Err(error) => Err(ApiError::DBError(error)),
-    }
+    ingest_meal(meal).await?;
+    Ok(ok("New meal added"))
 }
 
 pub async fn get_meals_service(baby_id: i32) -> Result<Vec<MealDto>, ApiError> {
-    match get_all_meals_from_baby(baby_id).await {
-        Ok(meals) => Ok(from_meal_to_meal_dto_vector(meals)),
-        Err(error) => Err(ApiError::DBError(error)),
-    }
+    let meals =  get_all_meals_from_baby(baby_id).await?;
+    Ok(VecMeal::new(meals).into())
 }
 
 pub async fn filter_meals_by_date_service(
     baby_id: i32,
     string_date: &str,
 ) -> Result<Vec<MealDto>, ApiError> {
-    let date = parse_date(string_date)?;
-    match find_meals_by_date(baby_id, date).await {
-        Ok(meals) => Ok(from_meal_to_meal_dto_vector(meals)),
-        Err(error) => Err(ApiError::DBError(error)),
-    }
+    let date = to_date(string_date)?;
+    let meals = find_meals_by_date(baby_id, date).await?;
+    Ok(VecMeal::new(meals).into())
 }
 
 pub async fn meal_summary_service(
     baby_id: i32,
     string_date: &str,
 ) -> Result<MealSummary, ApiError> {
-    let date = parse_date(string_date)?;
-    let selected_meals = match find_meals_by_date(baby_id, date).await {
-        Ok(dreams) => dreams,
-        Err(error) => return Err(ApiError::DBError(error)),
-    };
+    let date = to_date(string_date)?;
+    let selected_meals = find_meals_by_date(baby_id, date).await?;
     let size = selected_meals.len();
     let formula_feedings = selected_meals
         .iter()
         .map(|meal| meal.quantity())
         .reduce(|acc, feeds| acc + feeds)
         .unwrap();
-    let duration = selected_meals
+    let sum_duration = selected_meals
         .into_iter()
         .map(|meal| meal.elapsed())
         .reduce(|acc, e| acc.checked_add(&e).unwrap())
@@ -71,7 +59,7 @@ pub async fn meal_summary_service(
     Ok(MealSummary {
         date: format_date(date),
         total_feedings: size,
-        nursing_time: format_duration(duration.num_minutes()),
+        nursing_time: format_duration(sum_duration.num_minutes()),
         formula: formula_feedings,
     })
 }
