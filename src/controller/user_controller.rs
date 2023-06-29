@@ -2,14 +2,15 @@ use crate::{
     data::user_dto::{FindUserDto, LoginDto, NewUserDto},
     model::session_model::CurrentUser,
     service::{
-        session_service::{login_session, is_admin},
+        response_service::forbidden,
+        session_service::{is_admin, login_session},
         user_service::{
             create_user_service, find_user_service, get_all_users_service, login_service,
-        }, response_service::forbidden,
+        },
     },
 };
 use axum::{
-    response::{IntoResponse},
+    response::IntoResponse,
     routing::{get, post},
     Json, Router,
 };
@@ -30,12 +31,13 @@ async fn register_new_user(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     Json(new_user): Json<NewUserDto>,
 ) -> impl IntoResponse {
-        match create_user_service(new_user).await {
-            Ok(user) => {
-                login_session(auth, user.1).await;
-                Ok(Json(user.0))},
-            Err(error) => Err(error),
+    match create_user_service(new_user).await {
+        Ok(user) => {
+            login_session(auth, user.1).await?;
+            Ok(Json(user.0))
         }
+        Err(error) => Err(error),
+    }
 }
 
 async fn get_all_users(
@@ -62,14 +64,13 @@ async fn login_user(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     Json(login): Json<LoginDto>,
 ) -> impl IntoResponse {
-        match login_service(login).await {
-            Ok(user) => {
-                login_session(auth, user.1).await;
-
-                Ok(Json(user.0))
-            }
-            Err(error) => Err(error),
+    match login_service(login).await {
+        Ok(user) => {
+            login_session(auth, user.1).await?;
+            Ok(Json(user.0))
         }
+        Err(error) => Err(error),
+    }
 }
 
 async fn test_welcome(
@@ -78,6 +79,7 @@ async fn test_welcome(
     auth.cache_clear_user(auth.id);
     format!(
         "Hello, {}.\n>>>This is a debug endpoint.<<<\nCredentials:\n{:#?}",
-        auth.current_user.clone().unwrap().username(), auth.current_user.unwrap()
+        auth.current_user.clone().unwrap().username(),
+        auth.current_user.unwrap()
     )
 }

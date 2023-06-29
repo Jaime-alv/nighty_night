@@ -2,7 +2,7 @@ use axum::async_trait;
 use axum_session_auth::Authentication;
 use tracing::error;
 
-use crate::service::session_service::{load_user_session, read_from_db};
+use crate::service::session_service::{load_user_session, read_from_db, save_user_session};
 
 use super::role_model::Rol;
 
@@ -94,13 +94,11 @@ impl Authentication<CurrentUser, i64, redis::Client> for CurrentUser {
         _pool: Option<&redis::Client>,
     ) -> Result<CurrentUser, anyhow::Error> {
         match load_user_session(user_id).await {
-            Ok(u) => return Ok(u),
-            Err(e) => {
-                error!("{e}");
-                match read_from_db(user_id.try_into().unwrap()).await {
-                    Ok(u) => return Ok(u),
-                    Err(error) => return Err(anyhow::anyhow!(error)),
-                }
+            Ok(u) => Ok(u),
+            Err(_) => {
+                let current_user = read_from_db(user_id.try_into().unwrap()).await?;
+                save_user_session(&current_user).await?;
+                Ok(current_user)
             }
         }
     }

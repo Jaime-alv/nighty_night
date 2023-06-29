@@ -28,22 +28,37 @@ impl ApiError {
         match self {
             // 40X Error
             ApiError::EmptyBody => (StatusCode::BAD_REQUEST, String::from("Empty body.")),
-            ApiError::IncorrectPassword => {
-                (StatusCode::BAD_REQUEST, String::from("Incorrect username or password."))
-            }
+            ApiError::IncorrectPassword => (
+                StatusCode::BAD_REQUEST,
+                String::from("Incorrect username or password."),
+            ),
             ApiError::NoUser => (StatusCode::BAD_REQUEST, String::from("No user found.")),
-            ApiError::DuplicateUser => (StatusCode::BAD_REQUEST, String::from("User already exists.")),
+            ApiError::DuplicateUser => (
+                StatusCode::BAD_REQUEST,
+                String::from("User already exists."),
+            ),
             ApiError::Generic400Error(msg) => (StatusCode::BAD_REQUEST, String::from(msg)),
             ApiError::NoEntryFound => (StatusCode::BAD_REQUEST, String::from("No entry found.")),
             ApiError::Forbidden => (StatusCode::FORBIDDEN, String::from("Forbidden.")),
-            ApiError::NoActiveUser => (StatusCode::UNAUTHORIZED, String::from("User is not active.")),
-            ApiError::EmptyQuery => (StatusCode::BAD_REQUEST, String::from("Query option required.")),
+            ApiError::NoActiveUser => (
+                StatusCode::UNAUTHORIZED,
+                String::from("User is not active."),
+            ),
+            ApiError::EmptyQuery => (
+                StatusCode::BAD_REQUEST,
+                String::from("Query option required."),
+            ),
             ApiError::DateFormat(msg) => (StatusCode::BAD_REQUEST, String::from(msg.to_string())),
 
             // 50X Error
             ApiError::DBError(error) => (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()),
-            ApiError::Generic500Error(msg) => (StatusCode::INTERNAL_SERVER_ERROR, String::from(msg)),
-            ApiError::Redis(error) => (StatusCode::INTERNAL_SERVER_ERROR, format!("Redis error: {error}")),
+            ApiError::Generic500Error(msg) => {
+                (StatusCode::INTERNAL_SERVER_ERROR, String::from(msg))
+            }
+            ApiError::Redis(error) => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("Redis error: {error}"),
+            ),
         }
     }
 }
@@ -58,11 +73,38 @@ impl IntoResponse for ApiError {
     }
 }
 
-
 impl Display for ApiError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let (status_code, msg) = self.get_error();
         let readable_msg = format!("{status_code}: {msg}");
         write!(f, "{}", readable_msg)
+    }
+}
+
+impl From<chrono::ParseError> for ApiError {
+    fn from(value: chrono::ParseError) -> Self {
+        ApiError::DateFormat(value)
+    }
+}
+
+impl From<Error> for ApiError {
+    fn from(value: Error) -> Self {
+        let error = ApiError::DBError(value);
+        tracing::error!("{error}");
+        error
+    }
+}
+
+impl From<RedisError> for ApiError {
+    fn from(value: RedisError) -> Self {
+        let error = ApiError::Redis(value);
+        tracing::error!("{error}");
+        error
+    }
+}
+
+impl From<ApiError> for anyhow::Error {
+    fn from(error: ApiError) -> Self {
+        anyhow::anyhow!(error)
     }
 }

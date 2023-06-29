@@ -1,21 +1,18 @@
-use tracing::error;
-
 use crate::{
     data::{
         traits::Mandatory,
         user_dto::{FindUserDto, LoginDto, NewUserDto, UserDto},
     },
     error::error::ApiError,
-    mapping::user_mapper::users_to_users_dto,
+    mapping::user_mapper::VecUser,
     model::{role_model::Rol, user_model::User},
     repository::user_repository::{
         create_user, load_user_by_id, load_user_by_username, query_users,
-    }, utils::validator::{validate_fields, valid_password},
+    },
+    utils::validator::{valid_password, validate_fields},
 };
 
-use super::{
-    association_service::add_rol_to_user_service,
-};
+use super::association_service::add_rol_to_user_service;
 
 pub async fn create_user_service(new_user: NewUserDto) -> Result<(UserDto, i32), ApiError> {
     if validate_fields(&new_user.data()) {
@@ -24,19 +21,9 @@ pub async fn create_user_service(new_user: NewUserDto) -> Result<(UserDto, i32),
     if valid_password(&new_user.password) {
         return Err(ApiError::Generic400Error("Password too short.".into()));
     }
-    match create_user(new_user).await {
-        Ok(user) => {
-            match assign_rol_as_user(user.id()).await {
-                Ok(_) => (),
-                Err(msg) => return Err(msg),
-            };
-            Ok((UserDto::from(&user), user.id()))
-        }
-        Err(msg) => {
-            error!("{msg}");
-            Err(ApiError::DBError(msg))
-        }
-    }
+    let user = create_user(new_user).await?;
+    assign_rol_as_user(user.id()).await?;
+    Ok((UserDto::from(&user), user.id()))
 }
 
 async fn assign_rol_as_user(user_id: i32) -> Result<(), ApiError> {
@@ -44,20 +31,13 @@ async fn assign_rol_as_user(user_id: i32) -> Result<(), ApiError> {
 }
 
 pub async fn get_all_users_service() -> Result<Vec<UserDto>, ApiError> {
-    match query_users().await {
-        Ok(users) => Ok(users_to_users_dto(users)),
-        Err(msg) => {
-            error!("{msg}");
-            Err(ApiError::DBError(msg))
-        }
-    }
+    let users = query_users().await?;
+    Ok(VecUser::new(users).into())
 }
 
 pub async fn find_user_service(user: FindUserDto) -> Result<UserDto, ApiError> {
-    match load_user_by_username(&user.username).await {
-        Ok(u) => return Ok(UserDto::from(u)),
-        Err(_) => return Err(ApiError::NoUser),
-    }
+    let user = load_user_by_username(&user.username).await?;
+    Ok(user.into())
 }
 
 pub async fn login_service(login: LoginDto) -> Result<(UserDto, i32), ApiError> {
@@ -78,15 +58,9 @@ pub async fn login_service(login: LoginDto) -> Result<(UserDto, i32), ApiError> 
 }
 
 pub async fn find_user_by_id_service(user_id: i32) -> Result<User, ApiError> {
-    match load_user_by_id(user_id).await {
-        Ok(user) => Ok(user),
-        Err(_) => Err(ApiError::NoUser),
-    }
+    Ok(load_user_by_id(user_id).await?)
 }
 
 pub async fn find_user_by_username_service(username: &String) -> Result<User, ApiError> {
-    match load_user_by_username(username).await {
-        Ok(u) => return Ok(u),
-        Err(_) => return Err(ApiError::NoUser),
-    }
+    Ok(load_user_by_username(username).await?)
 }
