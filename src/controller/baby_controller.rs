@@ -14,7 +14,7 @@ use crate::{
     model::session_model::CurrentUser,
     service::{
         baby_service::{find_baby_service, get_all_babies_service, ingest_new_baby},
-        response_service::forbidden,
+        response_service::{forbidden, login_required},
         session_service::{is_admin, update_user_session},
         user_service::find_user_by_username_service,
     },
@@ -49,14 +49,17 @@ async fn register_baby(
             Err(error) => Err(error),
         }
     } else {
-        Err(forbidden())
+        Err(login_required())
     }
 }
 
-async fn find_baby_by_id(Path(baby_id): Path<i32>) -> impl IntoResponse {
+async fn find_baby_by_id(Path(baby_id): Path<i32>, auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>) -> impl IntoResponse {
+    if is_admin(auth) {
     match find_baby_service(baby_id).await {
         Ok(baby) => Ok(Json(baby)),
         Err(error) => Err(error),
+    }} else {
+        Err(forbidden())
     }
 }
 
@@ -78,7 +81,7 @@ async fn _register_baby_with_username(
 async fn get_all_babies(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
 ) -> impl IntoResponse {
-    if is_admin(auth).await {
+    if is_admin(auth) {
         match get_all_babies_service().await {
             Ok(list) => Ok(Json(list)),
             Err(error) => Err(error),

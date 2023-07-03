@@ -16,6 +16,8 @@ pub enum ApiError {
     NoEntryFound,
     NoActiveUser,
     EmptyQuery,
+    NotFound,
+    LoginRequired,
     DateFormat(chrono::ParseError),
     DBError(Error),
     Redis(RedisError),
@@ -49,6 +51,8 @@ impl ApiError {
                 String::from("Query option required."),
             ),
             ApiError::DateFormat(msg) => (StatusCode::BAD_REQUEST, String::from(msg.to_string())),
+            ApiError::NotFound => (StatusCode::NOT_FOUND, String::from("This is not the page you are looking for.")),
+            ApiError::LoginRequired => (StatusCode::UNAUTHORIZED, String::from("Login required.")),
 
             // 50X Error
             ApiError::DBError(error) => (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()),

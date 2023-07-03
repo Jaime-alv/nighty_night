@@ -17,7 +17,7 @@ use crate::{
             dream_summary_service, filter_dreams_by_date_service, get_all_dreams_from_baby_service,
             post_dream_service,
         },
-        response_service::{empty_query, forbidden},
+        response_service::{empty_query, forbidden, login_required},
         session_service::has_baby,
     },
 };
@@ -33,7 +33,9 @@ async fn get_dreams(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     Query(date): Query<HashMap<String, String>>,
 ) -> impl IntoResponse {
-    if has_baby(auth, baby_id).await {
+    if auth.is_anonymous() {
+        Err(login_required())
+    } else if has_baby(auth, baby_id) {
         match date.get("date") {
             Some(d) => match filter_dreams_by_date_service(baby_id, d).await {
                 Ok(dreams) => Ok(Json(dreams)),
@@ -54,7 +56,9 @@ async fn post_dream(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     Json(new_dream): Json<NewDreamDto>,
 ) -> impl IntoResponse {
-    if has_baby(auth, baby_id).await {
+    if auth.is_anonymous() {
+        Err(login_required())
+    } else if has_baby(auth, baby_id) {
         post_dream_service(new_dream, baby_id).await
     } else {
         Err(forbidden())
@@ -66,7 +70,9 @@ async fn dream_summary(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     Query(date): Query<HashMap<String, String>>,
 ) -> impl IntoResponse {
-    if has_baby(auth, baby_id).await {
+    if auth.is_anonymous() {
+        Err(login_required())
+    } else if has_baby(auth, baby_id) {
         match date.get("date") {
             Some(string_date) => match dream_summary_service(baby_id, string_date).await {
                 Ok(dreams) => Ok(Json(dreams)),
