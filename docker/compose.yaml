@@ -1,0 +1,56 @@
+version: '3'
+
+name: nighty_night_web_app
+networks:
+  nighty_night_network:
+    driver: bridge
+volumes:
+  postgres:
+    driver: local
+  redis:
+    driver: local
+services:
+  postgres:
+    image: postgres:latest
+    ports:
+      - '8080:5432'
+    restart: always
+    environment:
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+      - POSTGRES_DB
+    volumes:
+          - postgres:/var/lib/postgresql/data
+          # copy the sql script to create tables
+          - ../migrations/2023-05-25-174758_create_tables/up.sql:/docker-entrypoint-initdb.d/create_tables.sql
+    networks:
+      - nighty_night_network
+  redis:
+    image: 'redis:latest'
+    restart: always
+    ports:
+      - '8081:6379'
+    command: redis-server --loglevel warning
+    volumes: 
+      - redis:/data
+    networks:
+      - nighty_night_network
+  nighty_night_app:
+    image: 'nighty_night:latest'
+    ports:
+      - '3000:3000'
+    environment:
+      - BRANCH
+      - DATABASE_URL
+      - LOGGER_LEVEL
+      - ADDRESS
+      - PORT
+      - REDIS_ADDRESS
+      - REDIS_PORT
+      - SESSION_DURATION
+    networks:
+      - nighty_night_network
+    depends_on:
+      - postgres
+      - redis
+    restart: on-failure:3
