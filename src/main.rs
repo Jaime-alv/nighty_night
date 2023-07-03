@@ -11,8 +11,9 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 use app::create_app_route;
-use dotenvy::dotenv;
+use std::path::Path;
 use tracing::info;
 
 use crate::{app::shutdown_signal, configuration::settings::Setting, core_checks::checking_status};
@@ -33,7 +34,7 @@ mod utils;
 #[tokio::main]
 async fn main() {
     if Setting::Branch.get().eq("local") {
-        match dotenv() {
+        match dotenvy::from_path(Path::new("./key/local.env")) {
             Ok(_) => (),
             Err(error) => panic!("{error}"),
         }
