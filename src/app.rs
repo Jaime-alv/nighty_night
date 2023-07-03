@@ -1,4 +1,4 @@
-use axum::{extract::MatchedPath, Router};
+use axum::{extract::MatchedPath, Router, response::IntoResponse};
 
 use axum_session::{SessionLayer, SessionRedisPool, SessionStore};
 use axum_session_auth::AuthSessionLayer;
@@ -13,7 +13,7 @@ use crate::{
     controller,
     model::session_model::CurrentUser,
     repository::connection_redis::{auth_config, poll, private_cookies_session, session_config},
-    utils::logger::setup_logger,
+    utils::logger::setup_logger, service::response_service::not_found,
 };
 
 /// Create app object with routes and layers.
@@ -61,7 +61,7 @@ pub(super) async fn create_app_route() -> Router {
             AuthSessionLayer::<CurrentUser, i64, SessionRedisPool, redis::Client>::new(Some(poll))
                 .with_config(auth_config()),
         )
-        .layer(SessionLayer::new(session_store));
+        .layer(SessionLayer::new(session_store)).fallback(error_404);
     app
 }
 
@@ -75,4 +75,8 @@ pub async fn shutdown_signal() {
         _ = ctrl_c=> {},
 
     }
+}
+
+async fn error_404() -> impl IntoResponse {
+    not_found()
 }
