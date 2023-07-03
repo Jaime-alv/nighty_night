@@ -2,7 +2,7 @@
 /Cargo.lock
 
 ### Env
-.env
+*.env
 .Environmet/
 
 ### Documents ###
