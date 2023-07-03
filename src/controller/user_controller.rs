@@ -43,7 +43,7 @@ async fn register_new_user(
 async fn get_all_users(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
 ) -> impl IntoResponse {
-    if is_admin(auth).await {
+    if is_admin(auth) {
         match get_all_users_service().await {
             Ok(list) => Ok(Json(list)),
             Err(error) => Err(error),

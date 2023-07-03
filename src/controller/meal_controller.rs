@@ -17,7 +17,7 @@ use crate::{
             filter_meals_by_date_service, get_meals_service, meal_summary_service,
             post_meal_service,
         },
-        response_service::{empty_query, forbidden},
+        response_service::{empty_query, forbidden, login_required},
         session_service::has_baby,
     },
 };
@@ -34,7 +34,9 @@ async fn get_meals(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     Query(date): Query<HashMap<String, String>>,
 ) -> impl IntoResponse {
-    if has_baby(auth, baby_id).await {
+    if auth.is_anonymous() {
+        Err(login_required())
+    } else if has_baby(auth, baby_id) {
         match date.get("date") {
             Some(d) => match filter_meals_by_date_service(baby_id, d).await {
                 Ok(meals) => Ok(Json(meals)),
@@ -55,7 +57,9 @@ async fn post_meal(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     Json(new_meal): Json<NewMealDto>,
 ) -> impl IntoResponse {
-    if has_baby(auth, baby_id).await {
+    if auth.is_anonymous() {
+        Err(login_required())
+    } else if has_baby(auth, baby_id) {
         post_meal_service(new_meal, baby_id).await
     } else {
         Err(forbidden())
@@ -67,7 +71,9 @@ async fn meal_summary(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     Query(date): Query<HashMap<String, String>>,
 ) -> impl IntoResponse {
-    if has_baby(auth, baby_id).await {
+    if auth.is_anonymous() {
+        Err(login_required())
+    } else if has_baby(auth, baby_id) {
         match date.get("date") {
             Some(string_date) => match meal_summary_service(baby_id, string_date).await {
                 Ok(meals) => Ok(Json(meals)),
@@ -85,7 +91,9 @@ async fn meal_summary_range(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     Query(date): Query<HashMap<String, String>>,
 ) -> impl IntoResponse {
-    if has_baby(auth, baby_id).await {
+    if auth.is_anonymous() {
+        Err(login_required())
+    } else if has_baby(auth, baby_id) {
         match date.get("from") {
             Some(from_date) => match meal_summary_service(baby_id, from_date).await {
                 Ok(meals) => Ok(Json(meals)),

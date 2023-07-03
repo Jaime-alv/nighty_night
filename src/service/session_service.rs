@@ -97,13 +97,13 @@ fn user_redis_key(id: i64) -> String {
     format!("user_{}", id)
 }
 
-pub async fn is_admin(
+pub fn is_admin(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
 ) -> bool {
     auth.current_user.unwrap().is_admin()
 }
 
-pub async fn has_baby(
+pub fn has_baby(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     baby_id: i32,
 ) -> bool {

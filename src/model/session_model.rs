@@ -1,6 +1,5 @@
 use axum::async_trait;
 use axum_session_auth::Authentication;
-use tracing::error;
 
 use crate::service::session_service::{load_user_session, read_from_db, save_user_session};
 
@@ -104,7 +103,7 @@ impl Authentication<CurrentUser, i64, redis::Client> for CurrentUser {
     }
 
     fn is_authenticated(&self) -> bool {
-        self.roles.contains(&Rol::User)
+        !self.anonymous
     }
 
     fn is_active(&self) -> bool {
