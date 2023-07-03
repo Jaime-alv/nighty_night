@@ -17,7 +17,9 @@ It has a session service provided by Redis. The main database is in PostgreSQL.
 
 ## How to run it
 
-### DB
+### Manual installation
+
+#### DB
 
 Set up a redis and postgreSQL servers.
 
@@ -37,22 +39,29 @@ Or run both commands at same time with:
 sudo service redis-server start && sudo service postgresql start
 ```
 
-### .ENV
+#### .ENV
 
-Build an .env file in the root folder with these environments variables:
+Build an .env file inside `./key` folder with these environments variables:
 
 ```.env
-BRANCH="local"
-DATABASE_URL=postgres://{username}:{password}@localhost/{db_name}
+BRANCH=local
+POSTGRES_PASSWORD=1234
+POSTGRES_USER=dba
+POSTGRES_DB=nighty_night_db
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
 LOGGER_LEVEL=debug
-ADDRESS=127.0.0.0
+ADDRESS=127.0.0.1
 PORT=3000
 REDIS_ADDRESS=127.0.0.1
 REDIS_PORT=6379
 SESSION_DURATION=600
 ```
 
-### Diesel-cli
+Modify ports accordingly. This is an example with default ports. Docker compose runs on ports 8080 for postgreSQL and 8081 for redis.
+
+#### Diesel-cli
 
 Install [libpq](https://www.postgresql.org/docs/current/libpq.html)
 
@@ -73,7 +82,7 @@ run migrations:
 diesel migration run
 ```
 
-### CLI
+#### CLI
 
 Launch application
 
@@ -82,6 +91,59 @@ Launch application
 `exec ./target/release/nighty_night`
 
 Test Endpoint => <http://127.0.0.0:3000/api/auth>
+
+### Docker
+
+#### Build docker image
+
+```bash
+docker build -t nighty_night:latest -f ./docker/Dockerfile .
+```
+
+Optional:
+
+```bash
+docker run --env-file .env -d -p 3000:3000 --name rs nighty_night:latest
+```
+
+#### Run compose image
+
+```bash
+docker compose --env-file ./key/docker.env -f ./docker/compose.yaml up -d
+```
+
+#### Stop docker compose
+
+```bash
+docker compose -f ./docker/compose.yaml stop
+```
+
+#### Delete docker compose
+
+```bash
+docker compose -f ./docker/compose.yaml down
+```
+
+### Docker flags
+
+-e = environment variable
+
+-d = container runs as a background application
+
+-p =  maps container ports to host ports
+
+--rm = will delete container after stopping the app
+
+--name = image name
+
+--env-file = path to .env file
+
+## Default users
+
+| Rol   | Username | Password  |
+| ----- | -------- | --------- |
+| Guest | guest    | anonymous |
+| Admin | admin    | admin     |
 
 ## Endpoints
 
@@ -138,7 +200,7 @@ Proposed layout.
 - [ ] Update fields.
 - [X] Elapsed times.
 - [ ] Recovery system.
-- [ ] Docker.
+- [X] Docker.
 - [ ] Kubernetes.
 
 This layout is not set in stone. It can, and possibly will, change, neither they're in order.
