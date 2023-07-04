@@ -17,8 +17,8 @@ use crate::{
             dream_summary_service, filter_dreams_by_date_service, get_all_dreams_from_baby_service,
             post_dream_service,
         },
-        response_service::{empty_query, forbidden, login_required},
-        session_service::has_baby,
+        session_service::authorize_and_has_baby,
+        util_service::parse_query_field,
     },
 };
 
@@ -33,21 +33,16 @@ async fn get_dreams(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     Query(date): Query<HashMap<String, String>>,
 ) -> impl IntoResponse {
-    if auth.is_anonymous() {
-        Err(login_required())
-    } else if has_baby(auth, baby_id) {
-        match date.get("date") {
-            Some(d) => match filter_dreams_by_date_service(baby_id, d).await {
-                Ok(dreams) => Ok(Json(dreams)),
-                Err(error) => Err(error),
-            },
-            None => match get_all_dreams_from_baby_service(baby_id).await {
-                Ok(dreams) => Ok(Json(dreams)),
-                Err(error) => Err(error),
-            },
-        }
-    } else {
-        Err(forbidden())
+    authorize_and_has_baby(auth, baby_id)?;
+    match date.get("date") {
+        Some(d) => match filter_dreams_by_date_service(baby_id, d).await {
+            Ok(dreams) => Ok(Json(dreams)),
+            Err(error) => Err(error),
+        },
+        None => match get_all_dreams_from_baby_service(baby_id).await {
+            Ok(dreams) => Ok(Json(dreams)),
+            Err(error) => Err(error),
+        },
     }
 }
 
@@ -56,13 +51,8 @@ async fn post_dream(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     Json(new_dream): Json<NewDreamDto>,
 ) -> impl IntoResponse {
-    if auth.is_anonymous() {
-        Err(login_required())
-    } else if has_baby(auth, baby_id) {
-        post_dream_service(new_dream, baby_id).await
-    } else {
-        Err(forbidden())
-    }
+    authorize_and_has_baby(auth, baby_id)?;
+    post_dream_service(new_dream, baby_id).await
 }
 
 async fn dream_summary(
@@ -70,17 +60,10 @@ async fn dream_summary(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     Query(date): Query<HashMap<String, String>>,
 ) -> impl IntoResponse {
-    if auth.is_anonymous() {
-        Err(login_required())
-    } else if has_baby(auth, baby_id) {
-        match date.get("date") {
-            Some(string_date) => match dream_summary_service(baby_id, string_date).await {
-                Ok(dreams) => Ok(Json(dreams)),
-                Err(error) => Err(error),
-            },
-            None => Err(empty_query()),
-        }
-    } else {
-        Err(forbidden())
+    authorize_and_has_baby(auth, baby_id)?;
+    let string_date = parse_query_field(date, "date")?;
+    match dream_summary_service(baby_id, &string_date).await {
+        Ok(dreams) => Ok(Json(dreams)),
+        Err(error) => Err(error),
     }
 }

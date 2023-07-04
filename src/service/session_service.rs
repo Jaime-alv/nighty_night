@@ -97,16 +97,43 @@ fn user_redis_key(id: i64) -> String {
     format!("user_{}", id)
 }
 
-pub fn is_admin(
+/// Check if user has admin privileges
+pub fn current_user_is_admin(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
-) -> bool {
-    auth.current_user.unwrap().is_admin()
+) -> Result<(), ApiError> {
+    match auth.current_user.unwrap().is_admin() {
+        true => Ok(()),
+        false => Err(ApiError::Forbidden),
+    }
 }
 
-pub fn has_baby(
+fn has_baby(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     baby_id: i32,
 ) -> bool {
     let babies = auth.current_user.unwrap().baby_id();
     babies.contains(&baby_id)
+}
+
+/// Check if user is authenticated and baby has a relationship with user.
+pub fn authorize_and_has_baby(
+    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
+    baby_id: i32,
+) -> Result<(), ApiError> {
+    if auth.is_anonymous() {
+        return Err(ApiError::LoginRequired);
+    } else if has_baby(auth, baby_id) {
+        Ok(())
+    } else {
+        Err(ApiError::Forbidden)
+    }
+}
+
+pub fn login_required(
+    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>
+) -> Result<(), ApiError> {
+    match auth.is_authenticated() {
+        true => Ok(()),
+        false => Err(ApiError::LoginRequired),
+    }
 }

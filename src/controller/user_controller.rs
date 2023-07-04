@@ -2,8 +2,7 @@ use crate::{
     data::user_dto::{FindUserDto, LoginDto, NewUserDto},
     model::session_model::CurrentUser,
     service::{
-        response_service::forbidden,
-        session_service::{is_admin, login_session},
+        session_service::{current_user_is_admin, login_session},
         user_service::{
             create_user_service, find_user_service, get_all_users_service, login_service,
         },
@@ -43,13 +42,10 @@ async fn register_new_user(
 async fn get_all_users(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
 ) -> impl IntoResponse {
-    if is_admin(auth) {
-        match get_all_users_service().await {
-            Ok(list) => Ok(Json(list)),
-            Err(error) => Err(error),
-        }
-    } else {
-        Err(forbidden())
+    current_user_is_admin(auth)?;
+    match get_all_users_service().await {
+        Ok(list) => Ok(Json(list)),
+        Err(error) => Err(error),
     }
 }
 

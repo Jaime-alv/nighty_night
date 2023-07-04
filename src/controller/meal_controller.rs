@@ -17,8 +17,8 @@ use crate::{
             filter_meals_by_date_service, get_meals_service, meal_summary_service,
             post_meal_service,
         },
-        response_service::{empty_query, forbidden, login_required},
-        session_service::has_baby,
+        session_service::authorize_and_has_baby,
+        util_service::parse_query_field,
     },
 };
 
@@ -34,21 +34,16 @@ async fn get_meals(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     Query(date): Query<HashMap<String, String>>,
 ) -> impl IntoResponse {
-    if auth.is_anonymous() {
-        Err(login_required())
-    } else if has_baby(auth, baby_id) {
-        match date.get("date") {
-            Some(d) => match filter_meals_by_date_service(baby_id, d).await {
-                Ok(meals) => Ok(Json(meals)),
-                Err(error) => Err(error),
-            },
-            None => match get_meals_service(baby_id).await {
-                Ok(meals) => Ok(Json(meals)),
-                Err(error) => Err(error),
-            },
-        }
-    } else {
-        Err(forbidden())
+    authorize_and_has_baby(auth, baby_id)?;
+    match date.get("date") {
+        Some(d) => match filter_meals_by_date_service(baby_id, d).await {
+            Ok(meals) => Ok(Json(meals)),
+            Err(error) => Err(error),
+        },
+        None => match get_meals_service(baby_id).await {
+            Ok(meals) => Ok(Json(meals)),
+            Err(error) => Err(error),
+        },
     }
 }
 
@@ -57,13 +52,8 @@ async fn post_meal(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     Json(new_meal): Json<NewMealDto>,
 ) -> impl IntoResponse {
-    if auth.is_anonymous() {
-        Err(login_required())
-    } else if has_baby(auth, baby_id) {
-        post_meal_service(new_meal, baby_id).await
-    } else {
-        Err(forbidden())
-    }
+    authorize_and_has_baby(auth, baby_id)?;
+    post_meal_service(new_meal, baby_id).await
 }
 
 async fn meal_summary(
@@ -71,18 +61,11 @@ async fn meal_summary(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     Query(date): Query<HashMap<String, String>>,
 ) -> impl IntoResponse {
-    if auth.is_anonymous() {
-        Err(login_required())
-    } else if has_baby(auth, baby_id) {
-        match date.get("date") {
-            Some(string_date) => match meal_summary_service(baby_id, string_date).await {
-                Ok(meals) => Ok(Json(meals)),
-                Err(error) => Err(error),
-            },
-            None => Err(empty_query()),
-        }
-    } else {
-        Err(forbidden())
+    authorize_and_has_baby(auth, baby_id)?;
+    let string_date = parse_query_field(date, "date")?;
+    match meal_summary_service(baby_id, &string_date).await {
+        Ok(meals) => Ok(Json(meals)),
+        Err(error) => Err(error),
     }
 }
 
@@ -91,17 +74,10 @@ async fn meal_summary_range(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     Query(date): Query<HashMap<String, String>>,
 ) -> impl IntoResponse {
-    if auth.is_anonymous() {
-        Err(login_required())
-    } else if has_baby(auth, baby_id) {
-        match date.get("from") {
-            Some(from_date) => match meal_summary_service(baby_id, from_date).await {
-                Ok(meals) => Ok(Json(meals)),
-                Err(error) => Err(error),
-            },
-            None => Err(empty_query()),
-        }
-    } else {
-        Err(forbidden())
+    authorize_and_has_baby(auth, baby_id)?;
+    let from_date = parse_query_field(date, "from")?;
+    match meal_summary_service(baby_id, &from_date).await {
+        Ok(meals) => Ok(Json(meals)),
+        Err(error) => Err(error),
     }
 }
