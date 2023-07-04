@@ -1,8 +1,9 @@
+use axum::Json;
+
 use crate::{
     data::weight_dto::{NewWeightDto, WeightDto},
     error::error::ApiError,
-    mapping::weight_mapper::VecWeight,
-    model::weight_model::InsertableWeight,
+    model::weight_model::{InsertableWeight, Weight},
     repository::weight_repository::{get_all_weights_from_baby, ingest_weight},
     utils::{datetime::to_date, response::Response},
 };
@@ -19,7 +20,11 @@ pub async fn post_weight_service(
     Ok(ok("New measure added"))
 }
 
-pub async fn get_weights_service(baby_id: i32) -> Result<Vec<WeightDto>, ApiError> {
+pub async fn get_weights_service(baby_id: i32) -> Result<Json<Vec<WeightDto>>, ApiError> {
     let measures = get_all_weights_from_baby(baby_id).await?;
-    Ok(VecWeight::new(measures).into())
+    Ok(into_json(measures))
+}
+
+fn into_json(weights: Vec<Weight>) -> Json<Vec<WeightDto>> {
+    Json(weights.into_iter().map(|measure| measure.into()).collect())
 }

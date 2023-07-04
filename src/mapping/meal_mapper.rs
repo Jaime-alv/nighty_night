@@ -11,27 +11,3 @@ impl From<Meal> for MealDto {
         }
     }
 }
-
-pub fn from_meal_to_meal_dto_vector(meals: Vec<Meal>) -> Vec<MealDto> {
-    meals.into_iter().map(|meal| MealDto::from(meal)).collect()
-}
-
-pub struct VecMeal {
-    meals: Vec<Meal>,
-}
-
-impl VecMeal {
-    pub fn new(meals: Vec<Meal>) -> Self {
-        Self { meals }
-    }
-}
-
-impl From<VecMeal> for Vec<MealDto> {
-    fn from(meals: VecMeal) -> Self {
-        meals
-            .meals
-            .into_iter()
-            .map(|meal| MealDto::from(meal))
-            .collect()
-    }
-}

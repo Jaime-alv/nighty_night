@@ -30,23 +30,3 @@ impl From<NewUserDto> for InsertableUser {
         )
     }
 }
-
-pub fn users_to_users_dto(users: Vec<User>) -> Vec<UserDto> {
-    users.into_iter().map(|u| UserDto::from(u)).collect()
-}
-
-pub struct VecUser {
-    users: Vec<User>,
-}
-
-impl VecUser {
-    pub fn new(users: Vec<User>) -> Self {
-        Self { users }
-    }
-}
-
-impl From<VecUser> for Vec<UserDto> {
-    fn from(value: VecUser) -> Self {
-        value.users.into_iter().map(|u| UserDto::from(u)).collect()
-    }
-}

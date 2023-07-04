@@ -12,30 +12,3 @@ impl From<Dream> for DreamDto {
         }
     }
 }
-
-pub fn from_dream_to_dream_dto_vector(dreams: Vec<Dream>) -> Vec<DreamDto> {
-    dreams
-        .into_iter()
-        .map(|dream| DreamDto::from(dream))
-        .collect()
-}
-
-impl From<VecDream> for Vec<DreamDto> {
-    fn from(dreams: VecDream) -> Self {
-        dreams
-            .dreams
-            .into_iter()
-            .map(|dream| DreamDto::from(dream))
-            .collect()
-    }
-}
-
-pub struct VecDream {
-    dreams: Vec<Dream>,
-}
-
-impl VecDream {
-    pub fn new(dreams: Vec<Dream>) -> Self {
-        Self { dreams }
-    }
-}

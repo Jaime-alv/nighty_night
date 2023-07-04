@@ -36,14 +36,8 @@ async fn get_meals(
 ) -> impl IntoResponse {
     authorize_and_has_baby(auth, baby_id)?;
     match date.get("date") {
-        Some(d) => match filter_meals_by_date_service(baby_id, d).await {
-            Ok(meals) => Ok(Json(meals)),
-            Err(error) => Err(error),
-        },
-        None => match get_meals_service(baby_id).await {
-            Ok(meals) => Ok(Json(meals)),
-            Err(error) => Err(error),
-        },
+        Some(d) => filter_meals_by_date_service(baby_id, d).await,
+        None => get_meals_service(baby_id).await,
     }
 }
 
@@ -63,10 +57,7 @@ async fn meal_summary(
 ) -> impl IntoResponse {
     authorize_and_has_baby(auth, baby_id)?;
     let string_date = parse_query_field(date, "date")?;
-    match meal_summary_service(baby_id, &string_date).await {
-        Ok(meals) => Ok(Json(meals)),
-        Err(error) => Err(error),
-    }
+    meal_summary_service(baby_id, &string_date).await
 }
 
 async fn meal_summary_range(
@@ -76,8 +67,5 @@ async fn meal_summary_range(
 ) -> impl IntoResponse {
     authorize_and_has_baby(auth, baby_id)?;
     let from_date = parse_query_field(date, "from")?;
-    match meal_summary_service(baby_id, &from_date).await {
-        Ok(meals) => Ok(Json(meals)),
-        Err(error) => Err(error),
-    }
+    meal_summary_service(baby_id, &from_date).await
 }

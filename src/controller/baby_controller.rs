@@ -43,7 +43,7 @@ async fn register_baby(
     match ingest_new_baby(new_baby, id).await {
         Ok(baby) => {
             update_user_session(&auth.current_user.unwrap()).await?;
-            Ok(Json(baby))
+            Ok(baby)
         }
         Err(error) => Err(error),
     }
@@ -54,10 +54,7 @@ async fn find_baby_by_id(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
 ) -> impl IntoResponse {
     current_user_is_admin(auth)?;
-    match find_baby_service(baby_id).await {
-        Ok(baby) => Ok(Json(baby)),
-        Err(error) => Err(error),
-    }
+    find_baby_service(baby_id).await
 }
 
 async fn _register_baby_with_username(
@@ -66,18 +63,12 @@ async fn _register_baby_with_username(
 ) -> impl IntoResponse {
     let user = user.get("username").expect("Expected username.");
     let current_user = find_user_by_username_service(user).await?;
-    match ingest_new_baby(new_baby, current_user.id()).await {
-        Ok(baby) => Ok(Json(baby)),
-        Err(error) => Err(error),
-    }
+    ingest_new_baby(new_baby, current_user.id()).await
 }
 
 async fn get_all_babies(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
 ) -> impl IntoResponse {
     current_user_is_admin(auth)?;
-    match get_all_babies_service().await {
-        Ok(list) => Ok(Json(list)),
-        Err(error) => Err(error),
-    }
+    get_all_babies_service().await
 }
