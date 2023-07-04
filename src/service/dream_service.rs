@@ -12,7 +12,7 @@ use crate::{
     },
 };
 
-use super::{date_service::uncover_date, response_service::ok};
+use super::util_service::{ok, uncover_date};
 
 pub async fn post_dream_service(
     new_dream: NewDreamDto,

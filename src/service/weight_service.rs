@@ -7,7 +7,7 @@ use crate::{
     utils::{datetime::to_date, response::Response},
 };
 
-use super::response_service::ok;
+use super::util_service::ok;
 
 pub async fn post_weight_service(
     new_measure: NewWeightDto,

@@ -1,7 +1,7 @@
 use crate::{
     data::meal_dto::{MealDto, MealSummary, NewMealDto},
     error::error::ApiError,
-    mapping::meal_mapper::{from_meal_to_meal_dto_vector, VecMeal},
+    mapping::meal_mapper::VecMeal,
     model::meals_model::InsertableMeal,
     repository::meal_repository::{find_meals_by_date, get_all_meals_from_baby, ingest_meal},
     utils::{
@@ -10,7 +10,7 @@ use crate::{
     },
 };
 
-use super::{date_service::uncover_date, response_service::ok};
+use super::util_service::{ok, uncover_date};
 
 pub async fn post_meal_service(new_meal: NewMealDto, baby_id: i32) -> Result<Response, ApiError> {
     let timestamp = uncover_date(new_meal.date)?;
@@ -26,7 +26,7 @@ pub async fn post_meal_service(new_meal: NewMealDto, baby_id: i32) -> Result<Res
 }
 
 pub async fn get_meals_service(baby_id: i32) -> Result<Vec<MealDto>, ApiError> {
-    let meals =  get_all_meals_from_baby(baby_id).await?;
+    let meals = get_all_meals_from_baby(baby_id).await?;
     Ok(VecMeal::new(meals).into())
 }
 
