@@ -46,7 +46,7 @@ def explode_list(data: list[str], val: str) -> list[list[str]]:
 
 def parse_date(line: str, year: int) -> date:
     unwrap = line.split("-")
-    month, day = int(unwrap[1]), int(unwrap[0])
+    month, day = int(unwrap[0]), int(unwrap[1])
     return create_date(year, month, day)
 
 
@@ -57,4 +57,4 @@ def split_date_and_data(raw_data: list[str], year: int) -> tuple[date, list[str]
 
 
 def format_day_sql(day: date) -> str:
-    return f"-- {day.day:02}-{day.month:02}-{day.year}"
+    return f"-- {day.year}-{day.month:02}-{day.day:02}"
