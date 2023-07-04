@@ -1,15 +1,16 @@
+use axum::Json;
+
 use crate::{
-    data::dream_dto::{DreamDto, DreamSummary, NewDreamDto},
+    data::dream_dto::{DreamDto, DreamSummaryDto, NewDreamDto},
     error::error::ApiError,
-    mapping::dream_mapper::VecDream,
-    model::dream_model::InsertableDream,
+    model::{
+        dream_model::{Dream, InsertableDream},
+        summary_model::DreamSummary,
+    },
     repository::dream_repository::{
         find_dreams_by_date, get_all_dreams_from_baby, ingest_new_dream, update_last_dream,
     },
-    utils::{
-        datetime::{format_date, format_duration, to_date},
-        response::Response,
-    },
+    utils::{datetime::to_date, response::Response},
 };
 
 use super::util_service::{ok, uncover_date};
@@ -40,33 +41,32 @@ async fn create_new_dream_entry(
     Ok(dream)
 }
 
-pub async fn get_all_dreams_from_baby_service(baby_id: i32) -> Result<Vec<DreamDto>, ApiError> {
+pub async fn get_all_dreams_from_baby_service(
+    baby_id: i32,
+) -> Result<Json<Vec<DreamDto>>, ApiError> {
     let dreams = get_all_dreams_from_baby(baby_id).await?;
-    Ok(VecDream::new(dreams).into())
+    Ok(into_json(dreams))
 }
 
 pub async fn filter_dreams_by_date_service(
     baby_id: i32,
     string_date: &str,
-) -> Result<Vec<DreamDto>, ApiError> {
+) -> Result<Json<Vec<DreamDto>>, ApiError> {
     let date = to_date(string_date)?;
     let dreams = find_dreams_by_date(baby_id, date).await?;
-    Ok(VecDream::new(dreams).into())
+    Ok(into_json(dreams))
 }
 
 pub async fn dream_summary_service(
     baby_id: i32,
     string_date: &str,
-) -> Result<DreamSummary, ApiError> {
+) -> Result<Json<DreamSummaryDto>, ApiError> {
     let date = to_date(string_date)?;
-    let selected_dreams = find_dreams_by_date(baby_id, date).await?;
-    let sum_duration = selected_dreams
-        .iter()
-        .map(|d| d.elapsed())
-        .reduce(|acc, e| acc.checked_add(&e).unwrap())
-        .unwrap();
-    Ok(DreamSummary {
-        date: format_date(date),
-        summary: format_duration(sum_duration.num_minutes()),
-    })
+    let dreams = find_dreams_by_date(baby_id, date).await?;
+    let summary = DreamSummary::new(date, dreams);
+    Ok(Json(summary.into()))
+}
+
+fn into_json(dreams: Vec<Dream>) -> Json<Vec<DreamDto>> {
+    Json(dreams.into_iter().map(|dream| dream.into()).collect())
 }

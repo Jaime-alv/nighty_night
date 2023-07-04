@@ -20,7 +20,7 @@ pub struct DreamDto {
 
 
 #[derive(Serialize)]
-pub struct DreamSummary {
+pub struct DreamSummaryDto {
     pub date: String,
     pub summary: String
 }

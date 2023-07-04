@@ -35,14 +35,8 @@ async fn get_dreams(
 ) -> impl IntoResponse {
     authorize_and_has_baby(auth, baby_id)?;
     match date.get("date") {
-        Some(d) => match filter_dreams_by_date_service(baby_id, d).await {
-            Ok(dreams) => Ok(Json(dreams)),
-            Err(error) => Err(error),
-        },
-        None => match get_all_dreams_from_baby_service(baby_id).await {
-            Ok(dreams) => Ok(Json(dreams)),
-            Err(error) => Err(error),
-        },
+        Some(d) => filter_dreams_by_date_service(baby_id, d).await,
+        None => get_all_dreams_from_baby_service(baby_id).await,
     }
 }
 
@@ -62,8 +56,5 @@ async fn dream_summary(
 ) -> impl IntoResponse {
     authorize_and_has_baby(auth, baby_id)?;
     let string_date = parse_query_field(date, "date")?;
-    match dream_summary_service(baby_id, &string_date).await {
-        Ok(dreams) => Ok(Json(dreams)),
-        Err(error) => Err(error),
-    }
+    dream_summary_service(baby_id, &string_date).await
 }

@@ -9,21 +9,3 @@ impl From<Weight> for WeightDto {
         }
     }
 }
-
-pub fn from_weight_to_weight_dto_vector(weights: Vec<Weight>) -> Vec<WeightDto> {
-    weights.into_iter().map(|value| value.into()).collect()
-}
-
-pub struct VecWeight {
-    measures: Vec<Weight>
-}
-
-impl From<VecWeight> for Vec<WeightDto> {
-    fn from(value: VecWeight) -> Self {
-        value.measures.into_iter().map(|value| value.into()).collect()
-    }
-}
-
-impl VecWeight {
-    pub fn new(measures: Vec<Weight>) -> Self { Self { measures: measures } }
-}

@@ -17,9 +17,9 @@ pub struct NewMealDto {
 }
 
 #[derive(Serialize)]
-pub struct MealSummary {
+pub struct MealSummaryDto {
     pub date: String,
-    pub total_feedings: usize,
+    pub total_feedings: u8,
     pub nursing_time: String,
     pub formula: i16
 }

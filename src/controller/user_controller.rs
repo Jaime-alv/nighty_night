@@ -33,7 +33,7 @@ async fn register_new_user(
     match create_user_service(new_user).await {
         Ok(user) => {
             login_session(auth, user.1).await?;
-            Ok(Json(user.0))
+            Ok(user.0)
         }
         Err(error) => Err(error),
     }
@@ -43,17 +43,11 @@ async fn get_all_users(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
 ) -> impl IntoResponse {
     current_user_is_admin(auth)?;
-    match get_all_users_service().await {
-        Ok(list) => Ok(Json(list)),
-        Err(error) => Err(error),
-    }
+    get_all_users_service().await
 }
 
 async fn find_user(Json(data): Json<FindUserDto>) -> impl IntoResponse {
-    match find_user_service(data).await {
-        Ok(user) => Ok(Json(user)),
-        Err(error) => Err(error),
-    }
+    find_user_service(data).await
 }
 
 async fn login_user(
@@ -63,7 +57,7 @@ async fn login_user(
     match login_service(login).await {
         Ok(user) => {
             login_session(auth, user.1).await?;
-            Ok(Json(user.0))
+            Ok(user.0)
         }
         Err(error) => Err(error),
     }

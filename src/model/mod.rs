@@ -6,3 +6,4 @@ pub mod session_model;
 pub mod meals_model;
 pub mod dream_model;
 pub mod weight_model;
+pub mod summary_model;

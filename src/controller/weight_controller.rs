@@ -20,10 +20,7 @@ async fn get_weights(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
 ) -> impl IntoResponse {
     authorize_and_has_baby(auth, baby_id)?;
-    match get_weights_service(baby_id).await {
-        Ok(value) => Ok(Json(value)),
-        Err(error) => Err(error),
-    }
+    get_weights_service(baby_id).await
 }
 
 async fn post_weight(
