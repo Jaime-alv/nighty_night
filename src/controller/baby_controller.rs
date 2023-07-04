@@ -15,7 +15,7 @@ use crate::{
     service::{
         baby_service::{find_baby_service, get_all_babies_service, ingest_new_baby},
         session_service::{current_user_is_admin, login_required, update_user_session},
-        user_service::find_user_by_username_service,
+        user_service::find_user_by_username_service, util_service::parse_query_field,
     },
 };
 
@@ -61,8 +61,8 @@ async fn _register_baby_with_username(
     Query(user): Query<HashMap<String, String>>,
     Json(new_baby): Json<NewBabyDto>,
 ) -> impl IntoResponse {
-    let user = user.get("username").expect("Expected username.");
-    let current_user = find_user_by_username_service(user).await?;
+    let username = parse_query_field(user, "username")?;
+    let current_user = find_user_by_username_service(&username).await?;
     ingest_new_baby(new_baby, current_user.id()).await
 }
 
