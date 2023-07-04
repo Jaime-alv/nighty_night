@@ -47,7 +47,7 @@ LEVEL: int = logging.INFO
 default path: `./batch/eat`
 
 ```txt
-day-month
+month-day
 time quantity
 ```
 
@@ -56,7 +56,7 @@ time quantity
 3:20 180
 09:30 120
 
-07-06
+06-07
 09:20 150
 13:00 100
 ```
@@ -81,19 +81,19 @@ INSERT INTO meals (baby_id, date, quantity) VALUES (1, '2023-06-07 13:00:00', 10
 default path: `./batch/sleep`
 
 ```txt
-day-month
+month-day
 from_time to_time
 ```
 
 ```sleep
-16-06
+06-16
 05:45 7:40
 9:22 10:10
 12:22 13:02
 16:30 17:02
 21:32 04:00
 
-17-06
+06-17
 4:30 8:30
 10:00 10:29
 ```
