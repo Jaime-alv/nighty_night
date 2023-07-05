@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use std::{fmt::Display, num::ParseIntError};
 
 use axum::{response::IntoResponse, Json};
 use diesel::result::Error;
@@ -18,6 +18,9 @@ pub enum ApiError {
     EmptyQuery,
     NotFound,
     LoginRequired,
+    DatesUnordered,
+    OutOfBounds(i16, i16),
+    InvalidValue(ParseIntError),
     DateFormat(chrono::ParseError),
     DBError(Error),
     Redis(RedisError),
@@ -53,7 +56,9 @@ impl ApiError {
             ApiError::DateFormat(msg) => (StatusCode::BAD_REQUEST, String::from(msg.to_string())),
             ApiError::NotFound => (StatusCode::NOT_FOUND, String::from("This is not the page you are looking for.")),
             ApiError::LoginRequired => (StatusCode::UNAUTHORIZED, String::from("Login required.")),
-
+            ApiError::InvalidValue(value) => (StatusCode::BAD_REQUEST, format!("{value}")),
+            ApiError::OutOfBounds(min, max) => (StatusCode::BAD_REQUEST, format!("Out of bounds: range between {min} and {max}.")),
+            ApiError::DatesUnordered => (StatusCode::BAD_REQUEST, String::from("From date is in the future")),
             // 50X Error
             ApiError::DBError(error) => (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()),
             ApiError::Generic500Error(msg) => {
@@ -110,5 +115,11 @@ impl From<RedisError> for ApiError {
 impl From<ApiError> for anyhow::Error {
     fn from(error: ApiError) -> Self {
         anyhow::anyhow!(error)
+    }
+}
+
+impl From<ParseIntError> for ApiError {
+    fn from(value: ParseIntError) -> Self {
+        ApiError::InvalidValue(value)
     }
 }
