@@ -43,6 +43,8 @@ sudo service redis-server start && sudo service postgresql start
 
 Build an .env file inside `./key` folder with these environments variables:
 
+`local.env`
+
 ```.env
 BRANCH=local
 POSTGRES_PASSWORD=1234
@@ -159,21 +161,27 @@ docker compose -f ./docker/compose.yaml down
 
 ### Baby: `/api/baby`
 
-| Route                                    | Method | Function                                     | Parameters              | Arguments                 |
-| ---------------------------------------- | ------ | -------------------------------------------- | ----------------------- | ------------------------- |
-| /new                                     | `post` | Add new baby                                 | Body: Json              | {name, birthdate}         |
-| /:baby_id                                | `get`  | Get baby info by id                          | Path: i32               |                           |
-| /:baby_id/meals                          | `get`  | Get all meals associated to a baby           | Path: i32               |                           |
-| /:baby_id/meals?date=YYYY-mm-dd          | `get`  | Get all meals in a given date                | Path: i32               |                           |
-| /:baby_id/meals                          | `post` | Add new meals to an associated baby          | Path: i32 \| Body: Json | {date, quantity, elapsed} |
-| /:baby_id/meals/summary?date=YYYY-mm-dd  | `get`  | Get a summary of one day's data              | Path: i32               |                           |
-| /:baby_id/dreams                         | `get`  | Get all sleep records associated to a baby   | Path: i32               |                           |
-| /:baby_id/dreams?date=YYYY-mm-dd         | `get`  | Get all sleep records in a given date        | Path: i32               |                           |
-| /:baby_id/dreams                         | `post` | Add new sleep patterns to an associated baby | Path: i32 \| Body: Json | {from_date, to_date }     |
-| /:baby_id/dreams/summary?date=YYYY-mm-dd | `get`  | Get a summary of one day's data              | Path: i32               |                           |
-| /:baby_id/weights                        | `get`  | Get all weight measures associated to a baby | Path: i32               |                           |
-| /:baby_id/weights                        | `post` | Add new weight measure to an associated baby | Path: i32 \| Body: Json | {date, value }            |
-| /all                                     | `get`  | Get all babies in system                     |                         |                           |
+| Route                                                        | Method | Function                                     | Parameters                      | Arguments                 |
+| ------------------------------------------------------------ | ------ | -------------------------------------------- | ------------------------------- | ------------------------- |
+| /new                                                         | `post` | Add new baby                                 | Body: Json                      | {name, birthdate}         |
+| /:baby_id                                                    | `get`  | Get baby info by id                          | Path: i32                       |                           |
+| /:baby_id/meals                                              | `get`  | Get all meals associated to a baby           | Path: i32                       |                           |
+| /:baby_id/meals?date=YYYY-mm-dd                              | `get`  | Get all meals in a given date                | Path: i32                       |                           |
+| /:baby_id/meals                                              | `post` | Add new meals to an associated baby          | Path: i32 \| Body: Json         | {date, quantity, elapsed} |
+| /:baby_id/meals/summary?date=YYYY-mm-dd                      | `get`  | Get a summary from one day's data            | Path: i32 \|String              |                           |
+| /:baby_id/meals/summary/today                                | `get`  | Get a summary from today's data              | Path: i32                       |                           |
+| /:baby_id/meals/summary/last?days=X                          | `get`  | Get a summary from last X days               | Path: i32 \| int                |                           |
+| /:baby_id/meals/summary/range?from=YYYY-mm-dd&to=YYYY-mm-dd  | `get`  | Get a summary from date up to                | Path: i32 \| {String \| String} |                           |
+| /:baby_id/dreams                                             | `get`  | Get all sleep records associated to a baby   | Path: i32                       |                           |
+| /:baby_id/dreams?date=YYYY-mm-dd                             | `get`  | Get all sleep records in a given date        | Path: i32 \| String             |                           |
+| /:baby_id/dreams                                             | `post` | Add new sleep patterns to an associated baby | Path: i32 \| Body: Json         | {from_date, to_date }     |
+| /:baby_id/dreams/summary?date=YYYY-mm-dd                     | `get`  | Get a summary from one day's data            | Path: i32 \| String             |                           |
+| /:baby_id/dreams/summary/today                               | `get`  | Get a summary from today's data              | Path: i32                       |                           |
+| /:baby_id/dreams/summary/last?days=X                         | `get`  | Get a summary from last X days               | Path: i32 \|  int               |                           |
+| /:baby_id/dreams/summary/range?from=YYYY-mm-dd&to=YYYY-mm-dd | `get`  | Get a summary from date up to                | Path: i32 \| {String \| String} |                           |
+| /:baby_id/weights                                            | `get`  | Get all weight measures associated to a baby | Path: i32                       |                           |
+| /:baby_id/weights                                            | `post` | Add new weight measure to an associated baby | Path: i32 \| Body: Json         | {date, value }            |
+| /all                                                         | `get`  | Get all babies in system                     |                                 |                           |
 
 ## Docs
 
