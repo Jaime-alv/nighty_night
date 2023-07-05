@@ -4,6 +4,10 @@ pub fn now() -> NaiveDateTime {
     Utc::now().naive_local()
 }
 
+pub fn today() -> NaiveDate {
+    now().date()
+}
+
 pub fn to_date_time(date_time: &str) -> Result<NaiveDateTime, chrono::ParseError> {
     NaiveDateTime::parse_from_str(&date_time, "%Y-%m-%d %H:%M")
 }
@@ -20,11 +24,19 @@ pub fn format_time(time: NaiveTime) -> String {
     time.format("%H:%M").to_string()
 }
 
-pub async fn date_is_higher(date: NaiveDateTime, other_date: NaiveDateTime) -> bool {
-    if let std::cmp::Ordering::Greater = other_date.cmp(&date) {
-        true
-    } else {
+pub fn date_time_is_higher(date: NaiveDateTime, other_date: NaiveDateTime) -> bool {
+    if let std::cmp::Ordering::Less = other_date.cmp(&date) {
         false
+    } else {
+        true
+    }
+}
+
+pub fn date_is_higher(date: NaiveDate, other_date: NaiveDate) -> bool {
+    if let std::cmp::Ordering::Less = other_date.cmp(&date) {
+        false
+    } else {
+        true
     }
 }
 
@@ -42,7 +54,6 @@ pub fn format_duration(elapsed_minutes: i64) -> String {
 /// Vec \[2023-06-06, 2023-06-07, 2023-06-08, 2023-06-09\]
 pub fn iter_between_two_dates(from: NaiveDate, to: NaiveDate) -> Vec<NaiveDate> {
     let days: usize = ((to - from).num_days()).try_into().unwrap();
-    dbg!(days);
     from.iter_days().take(days).collect()
 }
 
@@ -71,21 +82,19 @@ mod test_timestamp {
         );
     }
 
-    #[tokio::test]
-    async fn test_compare_dates() {
+    #[test]
+    fn test_compare_dates() {
         assert!(
-            date_is_higher(
+            date_time_is_higher(
                 to_date_time("2023-03-23 23:31").unwrap(),
                 to_date_time("2023-03-23 23:32").unwrap()
             )
-            .await
         );
         assert!(
-            !date_is_higher(
+            !date_time_is_higher(
                 to_date_time("2023-03-23 23:33").unwrap(),
                 to_date_time("2023-03-23 23:32").unwrap()
             )
-            .await
         );
     }
 

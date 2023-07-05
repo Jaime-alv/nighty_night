@@ -1,12 +1,9 @@
 use axum::Json;
 
 use crate::{
-    data::dream_dto::{DreamDto, DreamSummaryDto, NewDreamDto},
+    data::dream_dto::{DreamDto, NewDreamDto},
     error::error::ApiError,
-    model::{
-        dream_model::{Dream, InsertableDream},
-        summary_model::DreamSummary,
-    },
+    model::dream_model::{Dream, InsertableDream},
     repository::dream_repository::{
         find_dreams_by_date, get_all_dreams_from_baby, ingest_new_dream, update_last_dream,
     },
@@ -55,16 +52,6 @@ pub async fn filter_dreams_by_date_service(
     let date = to_date(string_date)?;
     let dreams = find_dreams_by_date(baby_id, date).await?;
     Ok(into_json(dreams))
-}
-
-pub async fn dream_summary_service(
-    baby_id: i32,
-    string_date: &str,
-) -> Result<Json<DreamSummaryDto>, ApiError> {
-    let date = to_date(string_date)?;
-    let dreams = find_dreams_by_date(baby_id, date).await?;
-    let summary = DreamSummary::new(date, dreams);
-    Ok(Json(summary.into()))
 }
 
 fn into_json(dreams: Vec<Dream>) -> Json<Vec<DreamDto>> {

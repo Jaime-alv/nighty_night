@@ -43,16 +43,6 @@ pub async fn filter_meals_by_date_service(
     Ok(into_json(meals))
 }
 
-pub async fn meal_summary_service(
-    baby_id: i32,
-    string_date: &str,
-) -> Result<Json<MealSummaryDto>, ApiError> {
-    let date = to_date(string_date)?;
-    let meals = find_meals_by_date(baby_id, date).await?;
-    let summary = MealSummary::new(date, meals);
-    Ok(Json(summary.into()))
-}
-
 fn into_json(meals: Vec<Meal>) -> Json<Vec<MealDto>> {
     Json(meals.into_iter().map(|meal| meal.into()).collect())
 }

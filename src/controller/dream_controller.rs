@@ -14,8 +14,11 @@ use crate::{
     model::session_model::CurrentUser,
     service::{
         dream_service::{
-            dream_summary_service, filter_dreams_by_date_service, get_all_dreams_from_baby_service,
-            post_dream_service,
+            filter_dreams_by_date_service, get_all_dreams_from_baby_service, post_dream_service,
+        },
+        dream_summary_service::{
+            dream_summary_last_days_service, dream_summary_range_service, dream_summary_service,
+            dream_summary_today_service,
         },
         session_service::authorize_and_has_baby,
         util_service::parse_query_field,
@@ -26,6 +29,9 @@ pub(super) fn route_dream() -> Router {
     Router::new()
         .route("/:baby_id/dreams", get(get_dreams).post(post_dream))
         .route("/:baby_id/dreams/summary", get(dream_summary))
+        .route("/:baby_id/dreams/summary/today", get(dream_summary_today))
+        .route("/:baby_id/dreams/summary/last", get(dream_summary_last))
+        .route("/:baby_id/dreams/summary/range", get(dream_summary_range))
 }
 
 async fn get_dreams(
@@ -57,4 +63,33 @@ async fn dream_summary(
     authorize_and_has_baby(auth, baby_id)?;
     let string_date = parse_query_field(date, "date")?;
     dream_summary_service(baby_id, &string_date).await
+}
+
+async fn dream_summary_today(
+    Path(baby_id): Path<i32>,
+    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
+) -> impl IntoResponse {
+    authorize_and_has_baby(auth, baby_id)?;
+    dream_summary_today_service(baby_id).await
+}
+
+async fn dream_summary_last(
+    Path(baby_id): Path<i32>,
+    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
+    Query(date): Query<HashMap<String, String>>,
+) -> impl IntoResponse {
+    authorize_and_has_baby(auth, baby_id)?;
+    let last_days: u64 = parse_query_field(date, "days")?.trim().parse().unwrap_or(7);
+    dream_summary_last_days_service(baby_id, last_days).await
+}
+
+async fn dream_summary_range(
+    Path(baby_id): Path<i32>,
+    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
+    Query(date): Query<HashMap<String, String>>,
+) -> impl IntoResponse {
+    authorize_and_has_baby(auth, baby_id)?;
+    let from_date = parse_query_field(date.clone(), "from")?;
+    let to_date = parse_query_field(date, "to")?;
+    dream_summary_range_service(baby_id, &from_date, &to_date).await
 }
