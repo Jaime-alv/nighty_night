@@ -22,7 +22,7 @@ impl DreamSummary {
             .iter()
             .map(|d| d.elapsed())
             .reduce(|acc, e| acc.checked_add(&e).unwrap())
-            .unwrap()
+            .unwrap_or(Duration::minutes(0))
     }
 
     pub fn _date(&self) -> NaiveDate {
@@ -33,7 +33,7 @@ impl DreamSummary {
         format_date(self.date)
     }
 
-    pub fn _summary(&self) -> Duration {
+    pub fn summary(&self) -> Duration {
         self.summary
     }
 
@@ -60,7 +60,7 @@ impl MealSummary {
     }
 
     fn count_feedings(intake: usize) -> u8 {
-        intake.try_into().unwrap()
+        intake.try_into().unwrap_or_default()
     }
 
     fn formula_feedings(meals: &Vec<Meal>) -> i16 {
@@ -68,7 +68,7 @@ impl MealSummary {
             .into_iter()
             .map(|meal| meal.quantity())
             .reduce(|acc, feeds| acc + feeds)
-            .unwrap()
+            .unwrap_or_default()
     }
 
     fn sum_nursing_time(meals: &Vec<Meal>) -> Duration {
@@ -76,7 +76,7 @@ impl MealSummary {
             .into_iter()
             .map(|meal| meal.elapsed())
             .reduce(|acc, e| acc.checked_add(&e).unwrap())
-            .unwrap()
+            .unwrap_or(Duration::minutes(0))
     }
 
     pub fn formatted_date(&self) -> String {
@@ -91,7 +91,7 @@ impl MealSummary {
         self.total_feedings
     }
 
-    pub fn formula(&self) -> i16  {
+    pub fn formula(&self) -> i16 {
         self.formula
     }
 }
