@@ -1,6 +1,6 @@
 [package]
 name = "nighty_night"
-version = "0.3.4"
+version = "0.3.5"
 authors = ["Jaime Alvarez <jaime.af.git@gmail.com>"]
 description = "Axum backend with sessions."
 readme = "README.md"
