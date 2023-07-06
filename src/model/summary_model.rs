@@ -4,6 +4,7 @@ use crate::utils::datetime::{format_date, format_duration};
 
 use super::{dream_model::Dream, meals_model::Meal};
 
+#[derive(Clone)]
 pub struct DreamSummary {
     date: NaiveDate,
     summary: Duration,

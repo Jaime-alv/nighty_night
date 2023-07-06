@@ -6,7 +6,7 @@ use crate::{
     utils::datetime::{format_date, format_duration, format_time, now},
 };
 
-#[derive(Queryable, Identifiable, Debug)]
+#[derive(Queryable, Identifiable, Debug, Clone)]
 #[diesel(table_name = dreams)]
 pub struct Dream {
     id: i32,
