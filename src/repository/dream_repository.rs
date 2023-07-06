@@ -79,7 +79,6 @@ async fn find_last_dream_from_yesterday(baby: i32, date: NaiveDate) -> NaiveDate
     }
 }
 
-
 /// Only need dates that have both fields, from_date and to_date, because we need to sum durations.
 pub async fn find_dreams_summary(
     baby: i32,
@@ -93,6 +92,26 @@ pub async fn find_dreams_summary(
         .filter(dreams::baby_id.eq(baby))
         .filter(dreams::to_date.le(to_timestamp))
         .filter(dreams::to_date.ge(from_timestamp))
+        .load::<Dream>(conn)
+        .await
+}
+
+pub async fn find_first_record(baby: i32) -> Result<NaiveDate, Error> {
+    let conn = &mut establish_async_connection().await;
+    let first_record: Dream = dreams::table
+        .filter(dreams::baby_id.eq(baby))
+        .order(dreams::from_date.asc())
+        .first::<Dream>(conn)
+        .await?;
+    Ok(first_record.to_date().date())
+}
+
+pub async fn find_all_dreams_sorted(baby: i32) -> Result<Vec<Dream>, Error> {
+    let conn = &mut establish_async_connection().await;
+    dreams::table
+        .filter(dreams::baby_id.eq(baby))
+        .filter(dreams::to_date.is_not_null())
+        .order(dreams::to_date.asc())
         .load::<Dream>(conn)
         .await
 }

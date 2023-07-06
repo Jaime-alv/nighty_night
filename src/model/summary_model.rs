@@ -43,6 +43,7 @@ impl DreamSummary {
     }
 }
 
+#[derive(Clone)]
 pub struct MealSummary {
     date: NaiveDate,
     total_feedings: u8,
