@@ -13,12 +13,13 @@ use crate::{
     data::meal_dto::NewMealDto,
     model::session_model::CurrentUser,
     service::{
-        meal_service::{
-            filter_meals_by_date_service, get_meals_service,
-            post_meal_service,
+        meal_service::{filter_meals_by_date_service, get_meals_service, post_meal_service},
+        meal_summary_service::{
+            get_all_meals_summaries_service, meal_summary_last_days_service,
+            meal_summary_range_service, meal_summary_service, meal_summary_today_service,
         },
         session_service::authorize_and_has_baby,
-        util_service::parse_query_field, meal_summary_service::{meal_summary_service, meal_summary_today_service, meal_summary_last_days_service, meal_summary_range_service},
+        util_service::parse_query_field,
     },
 };
 
@@ -29,6 +30,7 @@ pub(super) fn route_meal() -> Router {
         .route("/:baby_id/meals/summary/today", get(meal_summary_today))
         .route("/:baby_id/meals/summary/last", get(meal_summary_last))
         .route("/:baby_id/meals/summary/range", get(meal_summary_range))
+        .route("/:baby_id/meals/summary/all", get(meal_summary_all))
 }
 
 async fn get_meals(
@@ -89,4 +91,12 @@ async fn meal_summary_range(
     let from_date = parse_query_field(date.clone(), "from")?;
     let to_date = parse_query_field(date, "to")?;
     meal_summary_range_service(baby_id, &from_date, &to_date).await
+}
+
+async fn meal_summary_all(
+    Path(baby_id): Path<i32>,
+    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
+) -> impl IntoResponse {
+    authorize_and_has_baby(auth, baby_id)?;
+    get_all_meals_summaries_service(baby_id).await
 }

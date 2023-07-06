@@ -16,12 +16,16 @@ where
     let conn = &mut establish_async_connection().await;
     diesel::insert_into(dreams::table)
         .values(new_dream.into())
-        .execute(conn).await
+        .execute(conn)
+        .await
 }
 
 pub async fn get_all_dreams_from_baby(baby: i32) -> Result<Vec<Dream>, Error> {
     let conn = &mut establish_async_connection().await;
-    dreams::table.filter(dreams::baby_id.eq(baby)).load(conn).await
+    dreams::table
+        .filter(dreams::baby_id.eq(baby))
+        .load(conn)
+        .await
 }
 
 /// Filter table dreams by baby_id, where to_date is null and order
@@ -32,7 +36,8 @@ pub async fn get_last_dream(baby: i32) -> Result<Dream, Error> {
         .filter(dreams::baby_id.eq(baby))
         .filter(dreams::to_date.is_null())
         .order(dreams::from_date.desc())
-        .first(conn).await
+        .first(conn)
+        .await
 }
 
 pub async fn update_last_dream(dream: InsertableDream) -> Result<usize, Error> {
@@ -40,7 +45,8 @@ pub async fn update_last_dream(dream: InsertableDream) -> Result<usize, Error> {
     let last_dream = get_last_dream(dream.baby_id()).await;
     diesel::update(dreams::table.filter(dreams::id.eq(last_dream.unwrap().id())))
         .set(dreams::to_date.eq(dream.to_date()))
-        .execute(conn).await
+        .execute(conn)
+        .await
 }
 
 pub async fn find_dreams_by_date(baby: i32, date: NaiveDate) -> Result<Vec<Dream>, Error> {
@@ -51,7 +57,8 @@ pub async fn find_dreams_by_date(baby: i32, date: NaiveDate) -> Result<Vec<Dream
         .filter(dreams::baby_id.eq(baby))
         .filter(dreams::to_date.lt(timestamp))
         .filter(dreams::from_date.ge(last_dream_from_yesterday))
-        .load::<Dream>(conn).await
+        .load::<Dream>(conn)
+        .await
 }
 
 async fn find_last_dream_from_yesterday(baby: i32, date: NaiveDate) -> NaiveDateTime {
@@ -64,9 +71,47 @@ async fn find_last_dream_from_yesterday(baby: i32, date: NaiveDate) -> NaiveDate
         .filter(dreams::from_date.gt(min_date))
         .filter(dreams::from_date.lt(max_date))
         .order(dreams::from_date.desc())
-        .first::<Dream>(conn).await;
+        .first::<Dream>(conn)
+        .await;
     match dream {
         Ok(dream) => dream.from_date(),
         Err(_) => date.and_hms_opt(0, 0, 1).unwrap(),
     }
+}
+
+/// Only need dates that have both fields, from_date and to_date, because we need to sum durations.
+pub async fn find_dreams_summary(
+    baby: i32,
+    from: NaiveDate,
+    to: NaiveDate,
+) -> Result<Vec<Dream>, Error> {
+    let conn = &mut establish_async_connection().await;
+    let from_timestamp = from.and_hms_opt(0, 0, 1).unwrap();
+    let to_timestamp = to.and_hms_opt(23, 59, 59).unwrap();
+    dreams::table
+        .filter(dreams::baby_id.eq(baby))
+        .filter(dreams::to_date.le(to_timestamp))
+        .filter(dreams::to_date.ge(from_timestamp))
+        .load::<Dream>(conn)
+        .await
+}
+
+pub async fn find_first_record(baby: i32) -> Result<NaiveDate, Error> {
+    let conn = &mut establish_async_connection().await;
+    let first_record: Dream = dreams::table
+        .filter(dreams::baby_id.eq(baby))
+        .order(dreams::from_date.asc())
+        .first::<Dream>(conn)
+        .await?;
+    Ok(first_record.to_date().date())
+}
+
+pub async fn find_all_dreams_sorted(baby: i32) -> Result<Vec<Dream>, Error> {
+    let conn = &mut establish_async_connection().await;
+    dreams::table
+        .filter(dreams::baby_id.eq(baby))
+        .filter(dreams::to_date.is_not_null())
+        .order(dreams::to_date.asc())
+        .load::<Dream>(conn)
+        .await
 }

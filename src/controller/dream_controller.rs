@@ -18,7 +18,7 @@ use crate::{
         },
         dream_summary_service::{
             dream_summary_last_days_service, dream_summary_range_service, dream_summary_service,
-            dream_summary_today_service,
+            dream_summary_today_service, get_all_dream_summaries_service,
         },
         session_service::authorize_and_has_baby,
         util_service::parse_query_field,
@@ -32,6 +32,7 @@ pub(super) fn route_dream() -> Router {
         .route("/:baby_id/dreams/summary/today", get(dream_summary_today))
         .route("/:baby_id/dreams/summary/last", get(dream_summary_last))
         .route("/:baby_id/dreams/summary/range", get(dream_summary_range))
+        .route("/:baby_id/dreams/summary/all", get(dream_summary_all))
 }
 
 async fn get_dreams(
@@ -92,4 +93,12 @@ async fn dream_summary_range(
     let from_date = parse_query_field(date.clone(), "from")?;
     let to_date = parse_query_field(date, "to")?;
     dream_summary_range_service(baby_id, &from_date, &to_date).await
+}
+
+async fn dream_summary_all(
+    Path(baby_id): Path<i32>,
+    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>
+) -> impl IntoResponse {
+    authorize_and_has_baby(auth, baby_id)?;
+    get_all_dream_summaries_service(baby_id).await
 }
