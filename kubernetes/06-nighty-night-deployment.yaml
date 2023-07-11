@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nighty-night-deployment
+  labels:
+    group: nighty.night.app
+    app: nighty-night
+    branch: minikube
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nighty-night
+  template:
+    metadata:
+      labels:
+        group: nighty.night.app
+        app: nighty-night
+    spec:
+      containers:              
+        - name: service-nighty-night
+          image: nighty_night:latest
+          imagePullPolicy: IfNotPresent
+          resources:
+            limits:
+              memory: "200Mi"
+              cpu: "100m"
+          ports:
+          - containerPort: 3000
+          envFrom:
+            - configMapRef:
+                name: nighty-night-config-map
+          env:
+          - name: POSTGRES_USER
+            valueFrom:
+              secretKeyRef:
+                key: POSTGRES_USER
+                name: nighty-night-secrets
+          - name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: POSTGRES_PASSWORD
+                name: nighty-night-secrets
