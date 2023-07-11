@@ -13,7 +13,7 @@ use crate::{
     controller,
     model::session_model::CurrentUser,
     repository::connection_redis::{auth_config, poll, private_cookies_session, session_config},
-    utils::logger::setup_logger, service::util_service::not_found,
+    utils::{logger::setup_logger, app::error_404},
 };
 
 /// Create app object with routes and layers.
@@ -65,18 +65,4 @@ pub(super) async fn create_app_route() -> Router {
     app
 }
 
-pub async fn shutdown_signal() {
-    let ctrl_c = async {
-        signal::ctrl_c()
-            .await
-            .expect("failed to install Ctrl+C handler");
-    };
-    tokio::select! {
-        _ = ctrl_c=> {},
 
-    }
-}
-
-async fn error_404() -> impl IntoResponse {
-    not_found()
-}

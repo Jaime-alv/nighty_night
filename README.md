@@ -41,18 +41,17 @@ sudo service redis-server start && sudo service postgresql start
 
 #### .ENV
 
-Build an .env file inside `./key` folder with these environments variables:
+Build an .env file, with name `local.env` inside `./key` folder with these environments variables:
 
 `local.env`
 
 ```.env
 BRANCH=local
-POSTGRES_PASSWORD=1234
-POSTGRES_USER=dba
+POSTGRES_PASSWORD=password
+POSTGRES_USER=username
 POSTGRES_DB=nighty_night_db
 POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
-DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
 LOGGER_LEVEL=debug
 ADDRESS=127.0.0.1
 PORT=3000
@@ -60,8 +59,6 @@ REDIS_ADDRESS=127.0.0.1
 REDIS_PORT=6379
 SESSION_DURATION=600
 ```
-
-Modify ports accordingly. This is an example with default ports. Docker compose runs on ports 8080 for postgreSQL and 8081 for redis.
 
 #### Diesel-cli
 
@@ -126,7 +123,27 @@ docker compose -f ./docker/compose.yaml stop
 docker compose -f ./docker/compose.yaml down
 ```
 
-### Docker flags
+#### .env file
+
+```.env
+BRANCH=branch_name
+POSTGRES_PASSWORD=password
+POSTGRES_USER=user
+POSTGRES_DB=app_db
+POSTGRES_HOST=host.docker.internal
+POSTGRES_PORT=8080
+LOGGER_LEVEL=debug
+<!-- Leave ADDRESS to 0.0.0.0 in docker -->
+ADDRESS=0.0.0.0
+PORT=3000
+REDIS_ADDRESS=host.docker.internal
+REDIS_PORT=8081
+SESSION_DURATION=600
+```
+
+Modify ports accordingly. This is an example with default ports. Docker compose file runs on ports 8080 for postgreSQL and 8081 for redis.
+
+#### Docker flags
 
 -e = environment variable
 
@@ -139,6 +156,91 @@ docker compose -f ./docker/compose.yaml down
 --name = image name
 
 --env-file = path to .env file
+
+### Kubernetes
+
+Create secrets and config maps files. Examples below.
+
+If running in local:
+
+`minikube start`
+
+Tell docker where to build the image:
+
+`eval $(minikube docker-env)`
+
+Create nighty night image inside kubernetes:
+
+`docker build -t nighty_night:latest -f docker/Dockerfile .`
+
+Load secrets and config map in kubernetes' cluster:
+
+`kubectl create -f kubernetes/local/secrets.yaml`
+
+`kubectl apply -f kubernetes/local/configmap.yaml`
+
+Apply all deployments and services:
+
+```bash
+kubectl apply -f kubernetes/00-postgreSQL-configmap.yaml
+kubectl apply -f kubernetes/01-postgreSQL-service.yaml
+kubectl apply -f kubernetes/02-postgreSQL-pvc.yaml
+kubectl apply -f kubernetes/03-postgreSQL-deployment.yaml
+kubectl apply -f kubernetes/04-redis-deployment.yaml
+kubectl apply -f kubernetes/05-redis-service.yaml
+kubectl apply -f kubernetes/06-nighty-night-deployment.yaml
+kubectl apply -f kubernetes/07-nighty-night-service.yaml
+```
+
+Port forward deployment pod to desired port:
+
+`kubectl port-forward nighty-night-deployment from:to`
+
+#### Config map
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nighty-night-config-map
+  labels:
+    group: nighty.night.app
+    app: nighty-night
+    branch: minikube
+data:
+  # APP
+  BRANCH: K8s
+  POSTGRES_DB: nighty_night_db
+  POSTGRES_HOST: psql-service.default.svc.cluster.local
+  POSTGRES_PORT: '5432'
+  LOGGER_LEVEL: debug
+  ADDRESS: 0.0.0.0
+  PORT: '3000'
+  REDIS_ADDRESS: redis-service.default.svc.cluster.local
+  REDIS_PORT: '6379'
+  SESSION_DURATION: '600'  
+```
+
+#### Secrets
+
+Get the values for each secret with:
+
+`echo -n "value" | base64`
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: nighty-night-secrets
+  labels:
+    group: nighty.night.app
+    app: nighty-night-API
+    branch: minikube
+type: Opaque
+data:
+  POSTGRES_USER: ZGJh 
+  POSTGRES_PASSWORD: MTIzNA==
+```
 
 ## Default users
 
@@ -209,7 +311,7 @@ Proposed layout.
 - [X] Elapsed times.
 - [ ] Recovery system.
 - [X] Docker.
-- [ ] Kubernetes.
+- [X] Kubernetes.
 
 This layout is not set in stone. It can, and possibly will, change, neither they're in order.
 

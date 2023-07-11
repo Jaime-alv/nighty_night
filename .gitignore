@@ -2,7 +2,6 @@
 /Cargo.lock
 
 ### Env
-*.env
 .Environmet/
 
 ### Documents ###
@@ -12,6 +11,9 @@ resources/
 eat*
 sleep*
 
+### Keys ###
+*.env
+kubernetes/local/
 
 ### IDE ###
 .vscode/

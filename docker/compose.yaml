@@ -14,7 +14,7 @@ services:
     image: postgres:latest
     ports:
       - '8080:5432'
-    restart: always
+    restart: unless-stopped
     environment:
       - POSTGRES_USER
       - POSTGRES_PASSWORD
@@ -27,7 +27,7 @@ services:
       - nighty_night_network
   redis:
     image: 'redis:latest'
-    restart: always
+    restart: unless-stopped
     ports:
       - '8081:6379'
     command: redis-server --loglevel warning
@@ -41,7 +41,11 @@ services:
       - '3000:3000'
     environment:
       - BRANCH
-      - DATABASE_URL
+      - POSTGRES_PASSWORD
+      - POSTGRES_USER
+      - POSTGRES_DB
+      - POSTGRES_HOST
+      - POSTGRES_PORT
       - LOGGER_LEVEL
       - ADDRESS
       - PORT
