@@ -16,7 +16,7 @@ use app::create_app_route;
 use std::path::Path;
 use tracing::info;
 
-use crate::{app::shutdown_signal, configuration::settings::Setting, core_checks::checking_status};
+use crate::{configuration::settings::Setting, utils::app::{checking_status, shutdown_signal}};
 
 mod app;
 mod configuration;
@@ -59,46 +59,4 @@ async fn main() {
         .with_graceful_shutdown(shutdown_signal())
         .await
         .unwrap();
-}
-
-mod core_checks {
-
-    use tracing::{debug, error, info};
-
-    use crate::repository::{connection_psql::check_db_status, connection_redis::ping_redis};
-
-    pub(super) async fn checking_status() -> Result<&'static str, &'static str> {
-        let mut status = Vec::<bool>::new();
-
-        info!("Checking databases connection...");
-
-        debug!("PING");
-        match ping_redis().await {
-            Ok(msg) => {
-                status.push(true);
-                debug!("{msg}")
-            }
-            Err(error) => {
-                status.push(false);
-                error!("Redis: {error}")
-            }
-        }
-
-        debug!("PostgreSQL status...");
-        match check_db_status() {
-            Ok(msg) => {
-                status.push(true);
-                debug!("{msg}")
-            }
-            Err(error) => {
-                status.push(false);
-                error!("{error}")
-            }
-        };
-
-        match !status.iter().any(|checks| checks.eq(&false)) {
-            true => Ok("All checks are OK."),
-            false => Err("Something went wrong."),
-        }
-    }
 }
