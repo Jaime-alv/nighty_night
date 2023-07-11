@@ -7,10 +7,8 @@ metadata:
     app: PostgreSQL
     branch: minikube
 spec:
-  #type: NodePort
   ports:
     - port: 5432
       targetPort: 5432
-      #nodePort: 31000
   selector:
     app: PostgreSQL
