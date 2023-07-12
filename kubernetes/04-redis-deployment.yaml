@@ -38,5 +38,5 @@ spec:
           #   - name: REDIS_PASSWORD
           #     valueFrom:
           #       secretKeyRef:
-          #         name: webretail-dwh
-          #         key: redis-password
+          #         name: nighty-night-secrets
+          #         key: REDIS_PASSWORD
