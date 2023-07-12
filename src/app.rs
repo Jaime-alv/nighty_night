@@ -1,10 +1,9 @@
-use axum::{extract::MatchedPath, Router, response::IntoResponse};
+use axum::{extract::MatchedPath, Router};
 
 use axum_session::{SessionLayer, SessionRedisPool, SessionStore};
 use axum_session_auth::AuthSessionLayer;
 use controller::{baby_controller::route_baby, user_controller::route_user};
 use hyper::Request;
-use tokio::signal;
 use tower_http::trace::TraceLayer;
 use tracing::{error, info_span};
 
@@ -13,7 +12,7 @@ use crate::{
     controller,
     model::session_model::CurrentUser,
     repository::connection_redis::{auth_config, poll, private_cookies_session, session_config},
-    utils::{logger::setup_logger, app::error_404},
+    utils::{app::error_404, logger::setup_logger},
 };
 
 /// Create app object with routes and layers.
@@ -61,8 +60,7 @@ pub(super) async fn create_app_route() -> Router {
             AuthSessionLayer::<CurrentUser, i64, SessionRedisPool, redis::Client>::new(Some(poll))
                 .with_config(auth_config()),
         )
-        .layer(SessionLayer::new(session_store)).fallback(error_404);
+        .layer(SessionLayer::new(session_store))
+        .fallback(error_404);
     app
 }
-
-
