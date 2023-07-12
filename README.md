@@ -1,5 +1,35 @@
 # Nighty night
 
+## Index
+
+- [Nighty night](#nighty-night)
+  - [Index](#index)
+  - [UNDER CONSTRUCTION](#under-construction)
+  - [Objective](#objective)
+  - [How to run it](#how-to-run-it)
+    - [Manual installation](#manual-installation)
+      - [DB](#db)
+      - [.ENV](#env)
+      - [Diesel-cli](#diesel-cli)
+      - [CLI](#cli)
+    - [Docker](#docker)
+      - [Build docker image](#build-docker-image)
+      - [Run compose image](#run-compose-image)
+      - [Stop docker compose](#stop-docker-compose)
+      - [Delete docker compose](#delete-docker-compose)
+      - [.env file](#env-file)
+      - [Docker flags](#docker-flags)
+    - [Kubernetes](#kubernetes)
+      - [Config map](#config-map)
+      - [Secrets](#secrets)
+  - [Default users](#default-users)
+  - [Endpoints](#endpoints)
+    - [Users: `/api/auth`](#users-apiauth)
+    - [Baby: `/api/baby`](#baby-apibaby)
+  - [Docs](#docs)
+  - [APP ROADMAP](#app-roadmap)
+  - [License](#license)
+
 ## UNDER CONSTRUCTION
 
 ![Sign](docs/img/work-in-progress-yellow.png)
@@ -302,12 +332,16 @@ Proposed layout.
 - [X] Implement tracing system.
 - [X] Update Cargo.toml and license.
 - [X] Authentication and session.
-- [X] Migrate database to postgress.
+- [X] Migrate database to PostgreSQL.
 - [X] Time and dates.
 - [X] Implement meals and dreams tables.
 - [X] Set up associations.
 - [ ] User profile.
+- [ ] Logout user.
+- [ ] Add co-parenting.
 - [ ] Update fields.
+- [ ] Delete entries.
+- [ ] Add entries by batch.
 - [X] Elapsed times.
 - [ ] Recovery system.
 - [X] Docker.
