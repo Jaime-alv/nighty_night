@@ -1,7 +1,5 @@
-use std::collections::HashMap;
-
 use axum::{
-    extract::{Path, Query},
+    extract::Path,
     response::IntoResponse,
     routing::{get, post},
     Json, Router,
@@ -15,7 +13,6 @@ use crate::{
     service::{
         baby_service::{find_baby_service, get_all_babies_service, ingest_new_baby},
         session_service::{current_user_is_admin, login_required, update_user_session},
-        user_service::find_user_by_username_service, util_service::parse_query_field,
     },
 };
 
@@ -55,15 +52,6 @@ async fn find_baby_by_id(
 ) -> impl IntoResponse {
     current_user_is_admin(auth)?;
     find_baby_service(baby_id).await
-}
-
-async fn _register_baby_with_username(
-    Query(user): Query<HashMap<String, String>>,
-    Json(new_baby): Json<NewBabyDto>,
-) -> impl IntoResponse {
-    let username = parse_query_field(user, "username")?;
-    let current_user = find_user_by_username_service(&username).await?;
-    ingest_new_baby(new_baby, current_user.id()).await
 }
 
 async fn get_all_babies(

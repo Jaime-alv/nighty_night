@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use axum::{
     extract::{Path, Query},
     response::IntoResponse,
@@ -10,7 +8,10 @@ use axum_session::SessionRedisPool;
 use axum_session_auth::AuthSession;
 
 use crate::{
-    data::dream_dto::NewDreamDto,
+    data::{
+        dream_dto::NewDreamDto,
+        query_dto::{DateDto, DateRangeDto, LastDaysDto},
+    },
     model::session_model::CurrentUser,
     service::{
         dream_service::{
@@ -21,7 +22,6 @@ use crate::{
             dream_summary_today_service, get_all_dream_summaries_service,
         },
         session_service::authorize_and_has_baby,
-        util_service::parse_query_field,
     },
 };
 
@@ -38,11 +38,11 @@ pub(super) fn route_dream() -> Router {
 async fn get_dreams(
     Path(baby_id): Path<i32>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
-    Query(date): Query<HashMap<String, String>>,
+    date: Option<Query<DateDto>>,
 ) -> impl IntoResponse {
     authorize_and_has_baby(auth, baby_id)?;
-    match date.get("date") {
-        Some(d) => filter_dreams_by_date_service(baby_id, d).await,
+    match date {
+        Some(date) => filter_dreams_by_date_service(baby_id, date.date()?).await,
         None => get_all_dreams_from_baby_service(baby_id).await,
     }
 }
@@ -59,11 +59,11 @@ async fn post_dream(
 async fn dream_summary(
     Path(baby_id): Path<i32>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
-    Query(date): Query<HashMap<String, String>>,
+    date: Query<DateDto>,
 ) -> impl IntoResponse {
     authorize_and_has_baby(auth, baby_id)?;
-    let string_date = parse_query_field(date, "date")?;
-    dream_summary_service(baby_id, &string_date).await
+    let day = date.date()?;
+    dream_summary_service(baby_id, day).await
 }
 
 async fn dream_summary_today(
@@ -77,27 +77,24 @@ async fn dream_summary_today(
 async fn dream_summary_last(
     Path(baby_id): Path<i32>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
-    Query(date): Query<HashMap<String, String>>,
+    last_days: Query<LastDaysDto>,
 ) -> impl IntoResponse {
     authorize_and_has_baby(auth, baby_id)?;
-    let last_days: u64 = parse_query_field(date, "days")?.trim().parse().unwrap_or(7);
-    dream_summary_last_days_service(baby_id, last_days).await
+    dream_summary_last_days_service(baby_id, last_days.days()).await
 }
 
 async fn dream_summary_range(
     Path(baby_id): Path<i32>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
-    Query(date): Query<HashMap<String, String>>,
+    value: Query<DateRangeDto>,
 ) -> impl IntoResponse {
     authorize_and_has_baby(auth, baby_id)?;
-    let from_date = parse_query_field(date.clone(), "from")?;
-    let to_date = parse_query_field(date, "to")?;
-    dream_summary_range_service(baby_id, &from_date, &to_date).await
+    dream_summary_range_service(baby_id, value.from()?, value.to()?).await
 }
 
 async fn dream_summary_all(
     Path(baby_id): Path<i32>,
-    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>
+    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
 ) -> impl IntoResponse {
     authorize_and_has_baby(auth, baby_id)?;
     get_all_dream_summaries_service(baby_id).await

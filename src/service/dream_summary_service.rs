@@ -6,16 +6,15 @@ use crate::{
     error::error::ApiError,
     model::{dream_model::Dream, summary_model::DreamSummary},
     repository::dream_repository::{find_all_dreams_sorted, find_dreams_summary},
-    utils::datetime::{iter_between_two_dates, to_date, today},
+    utils::datetime::{iter_between_two_dates, today},
 };
 
 use super::util_service::{check_days_out_of_bounds, dates_are_in_order};
 
 pub async fn dream_summary_service(
     baby_id: i32,
-    string_date: &str,
+    date: NaiveDate,
 ) -> Result<Json<DreamSummaryDto>, ApiError> {
-    let date = to_date(string_date)?;
     let record = one_day_summary(baby_id, date).await?;
     Ok(Json(record.into()))
 }
@@ -28,12 +27,10 @@ pub async fn dream_summary_today_service(baby_id: i32) -> Result<Json<DreamSumma
 
 pub async fn dream_summary_range_service(
     baby_id: i32,
-    from_date_string: &str,
-    to_date_string: &str,
+    from_date: NaiveDate,
+    to_date: NaiveDate,
 ) -> Result<Json<Vec<DreamSummaryDto>>, ApiError> {
-    let from = to_date(from_date_string)?;
-    let to = to_date(to_date_string)?;
-    let summary = fetch_dream_summary_range(baby_id, from, to).await?;
+    let summary = fetch_dream_summary_range(baby_id, from_date, to_date).await?;
     Ok(into_json_summary(summary))
 }
 

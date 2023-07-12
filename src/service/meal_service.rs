@@ -1,17 +1,12 @@
 use axum::Json;
+use chrono::NaiveDate;
 
 use crate::{
-    data::meal_dto::{MealDto, MealSummaryDto, NewMealDto},
+    data::meal_dto::{MealDto, NewMealDto},
     error::error::ApiError,
-    model::{
-        meals_model::{InsertableMeal, Meal},
-        summary_model::MealSummary,
-    },
+    model::meals_model::{InsertableMeal, Meal},
     repository::meal_repository::{find_meals_by_date, get_all_meals_from_baby, ingest_meal},
-    utils::{
-        datetime::{now, to_date},
-        response::Response,
-    },
+    utils::{datetime::now, response::Response},
 };
 
 use super::util_service::{ok, uncover_date};
@@ -36,9 +31,8 @@ pub async fn get_meals_service(baby_id: i32) -> Result<Json<Vec<MealDto>>, ApiEr
 
 pub async fn filter_meals_by_date_service(
     baby_id: i32,
-    string_date: &str,
+    date: NaiveDate,
 ) -> Result<Json<Vec<MealDto>>, ApiError> {
-    let date = to_date(string_date)?;
     let meals = find_meals_by_date(baby_id, date).await?;
     Ok(into_json(meals))
 }

@@ -12,7 +12,7 @@ pub fn to_date_time(date_time: &str) -> Result<NaiveDateTime, chrono::ParseError
     NaiveDateTime::parse_from_str(&date_time, "%Y-%m-%d %H:%M")
 }
 
-pub fn to_date(date: &str) -> Result<NaiveDate, chrono::ParseError> {
+pub fn convert_to_date(date: &str) -> Result<NaiveDate, chrono::ParseError> {
     NaiveDate::parse_from_str(&date, "%Y-%m-%d")
 }
 
@@ -24,7 +24,7 @@ pub fn format_time(time: NaiveTime) -> String {
     time.format("%H:%M").to_string()
 }
 
-pub fn date_time_is_higher(date: NaiveDateTime, other_date: NaiveDateTime) -> bool {
+pub fn _date_time_is_lower_than_other_date(date: NaiveDateTime, other_date: NaiveDateTime) -> bool {
     if let std::cmp::Ordering::Less = other_date.cmp(&date) {
         false
     } else {
@@ -32,7 +32,8 @@ pub fn date_time_is_higher(date: NaiveDateTime, other_date: NaiveDateTime) -> bo
     }
 }
 
-pub fn date_is_higher(date: NaiveDate, other_date: NaiveDate) -> bool {
+/// Compare two dates, date must be equal or lower than other_date.
+pub fn date_is_lower_than_other_date(date: NaiveDate, other_date: NaiveDate) -> bool {
     if let std::cmp::Ordering::Less = other_date.cmp(&date) {
         false
     } else {
@@ -59,7 +60,7 @@ pub fn iter_between_two_dates(from: NaiveDate, to: NaiveDate) -> Vec<NaiveDate> 
 
 #[cfg(test)]
 mod test_timestamp {
-    use chrono::NaiveDate;
+    use chrono::{Days, NaiveDate};
 
     use super::*;
 
@@ -67,7 +68,7 @@ mod test_timestamp {
     fn test_date() {
         assert_eq!(
             NaiveDate::from_ymd_opt(2023, 6, 7).unwrap(),
-            to_date("2023-06-07").unwrap()
+            convert_to_date("2023-06-07").unwrap()
         );
     }
 
@@ -84,20 +85,31 @@ mod test_timestamp {
 
     #[test]
     fn test_compare_dates() {
-        assert!(
-            date_time_is_higher(
-                to_date_time("2023-03-23 23:31").unwrap(),
-                to_date_time("2023-03-23 23:32").unwrap()
-            )
-        );
-        assert!(
-            !date_time_is_higher(
-                to_date_time("2023-03-23 23:33").unwrap(),
-                to_date_time("2023-03-23 23:32").unwrap()
-            )
-        );
+        assert!(_date_time_is_lower_than_other_date(
+            to_date_time("2023-03-23 23:31").unwrap(),
+            to_date_time("2023-03-23 23:32").unwrap()
+        ));
+        assert!(!_date_time_is_lower_than_other_date(
+            to_date_time("2023-03-23 23:33").unwrap(),
+            to_date_time("2023-03-23 23:32").unwrap()
+        ));
     }
 
+    #[test]
+    fn test_higher_date() {
+        assert!(date_is_lower_than_other_date(
+            today(),
+            today().checked_add_days(Days::new(0)).unwrap()
+        ));
+        assert!(date_is_lower_than_other_date(
+            today(),
+            today().checked_add_days(Days::new(1)).unwrap()
+        ));
+        assert!(!date_is_lower_than_other_date(
+            today(),
+            today().checked_sub_days(Days::new(1)).unwrap()
+        ));
+    }
     #[test]
     fn test_duration() {
         assert_eq!(
