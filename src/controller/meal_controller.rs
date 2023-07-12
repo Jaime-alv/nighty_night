@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use axum::{
     extract::{Path, Query},
     response::IntoResponse,
@@ -10,7 +8,10 @@ use axum_session::SessionRedisPool;
 use axum_session_auth::AuthSession;
 
 use crate::{
-    data::meal_dto::NewMealDto,
+    data::{
+        meal_dto::NewMealDto,
+        query_dto::{DateDto, DateRangeDto, LastDaysDto},
+    },
     model::session_model::CurrentUser,
     service::{
         meal_service::{filter_meals_by_date_service, get_meals_service, post_meal_service},
@@ -19,7 +20,6 @@ use crate::{
             meal_summary_range_service, meal_summary_service, meal_summary_today_service,
         },
         session_service::authorize_and_has_baby,
-        util_service::parse_query_field,
     },
 };
 
@@ -36,11 +36,11 @@ pub(super) fn route_meal() -> Router {
 async fn get_meals(
     Path(baby_id): Path<i32>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
-    Query(date): Query<HashMap<String, String>>,
+    date: Option<Query<DateDto>>,
 ) -> impl IntoResponse {
     authorize_and_has_baby(auth, baby_id)?;
-    match date.get("date") {
-        Some(d) => filter_meals_by_date_service(baby_id, d).await,
+    match date {
+        Some(date) => filter_meals_by_date_service(baby_id, date.date()?).await,
         None => get_meals_service(baby_id).await,
     }
 }
@@ -57,11 +57,10 @@ async fn post_meal(
 async fn meal_summary(
     Path(baby_id): Path<i32>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
-    Query(date): Query<HashMap<String, String>>,
+    date: Query<DateDto>,
 ) -> impl IntoResponse {
     authorize_and_has_baby(auth, baby_id)?;
-    let string_date = parse_query_field(date, "date")?;
-    meal_summary_service(baby_id, &string_date).await
+    meal_summary_service(baby_id, date.date()?).await
 }
 
 async fn meal_summary_today(
@@ -75,22 +74,19 @@ async fn meal_summary_today(
 async fn meal_summary_last(
     Path(baby_id): Path<i32>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
-    Query(date): Query<HashMap<String, String>>,
+    last_days: Query<LastDaysDto>,
 ) -> impl IntoResponse {
     authorize_and_has_baby(auth, baby_id)?;
-    let last_days: u64 = parse_query_field(date, "days")?.trim().parse().unwrap_or(7);
-    meal_summary_last_days_service(baby_id, last_days).await
+    meal_summary_last_days_service(baby_id, last_days.days()).await
 }
 
 async fn meal_summary_range(
     Path(baby_id): Path<i32>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
-    Query(date): Query<HashMap<String, String>>,
+    value: Query<DateRangeDto>,
 ) -> impl IntoResponse {
     authorize_and_has_baby(auth, baby_id)?;
-    let from_date = parse_query_field(date.clone(), "from")?;
-    let to_date = parse_query_field(date, "to")?;
-    meal_summary_range_service(baby_id, &from_date, &to_date).await
+    meal_summary_range_service(baby_id, value.from()?, value.to()?).await
 }
 
 async fn meal_summary_all(

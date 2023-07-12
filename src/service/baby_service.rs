@@ -5,7 +5,7 @@ use crate::{
     error::error::ApiError,
     model::baby_model::Baby,
     repository::baby_repository::{ingest_new_baby_in_db, load_baby_by_id, query_babies},
-    utils::datetime::to_date,
+    utils::datetime::convert_to_date,
 };
 
 use super::association_service::add_baby_to_user_service;
@@ -17,7 +17,7 @@ pub async fn ingest_new_baby<T>(
 where
     T: Into<i32>,
 {
-    to_date(&new_baby.birthdate)?;
+    convert_to_date(&new_baby.birthdate)?;
     let baby = ingest_new_baby_in_db(new_baby).await?;
     add_baby_to_user_service(current_user.into(), baby.id().into()).await?;
     Ok(Json(baby.into()))

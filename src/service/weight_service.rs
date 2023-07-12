@@ -5,7 +5,7 @@ use crate::{
     error::error::ApiError,
     model::weight_model::{InsertableWeight, Weight},
     repository::weight_repository::{get_all_weights_from_baby, ingest_weight},
-    utils::{datetime::to_date, response::Response},
+    utils::{datetime::convert_to_date, response::Response},
 };
 
 use super::util_service::ok;
@@ -14,7 +14,7 @@ pub async fn post_weight_service(
     new_measure: NewWeightDto,
     baby_id: i32,
 ) -> Result<Response, ApiError> {
-    let date = to_date(&new_measure.date)?;
+    let date = convert_to_date(&new_measure.date)?;
     let measure = InsertableWeight::new(baby_id, date, new_measure.value);
     ingest_weight(measure).await?;
     Ok(ok("New measure added"))

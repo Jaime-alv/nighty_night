@@ -1,7 +1,7 @@
 use crate::{
     data::baby_dto::{BabyDto, NewBabyDto},
     model::baby_model::{Baby, InsertableBaby},
-    utils::datetime::to_date,
+    utils::datetime::convert_to_date,
 };
 
 impl From<Baby> for BabyDto {
@@ -16,6 +16,6 @@ impl From<Baby> for BabyDto {
 
 impl From<NewBabyDto> for InsertableBaby {
     fn from(baby: NewBabyDto) -> Self {
-        InsertableBaby::new(baby.name, to_date(&baby.birthdate).unwrap())
+        InsertableBaby::new(baby.name, convert_to_date(&baby.birthdate).unwrap())
     }
 }

@@ -1,4 +1,5 @@
 use axum::Json;
+use chrono::NaiveDate;
 
 use crate::{
     data::dream_dto::{DreamDto, NewDreamDto},
@@ -7,7 +8,7 @@ use crate::{
     repository::dream_repository::{
         find_dreams_by_date, get_all_dreams_from_baby, ingest_new_dream, update_last_dream,
     },
-    utils::{datetime::to_date, response::Response},
+    utils::response::Response,
 };
 
 use super::util_service::{ok, uncover_date};
@@ -47,9 +48,8 @@ pub async fn get_all_dreams_from_baby_service(
 
 pub async fn filter_dreams_by_date_service(
     baby_id: i32,
-    string_date: &str,
+    date: NaiveDate,
 ) -> Result<Json<Vec<DreamDto>>, ApiError> {
-    let date = to_date(string_date)?;
     let dreams = find_dreams_by_date(baby_id, date).await?;
     Ok(into_json(dreams))
 }
