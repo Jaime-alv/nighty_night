@@ -16,6 +16,24 @@ pub struct Dream {
 }
 
 impl Dream {
+    pub fn new(
+        id: i32,
+        baby_id: i32,
+        from_date: NaiveDateTime,
+        to_date: Option<NaiveDateTime>,
+    ) -> Self {
+        Self {
+            id,
+            baby_id,
+            from_date,
+            to_date,
+        }
+    }
+
+    pub fn baby_id(&self) -> i32 {
+        self.baby_id
+    }
+
     pub fn from_date(&self) -> NaiveDateTime {
         self.from_date
     }
@@ -42,11 +60,12 @@ impl Dream {
         }
     }
 
-    pub fn to_date(&self) -> NaiveDateTime {
-        match self.to_date {
-            Some(date) => date,
-            None => NaiveDateTime::default(),
-        }
+    pub fn to_date(&self) -> Option<NaiveDateTime> {
+        // match self.to_date {
+        //     Some(date) => date,
+        //     None => NaiveDateTime::default(),
+        // }
+        self.to_date
     }
 
     pub fn formatted_elapsed(&self) -> String {

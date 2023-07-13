@@ -44,6 +44,7 @@ pub async fn find_meals_by_date_range(
         .filter(meals::baby_id.eq(baby))
         .filter(meals::date.ge(from))
         .filter(meals::date.le(to))
+        .order(meals::date.asc())
         .load::<Meal>(conn)
         .await
 }
@@ -62,14 +63,14 @@ pub async fn find_meal_by_id(record: i32) -> Result<Meal, Error> {
     meals::table.find(record).first::<Meal>(conn).await
 }
 
-
 pub async fn patch_meal_record(meal: Meal) -> Result<usize, Error> {
     let conn = &mut establish_async_connection().await;
-    diesel::update(meals::table.filter(meals::id.eq(meal.id())))
-    .set((
-        meals::date.eq(meal.date()),
-        meals::quantity.eq(meal.quantity()),
-        meals::to_time.eq(meal.to_time()),
-    ))
-    .execute(conn).await
+    diesel::update(meals::table.find(meal.id()))
+        .set((
+            meals::date.eq(meal.date()),
+            meals::quantity.eq(meal.quantity()),
+            meals::to_time.eq(meal.to_time()),
+        ))
+        .execute(conn)
+        .await
 }

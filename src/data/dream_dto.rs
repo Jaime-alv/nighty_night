@@ -24,3 +24,9 @@ pub struct DreamSummaryDto {
     pub date: String,
     pub summary: String
 }
+
+#[derive(Deserialize)]
+pub struct UpdateDreamDto {
+    pub from_date: Option<String>,
+    pub to_date: Option<String>
+}

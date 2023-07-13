@@ -2,16 +2,17 @@ use axum::Json;
 use chrono::NaiveDate;
 
 use crate::{
-    data::dream_dto::{DreamDto, NewDreamDto},
+    data::dream_dto::{DreamDto, NewDreamDto, UpdateDreamDto},
     error::error::ApiError,
     model::dream_model::{Dream, InsertableDream},
     repository::dream_repository::{
-        find_dreams_by_date, get_all_dreams_from_baby, ingest_new_dream, update_last_dream,
+        find_dream_by_id, find_dreams_by_date, get_all_dreams_from_baby, ingest_new_dream,
+        patch_dream_record, update_last_dream,
     },
-    utils::response::Response,
+    utils::{datetime::convert_to_date_time, response::Response},
 };
 
-use super::util_service::uncover_date;
+use super::util_service::{date_time_are_in_order, uncover_date};
 
 pub async fn post_dream_service(
     new_dream: NewDreamDto,
@@ -37,6 +38,33 @@ async fn create_new_dream_entry(
     let from_date_binding = uncover_date(new_dream.from_date)?;
     let dream = InsertableDream::new(baby_id, from_date_binding, to_date_binding);
     Ok(dream)
+}
+
+pub async fn patch_dream_service(dream: UpdateDreamDto, record: i32, baby_id: i32) -> Result<Response, ApiError> {
+    let old_dream = find_dream_by_id(record).await?;
+    if baby_id.ne(&old_dream.baby_id()) {
+        return Err(ApiError::Forbidden);
+    }
+    let new_from_date = match dream.from_date {
+        Some(value) => convert_to_date_time(&value)?,
+        None => old_dream.from_date(),
+    };
+    let new_to_date = match dream.to_date {
+        Some(value) => {
+            let date_time = convert_to_date_time(&value)?;
+            date_time_are_in_order(new_from_date, date_time)?;
+            Some(date_time)
+        }
+        None => old_dream.to_date(),
+    };
+    let update_dream = Dream::new(
+        old_dream.id(),
+        old_dream.baby_id(),
+        new_from_date,
+        new_to_date,
+    );
+    patch_dream_record(update_dream).await?;
+    Ok(Response::UpdateRecord)
 }
 
 pub async fn get_all_dreams_from_baby_service(

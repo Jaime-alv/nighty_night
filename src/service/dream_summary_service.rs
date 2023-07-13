@@ -6,7 +6,7 @@ use crate::{
     error::error::ApiError,
     model::{dream_model::Dream, summary_model::DreamSummary},
     repository::dream_repository::{find_all_dreams_sorted, find_dreams_summary},
-    utils::datetime::{iter_between_two_dates, today},
+    utils::datetime::{iter_between_two_dates, today, now},
 };
 
 use super::util_service::{check_days_out_of_bounds, dates_are_in_order};
@@ -55,7 +55,7 @@ async fn fetch_dream_summary_range(
         let partial_dreams = dreams
             .clone()
             .into_iter()
-            .filter(|dream| dream.to_date().date().eq(&day))
+            .filter(|dream| dream.to_date().unwrap_or(now()).date().eq(&day))
             .collect::<Vec<Dream>>();
         if !partial_dreams.is_empty() {
             let summary = DreamSummary::new(day, partial_dreams);
@@ -96,7 +96,7 @@ pub async fn get_all_dream_summaries_service(
     let mut summaries: Vec<DreamSummary> = Vec::new();
     let all_records = find_all_dreams_sorted(baby_id).await?;
     let initial_record = match all_records.first() {
-        Some(initial) => initial.to_date().date(),
+        Some(initial) => initial.to_date().unwrap().date(),
         None => return Ok(into_json_summary(summaries)),
     };
     let today = today().checked_add_days(Days::new(1)).unwrap();
@@ -105,7 +105,7 @@ pub async fn get_all_dream_summaries_service(
         let partial_dreams = all_records
             .clone()
             .into_iter()
-            .filter(|dream| dream.to_date().date().eq(&day))
+            .filter(|dream| dream.to_date().unwrap().date().eq(&day))
             .collect::<Vec<Dream>>();
         if !partial_dreams.is_empty() {
             let summary = DreamSummary::new(day, partial_dreams);

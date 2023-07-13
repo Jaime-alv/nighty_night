@@ -1,11 +1,9 @@
 use chrono::{NaiveDate, NaiveDateTime};
-use hyper::StatusCode;
 
 use crate::{
     error::error::ApiError,
-    utils::{
-        datetime::{date_is_lower_than_other_date, convert_to_date_time, date_time_is_lower_than_other_date},
-        response::Response,
+    utils::datetime::{
+        convert_to_date_time, date_is_lower_than_other_date, date_time_is_lower_than_other_date,
     },
 };
 
