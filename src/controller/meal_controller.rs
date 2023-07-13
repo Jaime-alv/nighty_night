@@ -61,7 +61,7 @@ async fn patch_meal(
     Json(meal): Json<UpdateMealDto>,
 ) -> impl IntoResponse {
     authorize_and_has_baby(auth, baby_id)?;
-    patch_meal_service(meal, record_id.id()).await
+    patch_meal_service(meal, record_id.id(), baby_id).await
 }
 
 async fn meal_summary(

@@ -30,8 +30,11 @@ pub async fn post_meal_service(new_meal: NewMealDto, baby_id: i32) -> Result<Res
     Ok(Response::NewRecord)
 }
 
-pub async fn patch_meal_service(meal: UpdateMealDto, record: i32) -> Result<Response, ApiError> {
+pub async fn patch_meal_service(meal: UpdateMealDto, record: i32, baby_id: i32) -> Result<Response, ApiError> {
     let old_meal = find_meal_by_id(record).await?;
+    if baby_id.ne(&old_meal.baby_id()) {
+        return Err(ApiError::Forbidden)
+    }
     let new_date = match meal.date {
         Some(v) => convert_to_date_time(&v)?,
         None => old_meal.date(),
