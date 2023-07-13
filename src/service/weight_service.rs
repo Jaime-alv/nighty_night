@@ -8,7 +8,6 @@ use crate::{
     utils::{datetime::convert_to_date, response::Response},
 };
 
-use super::util_service::ok;
 
 pub async fn post_weight_service(
     new_measure: NewWeightDto,
@@ -17,7 +16,7 @@ pub async fn post_weight_service(
     let date = convert_to_date(&new_measure.date)?;
     let measure = InsertableWeight::new(baby_id, date, new_measure.value);
     ingest_weight(measure).await?;
-    Ok(ok("New measure added"))
+    Ok(Response::NewRecord)
 }
 
 pub async fn get_weights_service(baby_id: i32) -> Result<Json<Vec<WeightDto>>, ApiError> {

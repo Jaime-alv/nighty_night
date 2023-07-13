@@ -9,10 +9,6 @@ use crate::{
     },
 };
 
-pub fn ok(msg: &str) -> Response {
-    Response::new(StatusCode::OK, msg)
-}
-
 pub fn not_found() -> ApiError {
     ApiError::NotFound
 }

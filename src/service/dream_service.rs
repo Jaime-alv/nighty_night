@@ -11,7 +11,7 @@ use crate::{
     utils::response::Response,
 };
 
-use super::util_service::{ok, uncover_date};
+use super::util_service::uncover_date;
 
 pub async fn post_dream_service(
     new_dream: NewDreamDto,
@@ -21,11 +21,11 @@ pub async fn post_dream_service(
     if new_dream.from_date.is_some() {
         dream = create_new_dream_entry(new_dream, baby_id).await?;
         ingest_new_dream(dream).await?;
-        Ok(ok("New dream added."))
+        Ok(Response::NewRecord)
     } else {
         dream = create_new_dream_entry(new_dream, baby_id).await?;
         update_last_dream(dream).await?;
-        Ok(ok("Dream update."))
+        Ok(Response::UpdateRecord)
     }
 }
 
