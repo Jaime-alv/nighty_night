@@ -68,7 +68,7 @@ impl MealSummary {
     fn formula_feedings(meals: &Vec<Meal>) -> i16 {
         meals
             .into_iter()
-            .map(|meal| meal.quantity())
+            .map(|meal| meal.formatted_quantity())
             .reduce(|acc, feeds| acc + feeds)
             .unwrap_or_default()
     }

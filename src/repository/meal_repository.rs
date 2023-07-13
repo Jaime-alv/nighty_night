@@ -56,3 +56,20 @@ pub async fn find_all_meals_sorted(baby: i32) -> Result<Vec<Meal>, Error> {
         .load::<Meal>(conn)
         .await
 }
+
+pub async fn find_meal_by_id(record: i32) -> Result<Meal, Error> {
+    let conn = &mut establish_async_connection().await;
+    meals::table.find(record).first::<Meal>(conn).await
+}
+
+
+pub async fn patch_meal_record(meal: Meal) -> Result<usize, Error> {
+    let conn = &mut establish_async_connection().await;
+    diesel::update(meals::table.filter(meals::id.eq(meal.id())))
+    .set((
+        meals::date.eq(meal.date()),
+        meals::quantity.eq(meal.quantity()),
+        meals::to_time.eq(meal.to_time()),
+    ))
+    .execute(conn).await
+}

@@ -16,6 +16,13 @@ pub struct NewMealDto {
     pub to_time: Option<String>,
 }
 
+#[derive(Deserialize)]
+pub struct UpdateMealDto {
+    pub date: Option<String>,
+    pub quantity: Option<i16>,
+    pub to_time: Option<String>,
+}
+
 #[derive(Serialize)]
 pub struct MealSummaryDto {
     pub date: String,

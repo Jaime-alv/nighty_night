@@ -60,7 +60,7 @@ impl ApiError {
             ApiError::LoginRequired => (StatusCode::UNAUTHORIZED, String::from("Login required.")),
             ApiError::InvalidValue(value) => (StatusCode::BAD_REQUEST, format!("{value}")),
             ApiError::OutOfBounds(min, max) => (StatusCode::BAD_REQUEST, format!("Out of bounds: range between {min} and {max}.")),
-            ApiError::DatesUnordered => (StatusCode::BAD_REQUEST, String::from("From date is in the future")),
+            ApiError::DatesUnordered => (StatusCode::BAD_REQUEST, String::from("Target date must be higher.")),
             ApiError::NoRecord(date) => (StatusCode::BAD_REQUEST, format!("No record found with date: {date}")),
             // 50X Error
             ApiError::DBError(error) => (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()),
