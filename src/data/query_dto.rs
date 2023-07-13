@@ -8,12 +8,12 @@ use crate::{
 
 #[derive(Deserialize)]
 pub struct IdDto {
-    value: i32
+    entry: i32
 }
 
 impl IdDto {
     pub fn id(&self) -> i32 {
-        self.value
+        self.entry
     }
 }
 
