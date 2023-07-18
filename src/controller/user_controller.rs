@@ -1,10 +1,10 @@
 use crate::{
-    data::user_dto::{FindUserDto, LoginDto, NewUserDto},
+    data::user_dto::{FindUserDto, LoginDto, NewUserDto, UpdateUserDto},
     model::session_model::CurrentUser,
     service::{
-        session_service::{current_user_is_admin, login_session},
+        session_service::{current_user_is_admin, login_session, login_required},
         user_service::{
-            create_user_service, find_user_service, get_all_users_service, login_service,
+            create_user_service, find_user_service, get_all_users_service, login_service, find_user_by_id_service, patch_user_service,
         },
     },
 };
@@ -22,7 +22,8 @@ pub(crate) fn route_user() -> Router {
         .route("/register", post(register_new_user))
         .route("/all", get(get_all_users))
         .route("/user", post(find_user))
-        .route("/login", post(login_user));
+        .route("/login", post(login_user))
+        .route("/profile", get(get_profile).patch(update_profile));
     Router::new().nest("/auth", routes)
 }
 
@@ -31,9 +32,9 @@ async fn register_new_user(
     Json(new_user): Json<NewUserDto>,
 ) -> impl IntoResponse {
     match create_user_service(new_user).await {
-        Ok(user) => {
-            login_session(auth, user.1).await?;
-            Ok(user.0)
+        Ok((response, id)) => {
+            login_session(auth, id).await?;
+            Ok(response)
         }
         Err(error) => Err(error),
     }
@@ -55,9 +56,9 @@ async fn login_user(
     Json(login): Json<LoginDto>,
 ) -> impl IntoResponse {
     match login_service(login).await {
-        Ok(user) => {
-            login_session(auth, user.1).await?;
-            Ok(user.0)
+        Ok((response, id)) => {
+            login_session(auth, id).await?;
+            Ok(response)
         }
         Err(error) => Err(error),
     }
@@ -72,4 +73,21 @@ async fn test_welcome(
         auth.current_user.clone().unwrap().username(),
         auth.current_user.unwrap()
     )
+}
+
+async fn get_profile(
+    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>
+)-> impl IntoResponse {
+    let binding_id: i32 = auth.id.try_into().unwrap();
+    login_required(auth)?;
+    find_user_by_id_service(binding_id).await
+}
+
+async fn update_profile(
+    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
+    Json(profile): Json<UpdateUserDto>
+) -> impl IntoResponse {
+    let binding_id: i32 = auth.id.try_into().unwrap();
+    login_required(auth)?;
+    patch_user_service(binding_id, profile).await
 }

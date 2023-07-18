@@ -4,7 +4,7 @@ use diesel_async::RunQueryDsl;
 
 use crate::{
     model::meals_model::{InsertableMeal, Meal},
-    schema::meals,
+    schema::meals, data::meal_dto::UpdateMeal,
 };
 
 use super::connection_psql::establish_async_connection;
@@ -63,13 +63,13 @@ pub async fn find_meal_by_id(record: i32) -> Result<Meal, Error> {
     meals::table.find(record).first::<Meal>(conn).await
 }
 
-pub async fn patch_meal_record(meal: Meal) -> Result<usize, Error> {
+pub async fn patch_meal_record(record: i32, meal: UpdateMeal) -> Result<usize, Error> {
     let conn = &mut establish_async_connection().await;
-    diesel::update(meals::table.find(meal.id()))
+    diesel::update(meals::table.find(record))
         .set((
-            meals::date.eq(meal.date()),
-            meals::quantity.eq(meal.quantity()),
-            meals::to_time.eq(meal.to_time()),
+            meals::date.eq(meal.date),
+            meals::quantity.eq(meal.quantity),
+            meals::to_time.eq(meal.to_time),
         ))
         .execute(conn)
         .await

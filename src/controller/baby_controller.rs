@@ -35,8 +35,8 @@ async fn register_baby(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     Json(new_baby): Json<NewBabyDto>,
 ) -> impl IntoResponse {
-    login_required(auth.clone())?;
     let id: i32 = auth.id.try_into().unwrap();
+    login_required(auth.clone())?;    
     match ingest_new_baby(new_baby, id).await {
         Ok(baby) => {
             update_user_session(&auth.current_user.unwrap()).await?;

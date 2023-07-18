@@ -1,9 +1,10 @@
+use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 
 
 
 #[derive(Deserialize)]
-pub struct NewDreamDto {
+pub struct InputDreamDto {
     pub from_date: Option<String>,
     pub to_date: Option<String>,
 }
@@ -25,8 +26,7 @@ pub struct DreamSummaryDto {
     pub summary: String
 }
 
-#[derive(Deserialize)]
-pub struct UpdateDreamDto {
-    pub from_date: Option<String>,
-    pub to_date: Option<String>
+pub struct UpdateDream {
+    pub from_date: NaiveDateTime,
+    pub to_date: Option<NaiveDateTime>
 }

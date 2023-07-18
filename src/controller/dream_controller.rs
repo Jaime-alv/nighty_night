@@ -9,7 +9,7 @@ use axum_session_auth::AuthSession;
 
 use crate::{
     data::{
-        dream_dto::{NewDreamDto, UpdateDreamDto},
+        dream_dto::InputDreamDto,
         query_dto::{DateDto, DateRangeDto, IdDto, LastDaysDto},
     },
     model::session_model::CurrentUser,
@@ -54,7 +54,7 @@ async fn get_dreams(
 async fn post_dream(
     Path(baby_id): Path<i32>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
-    Json(new_dream): Json<NewDreamDto>,
+    Json(new_dream): Json<InputDreamDto>,
 ) -> impl IntoResponse {
     authorize_and_has_baby(auth, baby_id)?;
     post_dream_service(new_dream, baby_id).await
@@ -64,7 +64,7 @@ async fn patch_dream(
     Path(baby_id): Path<i32>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     record_id: Query<IdDto>,
-    Json(dream): Json<UpdateDreamDto>,
+    Json(dream): Json<InputDreamDto>,
 ) -> impl IntoResponse {
     authorize_and_has_baby(auth, baby_id)?;
     patch_dream_service(dream, record_id.id(), baby_id).await

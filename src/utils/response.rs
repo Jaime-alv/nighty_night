@@ -6,14 +6,22 @@ pub enum Response {
     NewRecord,
     UpdateRecord,
     DeleteRecord,
+    UserLogIn(String),
+    NewUser(String),
 }
 
 impl Response {
-    fn get_response(&self) -> (StatusCode, &str) {
+    fn get_response(&self) -> (StatusCode, String) {
         match self {
-            Response::NewRecord => (StatusCode::CREATED, "New record added."),
-            Response::UpdateRecord => (StatusCode::ACCEPTED, "Update record."),
-            Response::DeleteRecord => (StatusCode::ACCEPTED, "Delete record."),
+            Response::NewRecord => (StatusCode::CREATED, "New record added.".to_string()),
+            Response::UpdateRecord => (StatusCode::ACCEPTED, "Update record.".to_string()),
+            Response::DeleteRecord => (StatusCode::ACCEPTED, "Delete record.".to_string()),
+            Response::UserLogIn(username) => {
+                (StatusCode::OK, format!("User logged in: {username}."))
+            }
+            Response::NewUser(username) => {
+                (StatusCode::CREATED, format!("New user added: {username}."))
+            }
         }
     }
 }
