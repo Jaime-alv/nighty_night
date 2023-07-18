@@ -26,14 +26,13 @@ pub async fn exists_user(key: &str) -> Result<bool, RedisError> {
 
 pub async fn get_user(key: &str) -> Result<String, RedisError> {
     let mut conn = poll().await.get_async_connection().await.unwrap();
-    redis::cmd("GET")
-        .arg(key)
-        .query_async(&mut conn)
-        .await
+    redis::cmd("GET").arg(key).query_async(&mut conn).await
 }
 #[cfg(test)]
 mod redis_test {
     use dotenvy::dotenv;
+
+    use crate::repository::session_repository::get_user;
 
     fn set_env() {
         dotenv().ok();
@@ -42,5 +41,6 @@ mod redis_test {
     #[tokio::test]
     async fn test_connection() {
         set_env();
+        assert_eq!(get_user("user_1").await.unwrap(), "{\"id\":1,\"anonymous\":true,\"username\":\"guest\",\"roles\":[2],\"active\":true,\"baby_id\":[]}".to_string())
     }
 }

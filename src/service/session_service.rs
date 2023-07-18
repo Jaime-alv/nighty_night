@@ -1,12 +1,13 @@
 use axum_session::SessionRedisPool;
 use axum_session_auth::AuthSession;
+use tokio::try_join;
 
 use crate::{
     configuration::settings::Setting,
     data::session_dto::CurrentUserDto,
     error::error::ApiError,
     mapping::rol_mapper::translate_roles,
-    model::{role_model::Rol, session_model::CurrentUser},
+    model::{role_model::Rol, session_model::CurrentUser, user_model::User},
     repository::{
         session_repository::{exists_user, get_user, set_user},
         user_repository::{find_babies_id, find_roles_id, load_user_by_id},
@@ -19,37 +20,24 @@ pub async fn login_session<T>(
 ) -> Result<(), ApiError>
 where
     i32: From<T>,
-    <T as TryInto<i32>>::Error: std::fmt::Debug,
     i64: From<T>,
-    T: std::marker::Copy,
 {
-    let id: i32 = user_id.try_into().clone().unwrap();
-    let user = read_from_db(id).await?;
-    save_user_session(&user).await?;
     auth.login_user(user_id.into());
     Ok(())
 }
 
 pub async fn save_user_session(user: &CurrentUser) -> Result<(), ApiError> {
-    let current_user_dto = CurrentUserDto::new(
-        user.id(),
-        user.anonymous(),
-        user.username(),
-        user.roles_id(),
-        user.active(),
-        user.baby_id(),
-    );
     let key = user_redis_key(user.id());
     let duration = Setting::SessionDuration
         .get()
         .parse::<usize>()
         .unwrap_or(600);
-    set_user(&key, current_user_dto, duration).await?;
+    set_user(&key, (*user).clone().into(), duration).await?;
     Ok(())
 }
 
 pub async fn update_user_session(user: &CurrentUser) -> Result<(), ApiError> {
-    let update_user = read_from_db(user.id().try_into().unwrap()).await?;
+    let update_user = read_user_from_db(user.id().try_into().unwrap()).await?;
     save_user_session(&update_user).await
 }
 
@@ -60,22 +48,20 @@ pub async fn load_user_session(id: i64) -> Result<CurrentUser, ApiError> {
         Ok(user) => user,
         Err(err) => return Err(ApiError::Redis(err.into())),
     };
-    Ok(CurrentUser::new(
-        user.id,
-        user.anonymous,
-        user.username,
-        translate_roles(&user.roles),
-        user.active,
-        user.baby_id,
-    ))
+    Ok(user.into())
 }
 
-pub async fn read_from_db(user: i32) -> Result<CurrentUser, ApiError> {
+pub async fn read_user_from_db(user: i32) -> Result<CurrentUser, ApiError> {
     let current_user = load_user_by_id(user).await?;
-    let roles: Vec<u8> = find_roles_id(current_user.id()).await.into_iter().collect();
-    let translate_roles: Vec<Rol> = translate_roles(&roles);
+    create_current_user(current_user).await
+}
 
-    let babies: Vec<i32> = find_babies_id(current_user.id()).await;
+pub async fn create_current_user(current_user: User) -> Result<CurrentUser, ApiError> {
+    let (roles, babies) = try_join!(
+        find_roles_id(current_user.id()),
+        find_babies_id(current_user.id())
+    )?;
+    let translate_roles: Vec<Rol> = translate_roles(&roles.into_iter().collect::<Vec<u8>>());
 
     let user_session = CurrentUser::new(
         current_user.id().into(),
@@ -130,7 +116,7 @@ pub fn authorize_and_has_baby(
 }
 
 pub fn login_required(
-    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>
+    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
 ) -> Result<(), ApiError> {
     match auth.is_authenticated() {
         true => Ok(()),
