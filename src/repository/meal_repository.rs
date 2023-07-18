@@ -4,7 +4,7 @@ use diesel_async::RunQueryDsl;
 
 use crate::{
     model::meals_model::{InsertableMeal, Meal},
-    schema::meals,
+    schema::meals, data::meal_dto::UpdateMeal,
 };
 
 use super::connection_psql::establish_async_connection;
@@ -44,6 +44,7 @@ pub async fn find_meals_by_date_range(
         .filter(meals::baby_id.eq(baby))
         .filter(meals::date.ge(from))
         .filter(meals::date.le(to))
+        .order(meals::date.asc())
         .load::<Meal>(conn)
         .await
 }
@@ -54,5 +55,22 @@ pub async fn find_all_meals_sorted(baby: i32) -> Result<Vec<Meal>, Error> {
         .filter(meals::baby_id.eq(baby))
         .order(meals::date.asc())
         .load::<Meal>(conn)
+        .await
+}
+
+pub async fn find_meal_by_id(record: i32) -> Result<Meal, Error> {
+    let conn = &mut establish_async_connection().await;
+    meals::table.find(record).first::<Meal>(conn).await
+}
+
+pub async fn patch_meal_record(record: i32, meal: UpdateMeal) -> Result<usize, Error> {
+    let conn = &mut establish_async_connection().await;
+    diesel::update(meals::table.find(record))
+        .set((
+            meals::date.eq(meal.date),
+            meals::quantity.eq(meal.quantity),
+            meals::to_time.eq(meal.to_time),
+        ))
+        .execute(conn)
         .await
 }

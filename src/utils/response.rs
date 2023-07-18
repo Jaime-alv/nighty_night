@@ -2,25 +2,35 @@ use axum::{response::IntoResponse, Json};
 use hyper::StatusCode;
 use serde_json::json;
 
-pub struct Response {
-    status: StatusCode,
-    message: String,
+pub enum Response {
+    NewRecord,
+    UpdateRecord,
+    DeleteRecord,
+    UserLogIn(String),
+    NewUser(String),
 }
 
 impl Response {
-    pub fn new(status: StatusCode, message: &str) -> Self {
-        Self {
-            status,
-            message: message.to_string(),
+    fn get_response(&self) -> (StatusCode, String) {
+        match self {
+            Response::NewRecord => (StatusCode::CREATED, "New record added.".to_string()),
+            Response::UpdateRecord => (StatusCode::ACCEPTED, "Update record.".to_string()),
+            Response::DeleteRecord => (StatusCode::ACCEPTED, "Delete record.".to_string()),
+            Response::UserLogIn(username) => {
+                (StatusCode::OK, format!("User logged in: {username}."))
+            }
+            Response::NewUser(username) => {
+                (StatusCode::CREATED, format!("New user added: {username}."))
+            }
         }
     }
 }
 
 impl IntoResponse for Response {
     fn into_response(self) -> axum::response::Response {
-        let status_code = self.status;
+        let (status_code, msg) = self.get_response();
         let code = status_code.as_u16();
-        let body = Json(json!({ "code": code, "message": self.message }));
+        let body = Json(json!({ "code": code, "message": msg }));
 
         (status_code, body).into_response()
     }

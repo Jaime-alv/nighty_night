@@ -9,13 +9,14 @@ use axum_session_auth::AuthSession;
 
 use crate::{
     data::{
-        dream_dto::NewDreamDto,
-        query_dto::{DateDto, DateRangeDto, LastDaysDto},
+        dream_dto::InputDreamDto,
+        query_dto::{DateDto, DateRangeDto, IdDto, LastDaysDto},
     },
     model::session_model::CurrentUser,
     service::{
         dream_service::{
-            filter_dreams_by_date_service, get_all_dreams_from_baby_service, post_dream_service,
+            filter_dreams_by_date_service, get_all_dreams_from_baby_service, patch_dream_service,
+            post_dream_service,
         },
         dream_summary_service::{
             dream_summary_last_days_service, dream_summary_range_service, dream_summary_service,
@@ -27,7 +28,10 @@ use crate::{
 
 pub(super) fn route_dream() -> Router {
     Router::new()
-        .route("/:baby_id/dreams", get(get_dreams).post(post_dream))
+        .route(
+            "/:baby_id/dreams",
+            get(get_dreams).post(post_dream).patch(patch_dream),
+        )
         .route("/:baby_id/dreams/summary", get(dream_summary))
         .route("/:baby_id/dreams/summary/today", get(dream_summary_today))
         .route("/:baby_id/dreams/summary/last", get(dream_summary_last))
@@ -50,10 +54,20 @@ async fn get_dreams(
 async fn post_dream(
     Path(baby_id): Path<i32>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
-    Json(new_dream): Json<NewDreamDto>,
+    Json(new_dream): Json<InputDreamDto>,
 ) -> impl IntoResponse {
     authorize_and_has_baby(auth, baby_id)?;
     post_dream_service(new_dream, baby_id).await
+}
+
+async fn patch_dream(
+    Path(baby_id): Path<i32>,
+    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
+    record_id: Query<IdDto>,
+    Json(dream): Json<InputDreamDto>,
+) -> impl IntoResponse {
+    authorize_and_has_baby(auth, baby_id)?;
+    patch_dream_service(dream, record_id.id(), baby_id).await
 }
 
 async fn dream_summary(

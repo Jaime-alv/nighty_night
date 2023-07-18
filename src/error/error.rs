@@ -56,12 +56,24 @@ impl ApiError {
                 String::from("Query option required."),
             ),
             ApiError::DateFormat(msg) => (StatusCode::BAD_REQUEST, String::from(msg.to_string())),
-            ApiError::NotFound => (StatusCode::NOT_FOUND, String::from("This is not the page you are looking for.")),
+            ApiError::NotFound => (
+                StatusCode::NOT_FOUND,
+                String::from("This is not the page you are looking for."),
+            ),
             ApiError::LoginRequired => (StatusCode::UNAUTHORIZED, String::from("Login required.")),
             ApiError::InvalidValue(value) => (StatusCode::BAD_REQUEST, format!("{value}")),
-            ApiError::OutOfBounds(min, max) => (StatusCode::BAD_REQUEST, format!("Out of bounds: range between {min} and {max}.")),
-            ApiError::DatesUnordered => (StatusCode::BAD_REQUEST, String::from("From date is in the future")),
-            ApiError::NoRecord(date) => (StatusCode::BAD_REQUEST, format!("No record found with date: {date}")),
+            ApiError::OutOfBounds(min, max) => (
+                StatusCode::BAD_REQUEST,
+                format!("Out of bounds: range between {min} and {max}."),
+            ),
+            ApiError::DatesUnordered => (
+                StatusCode::BAD_REQUEST,
+                String::from("Target date must be higher."),
+            ),
+            ApiError::NoRecord(date) => (
+                StatusCode::BAD_REQUEST,
+                format!("No record found with date: {date}"),
+            ),
             // 50X Error
             ApiError::DBError(error) => (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()),
             ApiError::Generic500Error(msg) => {
@@ -90,39 +102,5 @@ impl Display for ApiError {
         let (status_code, msg) = self.get_error();
         let readable_msg = format!("{status_code}: {msg}");
         write!(f, "{}", readable_msg)
-    }
-}
-
-impl From<chrono::ParseError> for ApiError {
-    fn from(value: chrono::ParseError) -> Self {
-        ApiError::DateFormat(value)
-    }
-}
-
-impl From<Error> for ApiError {
-    fn from(value: Error) -> Self {
-        let error = ApiError::DBError(value);
-        tracing::error!("{error}");
-        error
-    }
-}
-
-impl From<RedisError> for ApiError {
-    fn from(value: RedisError) -> Self {
-        let error = ApiError::Redis(value);
-        tracing::error!("{error}");
-        error
-    }
-}
-
-impl From<ApiError> for anyhow::Error {
-    fn from(error: ApiError) -> Self {
-        anyhow::anyhow!(error)
-    }
-}
-
-impl From<ParseIntError> for ApiError {
-    fn from(value: ParseIntError) -> Self {
-        ApiError::InvalidValue(value)
     }
 }

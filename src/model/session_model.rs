@@ -1,7 +1,7 @@
 use axum::async_trait;
 use axum_session_auth::Authentication;
 
-use crate::service::session_service::{load_user_session, read_from_db, save_user_session};
+use crate::service::session_service::{load_user_session, read_user_from_db, save_user_session};
 
 use super::role_model::Rol;
 
@@ -58,7 +58,7 @@ impl CurrentUser {
         self.baby_id.to_owned()
     }
 
-    pub fn roles(&self) -> Vec<Rol> {
+    pub fn _roles(&self) -> Vec<Rol> {
         self.roles.to_owned()
     }
 
@@ -95,7 +95,7 @@ impl Authentication<CurrentUser, i64, redis::Client> for CurrentUser {
         match load_user_session(user_id).await {
             Ok(u) => Ok(u),
             Err(_) => {
-                let current_user = read_from_db(user_id.try_into().unwrap()).await?;
+                let current_user = read_user_from_db(user_id.try_into().unwrap()).await?;
                 save_user_session(&current_user).await?;
                 Ok(current_user)
             }

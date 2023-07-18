@@ -1,3 +1,4 @@
+use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize)]
@@ -10,11 +11,12 @@ pub struct MealDto {
 }
 
 #[derive(Deserialize)]
-pub struct NewMealDto {
+pub struct InputMealDto {
     pub date: Option<String>,
     pub quantity: Option<i16>,
     pub to_time: Option<String>,
 }
+
 
 #[derive(Serialize)]
 pub struct MealSummaryDto {
@@ -22,4 +24,10 @@ pub struct MealSummaryDto {
     pub total_feedings: u8,
     pub nursing_time: String,
     pub formula: i16
+}
+
+pub struct UpdateMeal {
+    pub date: NaiveDateTime,
+    pub quantity: Option<i16>,
+    pub to_time: Option<NaiveDateTime>
 }

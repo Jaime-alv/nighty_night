@@ -9,12 +9,14 @@ use axum_session_auth::AuthSession;
 
 use crate::{
     data::{
-        meal_dto::NewMealDto,
-        query_dto::{DateDto, DateRangeDto, LastDaysDto},
+        meal_dto::InputMealDto,
+        query_dto::{DateDto, DateRangeDto, IdDto, LastDaysDto},
     },
     model::session_model::CurrentUser,
     service::{
-        meal_service::{filter_meals_by_date_service, get_meals_service, post_meal_service},
+        meal_service::{
+            filter_meals_by_date_service, get_meals_service, patch_meal_service, post_meal_service,
+        },
         meal_summary_service::{
             get_all_meals_summaries_service, meal_summary_last_days_service,
             meal_summary_range_service, meal_summary_service, meal_summary_today_service,
@@ -25,7 +27,10 @@ use crate::{
 
 pub(super) fn route_meal() -> Router {
     Router::new()
-        .route("/:baby_id/meals", get(get_meals).post(post_meal))
+        .route(
+            "/:baby_id/meals",
+            get(get_meals).post(post_meal).patch(patch_meal),
+        )
         .route("/:baby_id/meals/summary", get(meal_summary))
         .route("/:baby_id/meals/summary/today", get(meal_summary_today))
         .route("/:baby_id/meals/summary/last", get(meal_summary_last))
@@ -48,10 +53,20 @@ async fn get_meals(
 async fn post_meal(
     Path(baby_id): Path<i32>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
-    Json(new_meal): Json<NewMealDto>,
+    Json(new_meal): Json<InputMealDto>,
 ) -> impl IntoResponse {
     authorize_and_has_baby(auth, baby_id)?;
     post_meal_service(new_meal, baby_id).await
+}
+
+async fn patch_meal(
+    Path(baby_id): Path<i32>,
+    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
+    record_id: Query<IdDto>,
+    Json(meal): Json<InputMealDto>,
+) -> impl IntoResponse {
+    authorize_and_has_baby(auth, baby_id)?;
+    patch_meal_service(meal, record_id.id(), baby_id).await
 }
 
 async fn meal_summary(

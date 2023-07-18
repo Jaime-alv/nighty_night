@@ -6,7 +6,7 @@ impl From<Meal> for MealDto {
             id: meal.id(),
             date: meal.formatted_date(),
             time: meal.formatted_time(),
-            quantity: meal.quantity(),
+            quantity: meal.formatted_quantity(),
             elapsed: meal.formatted_elapsed(),
         }
     }

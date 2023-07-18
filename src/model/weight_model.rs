@@ -13,12 +13,25 @@ pub struct Weight {
 }
 
 impl Weight {
+    pub fn new(id: i32, baby_id: i32, date: NaiveDate, value: f32) -> Self {
+        Self {
+            id,
+            baby_id,
+            date,
+            value,
+        }
+    }
+
     pub fn id(&self) -> i32 {
         self.id
     }
 
     pub fn baby_id(&self) -> i32 {
         self.baby_id
+    }
+
+    pub fn date(&self) -> NaiveDate {
+        self.date
     }
 
     pub fn formatted_date(&self) -> String {

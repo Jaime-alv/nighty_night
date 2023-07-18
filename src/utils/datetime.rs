@@ -8,7 +8,7 @@ pub fn today() -> NaiveDate {
     now().date()
 }
 
-pub fn to_date_time(date_time: &str) -> Result<NaiveDateTime, chrono::ParseError> {
+pub fn convert_to_date_time(date_time: &str) -> Result<NaiveDateTime, chrono::ParseError> {
     NaiveDateTime::parse_from_str(&date_time, "%Y-%m-%d %H:%M")
 }
 
@@ -24,7 +24,7 @@ pub fn format_time(time: NaiveTime) -> String {
     time.format("%H:%M").to_string()
 }
 
-pub fn _date_time_is_lower_than_other_date(date: NaiveDateTime, other_date: NaiveDateTime) -> bool {
+pub fn date_time_is_lower_than_other_date(date: NaiveDateTime, other_date: NaiveDateTime) -> bool {
     if let std::cmp::Ordering::Less = other_date.cmp(&date) {
         false
     } else {
@@ -75,7 +75,7 @@ mod test_timestamp {
     #[test]
     fn test_parse_date() {
         assert_eq!(
-            to_date_time("2023-03-23 23:31").unwrap(),
+            convert_to_date_time("2023-03-23 23:31").unwrap(),
             NaiveDate::from_ymd_opt(2023, 3, 23)
                 .unwrap()
                 .and_hms_opt(23, 31, 00)
@@ -85,13 +85,13 @@ mod test_timestamp {
 
     #[test]
     fn test_compare_dates() {
-        assert!(_date_time_is_lower_than_other_date(
-            to_date_time("2023-03-23 23:31").unwrap(),
-            to_date_time("2023-03-23 23:32").unwrap()
+        assert!(date_time_is_lower_than_other_date(
+            convert_to_date_time("2023-03-23 23:31").unwrap(),
+            convert_to_date_time("2023-03-23 23:32").unwrap()
         ));
-        assert!(!_date_time_is_lower_than_other_date(
-            to_date_time("2023-03-23 23:33").unwrap(),
-            to_date_time("2023-03-23 23:32").unwrap()
+        assert!(!date_time_is_lower_than_other_date(
+            convert_to_date_time("2023-03-23 23:33").unwrap(),
+            convert_to_date_time("2023-03-23 23:32").unwrap()
         ));
     }
 

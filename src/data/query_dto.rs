@@ -7,6 +7,17 @@ use crate::{
 };
 
 #[derive(Deserialize)]
+pub struct IdDto {
+    entry: i32
+}
+
+impl IdDto {
+    pub fn id(&self) -> i32 {
+        self.entry
+    }
+}
+
+#[derive(Deserialize)]
 pub struct DateDto {
     date: String,
 }

@@ -4,7 +4,7 @@ use diesel_async::RunQueryDsl;
 
 use crate::{
     model::dream_model::{Dream, InsertableDream},
-    schema::dreams,
+    schema::dreams, data::dream_dto::UpdateDream,
 };
 
 use super::connection_psql::establish_async_connection;
@@ -50,13 +50,23 @@ pub async fn update_last_dream(dream: InsertableDream) -> Result<usize, Error> {
 }
 
 pub async fn find_dreams_by_date(baby: i32, date: NaiveDate) -> Result<Vec<Dream>, Error> {
-    let timestamp = date.and_hms_opt(23, 59, 59).unwrap();
-    let last_dream_from_yesterday = find_last_dream_from_yesterday(baby, date).await;
     let conn = &mut establish_async_connection().await;
+    // let timestamp = date.and_hms_opt(23, 59, 59).unwrap();
+    // let last_dream_from_yesterday = find_last_dream_from_yesterday(baby, date).await;
+    // dreams::table
+    // dreams::table
+    //     .filter(dreams::baby_id.eq(baby))
+    //     .filter(dreams::to_date.lt(timestamp))
+    //     .filter(dreams::from_date.ge(last_dream_from_yesterday))
+    //     .load::<Dream>(conn)
+    //     .await
+    let down_time = date.and_hms_opt(0, 0, 1).unwrap();
+    let up_time = date.and_hms_opt(23, 59, 59).unwrap();
     dreams::table
         .filter(dreams::baby_id.eq(baby))
-        .filter(dreams::to_date.lt(timestamp))
-        .filter(dreams::from_date.ge(last_dream_from_yesterday))
+        .filter(dreams::from_date.ge(down_time))
+        .filter(dreams::from_date.le(up_time))
+        .order(dreams::from_date.asc())
         .load::<Dream>(conn)
         .await
 }
@@ -103,7 +113,7 @@ pub async fn find_first_record(baby: i32) -> Result<NaiveDate, Error> {
         .order(dreams::from_date.asc())
         .first::<Dream>(conn)
         .await?;
-    Ok(first_record.to_date().date())
+    Ok(first_record.to_date().unwrap().date())
 }
 
 pub async fn find_all_dreams_sorted(baby: i32) -> Result<Vec<Dream>, Error> {
@@ -113,5 +123,21 @@ pub async fn find_all_dreams_sorted(baby: i32) -> Result<Vec<Dream>, Error> {
         .filter(dreams::to_date.is_not_null())
         .order(dreams::to_date.asc())
         .load::<Dream>(conn)
+        .await
+}
+
+pub async fn find_dream_by_id(id: i32) -> Result<Dream, Error> {
+    let conn = &mut establish_async_connection().await;
+    dreams::table.find(id).first(conn).await
+}
+
+pub async fn patch_dream_record(record_id: i32, dream: UpdateDream) -> Result<usize, Error> {
+    let conn = &mut establish_async_connection().await;
+    diesel::update(dreams::table.find(record_id))
+        .set((
+            dreams::from_date.eq(dream.from_date),
+            dreams::to_date.eq(dream.to_date),
+        ))
+        .execute(conn)
         .await
 }

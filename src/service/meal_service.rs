@@ -2,16 +2,22 @@ use axum::Json;
 use chrono::NaiveDate;
 
 use crate::{
-    data::meal_dto::{MealDto, NewMealDto},
+    data::meal_dto::{InputMealDto, MealDto, UpdateMeal},
     error::error::ApiError,
     model::meals_model::{InsertableMeal, Meal},
-    repository::meal_repository::{find_meals_by_date, get_all_meals_from_baby, ingest_meal},
-    utils::{datetime::now, response::Response},
+    repository::meal_repository::{
+        find_meal_by_id, find_meals_by_date, get_all_meals_from_baby, ingest_meal,
+        patch_meal_record,
+    },
+    utils::{
+        datetime::{convert_to_date_time, now},
+        response::Response,
+    },
 };
 
-use super::util_service::{ok, uncover_date};
+use super::util_service::{date_time_are_in_order, uncover_date};
 
-pub async fn post_meal_service(new_meal: NewMealDto, baby_id: i32) -> Result<Response, ApiError> {
+pub async fn post_meal_service(new_meal: InputMealDto, baby_id: i32) -> Result<Response, ApiError> {
     let timestamp = uncover_date(new_meal.date)?;
     let timestamp_to_time = uncover_date(new_meal.to_time)?;
     let meal = InsertableMeal::new(
@@ -21,7 +27,47 @@ pub async fn post_meal_service(new_meal: NewMealDto, baby_id: i32) -> Result<Res
         timestamp_to_time,
     );
     ingest_meal(meal).await?;
-    Ok(ok("New meal added"))
+    Ok(Response::NewRecord)
+}
+
+pub async fn patch_meal_service(
+    meal: InputMealDto,
+    record: i32,
+    baby_id: i32,
+) -> Result<Response, ApiError> {
+    let old_meal = find_meal_by_id(record).await?;
+    if baby_id.ne(&old_meal.baby_id()) {
+        return Err(ApiError::Forbidden);
+    }
+    let new_date = match meal.date {
+        Some(v) => convert_to_date_time(&v)?,
+        None => old_meal.date(),
+    };
+    let new_quantity = match meal.quantity {
+        Some(v) => {
+            if v.eq(&0) {
+                None
+            } else {
+                Some(v)
+            }
+        }
+        None => old_meal.quantity(),
+    };
+    let new_to_time = match meal.to_time {
+        Some(v) => {
+            let date_time = convert_to_date_time(&v)?;
+            date_time_are_in_order(new_date.clone(), date_time)?;
+            Some(date_time)
+        }
+        None => old_meal.to_time(),
+    };
+    let update_meal = UpdateMeal {
+        date: new_date,
+        quantity: new_quantity,
+        to_time: new_to_time,
+    };
+    patch_meal_record(record, update_meal).await?;
+    Ok(Response::UpdateRecord)
 }
 
 pub async fn get_meals_service(baby_id: i32) -> Result<Json<Vec<MealDto>>, ApiError> {

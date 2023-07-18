@@ -18,6 +18,30 @@ pub struct User {
 }
 
 impl User {
+    pub fn new(
+        id: i32,
+        username: String,
+        password: String,
+        name: Option<String>,
+        surname: Option<String>,
+        email: Option<String>,
+        active: bool,
+        created_at: NaiveDateTime,
+        updated_at: Option<NaiveDateTime>,
+    ) -> Self {
+        Self {
+            id,
+            username,
+            password,
+            name,
+            surname,
+            email,
+            active,
+            created_at,
+            updated_at,
+        }
+    }
+
     pub fn username(&self) -> String {
         self.username.to_string()
     }
@@ -28,6 +52,14 @@ impl User {
 
     pub fn email(&self) -> Option<String> {
         self.email.to_owned()
+    }
+
+    pub fn created_at(&self) -> NaiveDateTime {
+        self.created_at
+    }
+
+    pub fn updated_at(&self) -> Option<NaiveDateTime> {
+        self.updated_at
     }
 
     pub fn is_password_match(&self, input_password: &str) -> bool {
@@ -41,7 +73,7 @@ impl User {
     pub fn surname(&self) -> Option<String> {
         self.surname.to_owned()
     }
-    
+
     pub fn active(&self) -> bool {
         self.active
     }
@@ -79,3 +111,5 @@ impl InsertableUser {
         }
     }
 }
+
+

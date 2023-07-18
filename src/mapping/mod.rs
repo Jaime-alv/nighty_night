@@ -5,3 +5,5 @@ pub mod meal_mapper;
 pub mod dream_mapper;
 pub mod weight_mapper;
 pub mod summary_mapper;
+pub mod error_mapper;
+pub mod session_mapper;
