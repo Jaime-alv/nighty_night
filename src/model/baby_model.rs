@@ -20,6 +20,10 @@ impl Baby {
         self.id
     }
 
+    pub fn birthdate(&self) -> NaiveDate {
+        self.birthdate
+    }
+
     pub(crate) fn formatted_birthdate(&self) -> String {
         format_date(self.birthdate)
     }
