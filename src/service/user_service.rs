@@ -54,8 +54,6 @@ pub async fn find_user_service(user: FindUserDto) -> Result<Json<UserDto>, ApiEr
 }
 
 pub async fn login_service(login: LoginDto) -> Result<(Response, i32), ApiError> {
-    let start = SystemTime::now();
-    dbg!(format!("Start login service call = {:?}", start));
     if validate_fields(&login.data()) {
         return Err(ApiError::EmptyBody);
     }
