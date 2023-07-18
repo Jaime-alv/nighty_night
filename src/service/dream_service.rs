@@ -2,7 +2,7 @@ use axum::Json;
 use chrono::NaiveDate;
 
 use crate::{
-    data::dream_dto::{DreamDto, NewDreamDto, UpdateDreamDto},
+    data::dream_dto::{DreamDto, InputDreamDto, UpdateDream},
     error::error::ApiError,
     model::dream_model::{Dream, InsertableDream},
     repository::dream_repository::{
@@ -15,7 +15,7 @@ use crate::{
 use super::util_service::{date_time_are_in_order, uncover_date};
 
 pub async fn post_dream_service(
-    new_dream: NewDreamDto,
+    new_dream: InputDreamDto,
     baby_id: i32,
 ) -> Result<Response, ApiError> {
     let dream: InsertableDream;
@@ -31,7 +31,7 @@ pub async fn post_dream_service(
 }
 
 async fn create_new_dream_entry(
-    new_dream: NewDreamDto,
+    new_dream: InputDreamDto,
     baby_id: i32,
 ) -> Result<InsertableDream, ApiError> {
     let to_date_binding = uncover_date(new_dream.to_date)?;
@@ -40,7 +40,11 @@ async fn create_new_dream_entry(
     Ok(dream)
 }
 
-pub async fn patch_dream_service(dream: UpdateDreamDto, record: i32, baby_id: i32) -> Result<Response, ApiError> {
+pub async fn patch_dream_service(
+    dream: InputDreamDto,
+    record: i32,
+    baby_id: i32,
+) -> Result<Response, ApiError> {
     let old_dream = find_dream_by_id(record).await?;
     if baby_id.ne(&old_dream.baby_id()) {
         return Err(ApiError::Forbidden);
@@ -57,13 +61,11 @@ pub async fn patch_dream_service(dream: UpdateDreamDto, record: i32, baby_id: i3
         }
         None => old_dream.to_date(),
     };
-    let update_dream = Dream::new(
-        old_dream.id(),
-        old_dream.baby_id(),
-        new_from_date,
-        new_to_date,
-    );
-    patch_dream_record(update_dream).await?;
+    let update_dream = UpdateDream {
+        from_date: new_from_date,
+        to_date: new_to_date,
+    };
+    patch_dream_record(record, update_dream).await?;
     Ok(Response::UpdateRecord)
 }
 

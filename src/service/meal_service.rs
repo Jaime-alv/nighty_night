@@ -2,7 +2,7 @@ use axum::Json;
 use chrono::NaiveDate;
 
 use crate::{
-    data::meal_dto::{MealDto, NewMealDto, UpdateMealDto},
+    data::meal_dto::{InputMealDto, MealDto, UpdateMeal},
     error::error::ApiError,
     model::meals_model::{InsertableMeal, Meal},
     repository::meal_repository::{
@@ -17,7 +17,7 @@ use crate::{
 
 use super::util_service::{date_time_are_in_order, uncover_date};
 
-pub async fn post_meal_service(new_meal: NewMealDto, baby_id: i32) -> Result<Response, ApiError> {
+pub async fn post_meal_service(new_meal: InputMealDto, baby_id: i32) -> Result<Response, ApiError> {
     let timestamp = uncover_date(new_meal.date)?;
     let timestamp_to_time = uncover_date(new_meal.to_time)?;
     let meal = InsertableMeal::new(
@@ -30,10 +30,14 @@ pub async fn post_meal_service(new_meal: NewMealDto, baby_id: i32) -> Result<Res
     Ok(Response::NewRecord)
 }
 
-pub async fn patch_meal_service(meal: UpdateMealDto, record: i32, baby_id: i32) -> Result<Response, ApiError> {
+pub async fn patch_meal_service(
+    meal: InputMealDto,
+    record: i32,
+    baby_id: i32,
+) -> Result<Response, ApiError> {
     let old_meal = find_meal_by_id(record).await?;
     if baby_id.ne(&old_meal.baby_id()) {
-        return Err(ApiError::Forbidden)
+        return Err(ApiError::Forbidden);
     }
     let new_date = match meal.date {
         Some(v) => convert_to_date_time(&v)?,
@@ -57,14 +61,12 @@ pub async fn patch_meal_service(meal: UpdateMealDto, record: i32, baby_id: i32) 
         }
         None => old_meal.to_time(),
     };
-    let update_meal = Meal::new(
-        record,
-        old_meal.baby_id(),
-        new_date,
-        new_quantity,
-        new_to_time,
-    );
-    patch_meal_record(update_meal).await?;
+    let update_meal = UpdateMeal {
+        date: new_date,
+        quantity: new_quantity,
+        to_time: new_to_time,
+    };
+    patch_meal_record(record, update_meal).await?;
     Ok(Response::UpdateRecord)
 }
 

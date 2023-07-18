@@ -4,7 +4,7 @@ use diesel_async::RunQueryDsl;
 
 use crate::{
     model::dream_model::{Dream, InsertableDream},
-    schema::dreams,
+    schema::dreams, data::dream_dto::UpdateDream,
 };
 
 use super::connection_psql::establish_async_connection;
@@ -131,12 +131,12 @@ pub async fn find_dream_by_id(id: i32) -> Result<Dream, Error> {
     dreams::table.find(id).first(conn).await
 }
 
-pub async fn patch_dream_record(dream: Dream) -> Result<usize, Error> {
+pub async fn patch_dream_record(record_id: i32, dream: UpdateDream) -> Result<usize, Error> {
     let conn = &mut establish_async_connection().await;
-    diesel::update(dreams::table.find(dream.id()))
+    diesel::update(dreams::table.find(record_id))
         .set((
-            dreams::from_date.eq(dream.from_date()),
-            dreams::to_date.eq(dream.to_date()),
+            dreams::from_date.eq(dream.from_date),
+            dreams::to_date.eq(dream.to_date),
         ))
         .execute(conn)
         .await
