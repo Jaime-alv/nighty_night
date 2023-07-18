@@ -1,21 +1,27 @@
 use axum::Json;
 
 use crate::{
-    data::weight_dto::{NewWeightDto, UpdateWeightDto, WeightDto},
+    data::weight_dto::{InputWeightDto, UpdateWeight, WeightDto},
     error::error::ApiError,
     model::weight_model::{InsertableWeight, Weight},
     repository::weight_repository::{
         find_weight_by_id, get_all_weights_from_baby, ingest_weight, patch_weight_record,
     },
-    utils::{datetime::convert_to_date, response::Response},
+    utils::{
+        datetime::{convert_to_date, today},
+        response::Response,
+    },
 };
 
 pub async fn post_weight_service(
-    new_measure: NewWeightDto,
+    new_measure: InputWeightDto,
     baby_id: i32,
 ) -> Result<Response, ApiError> {
-    let date = convert_to_date(&new_measure.date)?;
-    let measure = InsertableWeight::new(baby_id, date, new_measure.value);
+    let date = match new_measure.date {
+        Some(day) => convert_to_date(&day)?,
+        None => today(),
+    };
+    let measure = InsertableWeight::new(baby_id, date, new_measure.value.unwrap_or_default());
     ingest_weight(measure).await?;
     Ok(Response::NewRecord)
 }
@@ -26,7 +32,7 @@ pub async fn get_weights_service(baby_id: i32) -> Result<Json<Vec<WeightDto>>, A
 }
 
 pub async fn patch_weight_service(
-    measure: UpdateWeightDto,
+    measure: InputWeightDto,
     record: i32,
     baby_id: i32,
 ) -> Result<Response, ApiError> {
@@ -42,8 +48,11 @@ pub async fn patch_weight_service(
         Some(value) => value,
         None => old_record.value(),
     };
-    let new_weight = Weight::new(old_record.id(), old_record.baby_id(), new_date, new_measure);
-    patch_weight_record(new_weight).await?;
+    let new_weight = UpdateWeight {
+        date: new_date,
+        value: new_measure,
+    };
+    patch_weight_record(record, new_weight).await?;
     Ok(Response::UpdateRecord)
 }
 

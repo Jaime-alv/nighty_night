@@ -8,10 +8,7 @@ use axum_session::SessionRedisPool;
 use axum_session_auth::AuthSession;
 
 use crate::{
-    data::{
-        query_dto::IdDto,
-        weight_dto::{NewWeightDto, UpdateWeightDto},
-    },
+    data::{query_dto::IdDto, weight_dto::InputWeightDto},
     model::session_model::CurrentUser,
     service::{
         session_service::authorize_and_has_baby,
@@ -37,7 +34,7 @@ async fn get_weights(
 async fn post_weight(
     Path(baby_id): Path<i32>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
-    Json(new_measure): Json<NewWeightDto>,
+    Json(new_measure): Json<InputWeightDto>,
 ) -> impl IntoResponse {
     authorize_and_has_baby(auth, baby_id)?;
     post_weight_service(new_measure, baby_id).await
@@ -47,7 +44,7 @@ async fn patch_weight(
     Path(baby_id): Path<i32>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     record: Query<IdDto>,
-    Json(measure): Json<UpdateWeightDto>,
+    Json(measure): Json<InputWeightDto>,
 ) -> impl IntoResponse {
     authorize_and_has_baby(auth, baby_id)?;
     patch_weight_service(measure, record.id(), baby_id).await
