@@ -3,7 +3,7 @@ use diesel_async::RunQueryDsl;
 
 use crate::{
     model::weight_model::{InsertableWeight, Weight},
-    schema::weights,
+    schema::weights, data::weight_dto::UpdateWeight,
 };
 
 use super::connection_psql::establish_async_connection;
@@ -27,12 +27,12 @@ pub async fn get_all_weights_from_baby(baby: i32) -> Result<Vec<Weight>, Error> 
         .await
 }
 
-pub async fn patch_weight_record(measure: Weight) -> Result<usize, Error> {
+pub async fn patch_weight_record(record: i32, measure: UpdateWeight) -> Result<usize, Error> {
     let conn = &mut establish_async_connection().await;
-    diesel::update(weights::table.find(measure.id()))
+    diesel::update(weights::table.find(record))
         .set((
-            weights::date.eq(measure.date()),
-            weights::value.eq(measure.value()),
+            weights::date.eq(measure.date),
+            weights::value.eq(measure.value),
         ))
         .execute(conn)
         .await
