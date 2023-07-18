@@ -1,3 +1,4 @@
+use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 
 use super::traits::Mandatory;
@@ -59,4 +60,20 @@ impl Mandatory for LoginDto {
     fn data(&self) -> Vec<&str> {
         vec![self.username.as_str(), self.password.as_str()]
     }
+}
+
+
+#[derive(Deserialize)]
+pub struct UpdateUserDto {
+    pub email: Option<String>,
+    pub name: Option<String>,
+    pub surname: Option<String>
+}
+
+pub struct UpdateUser {
+    pub password: Option<String>,
+    pub name: Option<String>,
+    pub surname: Option<String>,
+    pub email: Option<String>,
+    pub update_at: Option<NaiveDateTime>
 }
