@@ -11,8 +11,13 @@ use crate::{
     data::baby_dto::InputBabyDto,
     model::session_model::CurrentUser,
     service::{
-        baby_service::{find_baby_service, get_all_babies_service, ingest_new_baby, patch_baby_service},
-        session_service::{current_user_is_admin, login_required, update_user_session, authorize_and_has_baby},
+        baby_service::{
+            delete_baby_service, find_baby_service, get_all_babies_service, ingest_new_baby,
+            patch_baby_service,
+        },
+        session_service::{
+            authorize_and_has_baby, current_user_is_admin, login_required, update_user_session,
+        },
     },
 };
 
@@ -23,7 +28,10 @@ use super::{
 pub(crate) fn route_baby() -> Router {
     let routes: Router = Router::new()
         .route("/new", post(register_baby))
-        .route("/:baby_id", get(find_baby_by_id).patch(patch_baby))
+        .route(
+            "/:baby_id",
+            get(find_baby_by_id).patch(patch_baby).delete(delete_baby),
+        )
         .route("/all", get(get_all_babies))
         .merge(route_meal())
         .merge(route_dream())
@@ -36,7 +44,7 @@ async fn register_baby(
     Json(new_baby): Json<InputBabyDto>,
 ) -> impl IntoResponse {
     let id: i32 = auth.id.try_into().unwrap();
-    login_required(auth.clone())?;    
+    login_required(auth.clone())?;
     match ingest_new_baby(new_baby, id).await {
         Ok(baby) => {
             update_user_session(&auth.current_user.unwrap()).await?;
@@ -61,12 +69,19 @@ async fn get_all_babies(
     get_all_babies_service().await
 }
 
-
 async fn patch_baby(
     Path(baby_id): Path<i32>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
-    Json(update): Json<InputBabyDto>
+    Json(update): Json<InputBabyDto>,
 ) -> impl IntoResponse {
     authorize_and_has_baby(auth, baby_id)?;
     patch_baby_service(baby_id, update).await
+}
+
+async fn delete_baby(
+    Path(baby_id): Path<i32>,
+    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
+) -> impl IntoResponse {
+    authorize_and_has_baby(auth, baby_id)?;
+    delete_baby_service(baby_id).await
 }

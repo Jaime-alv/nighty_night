@@ -6,13 +6,13 @@ use crate::{
     error::error::ApiError,
     model::dream_model::{Dream, InsertableDream},
     repository::dream_repository::{
-        find_dream_by_id, find_dreams_by_date, get_all_dreams_from_baby, ingest_new_dream,
-        patch_dream_record, update_last_dream,
+        delete_dream_from_db, find_dream_by_id, find_dreams_by_date, get_all_dreams_from_baby,
+        ingest_new_dream, patch_dream_record, update_last_dream,
     },
     utils::{datetime::convert_to_date_time, response::Response},
 };
 
-use super::util_service::{date_time_are_in_order, uncover_date};
+use super::util_service::{date_time_are_in_order, record_belongs_to_baby, uncover_date};
 
 pub async fn post_dream_service(
     new_dream: InputDreamDto,
@@ -46,9 +46,7 @@ pub async fn patch_dream_service(
     baby_id: i32,
 ) -> Result<Response, ApiError> {
     let old_dream = find_dream_by_id(record).await?;
-    if baby_id.ne(&old_dream.baby_id()) {
-        return Err(ApiError::Forbidden);
-    }
+    record_belongs_to_baby(old_dream.baby_id(), baby_id)?;
     let new_from_date = match dream.from_date {
         Some(value) => convert_to_date_time(&value)?,
         None => old_dream.from_date(),
@@ -86,4 +84,11 @@ pub async fn filter_dreams_by_date_service(
 
 fn into_json(dreams: Vec<Dream>) -> Json<Vec<DreamDto>> {
     Json(dreams.into_iter().map(|dream| dream.into()).collect())
+}
+
+pub async fn delete_dream_service(record: i32, baby_id: i32) -> Result<Response, ApiError> {
+    let old_dream = find_dream_by_id(record).await?;
+    record_belongs_to_baby(old_dream.baby_id(), baby_id)?;
+    delete_dream_from_db(record).await;
+    Ok(Response::DeleteRecord)
 }

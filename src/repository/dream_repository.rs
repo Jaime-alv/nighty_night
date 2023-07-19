@@ -3,8 +3,9 @@ use diesel::{prelude::*, result::Error};
 use diesel_async::RunQueryDsl;
 
 use crate::{
+    data::dream_dto::UpdateDream,
     model::dream_model::{Dream, InsertableDream},
-    schema::dreams, data::dream_dto::UpdateDream,
+    schema::dreams,
 };
 
 use super::connection_psql::establish_async_connection;
@@ -138,6 +139,13 @@ pub async fn patch_dream_record(record_id: i32, dream: UpdateDream) -> Result<us
             dreams::from_date.eq(dream.from_date),
             dreams::to_date.eq(dream.to_date),
         ))
+        .execute(conn)
+        .await
+}
+
+pub async fn delete_dream_from_db(record_id: i32) -> Result<usize, Error> {
+    let conn = &mut establish_async_connection().await;
+    diesel::delete(dreams::table.find(record_id))
         .execute(conn)
         .await
 }

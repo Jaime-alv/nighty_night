@@ -2,9 +2,10 @@ use crate::{
     data::user_dto::{FindUserDto, LoginDto, NewUserDto, UpdateUserDto},
     model::session_model::CurrentUser,
     service::{
-        session_service::{current_user_is_admin, login_session, login_required},
+        session_service::{current_user_is_admin, login_required, login_session},
         user_service::{
-            create_user_service, find_user_service, get_all_users_service, login_service, find_user_by_id_service, patch_user_service,
+            create_user_service, deactivate_user_service, find_user_by_id_service,
+            find_user_service, get_all_users_service, login_service, patch_user_service,
         },
     },
 };
@@ -23,7 +24,12 @@ pub(crate) fn route_user() -> Router {
         .route("/all", get(get_all_users))
         .route("/user", post(find_user))
         .route("/login", post(login_user))
-        .route("/profile", get(get_profile).patch(update_profile));
+        .route(
+            "/profile",
+            get(get_profile)
+                .patch(update_profile)
+                .delete(deactivate_user),
+        );
     Router::new().nest("/auth", routes)
 }
 
@@ -76,8 +82,8 @@ async fn test_welcome(
 }
 
 async fn get_profile(
-    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>
-)-> impl IntoResponse {
+    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
+) -> impl IntoResponse {
     let binding_id: i32 = auth.id.try_into().unwrap();
     login_required(auth)?;
     find_user_by_id_service(binding_id).await
@@ -85,9 +91,17 @@ async fn get_profile(
 
 async fn update_profile(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
-    Json(profile): Json<UpdateUserDto>
+    Json(profile): Json<UpdateUserDto>,
 ) -> impl IntoResponse {
     let binding_id: i32 = auth.id.try_into().unwrap();
     login_required(auth)?;
     patch_user_service(binding_id, profile).await
+}
+
+async fn deactivate_user(
+    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
+) -> impl IntoResponse {
+    let binding_id: i32 = auth.id.try_into().unwrap();
+    login_required(auth)?;
+    deactivate_user_service(binding_id).await
 }

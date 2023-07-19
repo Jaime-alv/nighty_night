@@ -5,12 +5,13 @@ use axum::Json;
 use crate::{
     data::{
         traits::Mandatory,
-        user_dto::{FindUserDto, LoginDto, NewUserDto, UpdateUserDto, UserDto, UpdateUser},
+        user_dto::{FindUserDto, LoginDto, NewUserDto, UpdateUser, UpdateUserDto, UserDto},
     },
     error::error::ApiError,
     model::{role_model::Rol, user_model::User},
     repository::user_repository::{
-        create_user, load_user_by_id, load_user_by_username, patch_user_record, query_users,
+        alter_active_status_for_user, create_user, load_user_by_id, load_user_by_username,
+        patch_user_record, query_users,
     },
     utils::{
         datetime::now,
@@ -118,4 +119,9 @@ pub async fn patch_user_service(
     };
     patch_user_record(user_id, update_profile).await?;
     Ok(Response::UpdateRecord)
+}
+
+pub async fn deactivate_user_service(user_id: i32) -> Result<Response, ApiError> {
+    alter_active_status_for_user(user_id, false).await?;
+    Ok(Response::ActiveStatusUpdate)
 }

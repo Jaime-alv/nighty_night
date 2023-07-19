@@ -72,3 +72,14 @@ fn parse_date(date: &str) -> Result<NaiveDate, ApiError> {
         Err(error) => Err(error.into()),
     }
 }
+
+#[derive(Deserialize)]
+pub struct Username {
+    value: Option<String>
+}
+
+impl Username {
+    pub fn value(&self) -> Option<String> {
+        self.value.to_owned()
+    }
+}

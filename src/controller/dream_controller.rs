@@ -15,8 +15,8 @@ use crate::{
     model::session_model::CurrentUser,
     service::{
         dream_service::{
-            filter_dreams_by_date_service, get_all_dreams_from_baby_service, patch_dream_service,
-            post_dream_service,
+            delete_dream_service, filter_dreams_by_date_service, get_all_dreams_from_baby_service,
+            patch_dream_service, post_dream_service,
         },
         dream_summary_service::{
             dream_summary_last_days_service, dream_summary_range_service, dream_summary_service,
@@ -30,7 +30,10 @@ pub(super) fn route_dream() -> Router {
     Router::new()
         .route(
             "/:baby_id/dreams",
-            get(get_dreams).post(post_dream).patch(patch_dream),
+            get(get_dreams)
+                .post(post_dream)
+                .patch(patch_dream)
+                .delete(delete_dream),
         )
         .route("/:baby_id/dreams/summary", get(dream_summary))
         .route("/:baby_id/dreams/summary/today", get(dream_summary_today))
@@ -112,4 +115,13 @@ async fn dream_summary_all(
 ) -> impl IntoResponse {
     authorize_and_has_baby(auth, baby_id)?;
     get_all_dream_summaries_service(baby_id).await
+}
+
+async fn delete_dream(
+    Path(baby_id): Path<i32>,
+    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
+    record_id: Query<IdDto>,
+) -> impl IntoResponse {
+    authorize_and_has_baby(auth, baby_id)?;
+    delete_dream_service(record_id.id(), baby_id).await
 }

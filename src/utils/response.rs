@@ -8,6 +8,7 @@ pub enum Response {
     DeleteRecord,
     UserLogIn(String),
     NewUser(String),
+    ActiveStatusUpdate,
 }
 
 impl Response {
@@ -22,6 +23,7 @@ impl Response {
             Response::NewUser(username) => {
                 (StatusCode::CREATED, format!("New user added: {username}."))
             }
+            Response::ActiveStatusUpdate => (StatusCode::ACCEPTED, "User status update.".to_string()),
         }
     }
 }

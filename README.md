@@ -286,58 +286,63 @@ data:
 
 ### Users: `/api/auth`
 
-| Route     | Method  | Function              | Parameters | Arguments                                  |
-| --------- | ------- | --------------------- | ---------- | ------------------------------------------ |
-| /         | `get`   | Endpoint test         |            |                                            |
-| /register | `post`  | Create a new user     | Body: Json | {username, password, email, name, surname} |
-| /all      | `get`   | Get all users         |            |                                            |
-| /user     | `post`  | find user by username | Body: Json | {username}                                 |
-| /login    | `post`  | login user            | Body: Json | {username, password}                       |
-| /profile  | `get`   | Get user profile      |            |                                            |
-| /profile  | `patch` | Update user profile   | Body: Json | {name, surname, email, }                   |
+| Route     | Method   | Function              | Parameters | Arguments                                  |
+| --------- | -------- | --------------------- | ---------- | ------------------------------------------ |
+| /         | `get`    | Endpoint test         |            |                                            |
+| /register | `post`   | Create a new user     | Body: Json | {username, password, email, name, surname} |
+| /all      | `get`    | Get all users         |            |                                            |
+| /user     | `post`   | find user by username | Body: Json | {username}                                 |
+| /login    | `post`   | login user            | Body: Json | {username, password}                       |
+| /profile  | `get`    | Get user profile      |            |                                            |
+| /profile  | `patch`  | Update user profile   | Body: Json | {name, surname, email, }                   |
+| /profile  | `delete` | Deactivate user       |            |                                            |
 
 ### Baby: `/api/baby`
 
-| Route     | Method  | Function                 | Parameters              | Arguments         |
-| --------- | ------- | ------------------------ | ----------------------- | ----------------- |
-| /new      | `post`  | Add new baby             | Body: Json              | {name, birthdate} |
-| /:baby_id | `get`   | Get baby info by id      | Path: i32               |                   |
-| /:baby_id | `patch` | Update baby info by id   | Path: i32 \| Body: Json | {name, birthdate} |
-| /all      | `get`   | Get all babies in system |                         |                   |
+| Route     | Method   | Function                                     | Parameters              | Arguments         |
+| --------- | -------- | -------------------------------------------- | ----------------------- | ----------------- |
+| /new      | `post`   | Add new baby                                 | Body: Json              | {name, birthdate} |
+| /:baby_id | `get`    | Get baby info by id                          | Path: i32               |                   |
+| /:baby_id | `patch`  | Update baby info by id                       | Path: i32 \| Body: Json | {name, birthdate} |
+| /:baby_id | `delete` | Delete baby and all records associated to it | Path: i32               |                   |
+| /all      | `get`    | Get all babies in system                     |                         |                   |
 
 ### Meals: `/api/baby/:baby_id`
 
-| Route                                              | Method  | Function                                 | Parameters         | Arguments                 |
-| -------------------------------------------------- | ------- | ---------------------------------------- | ------------------ | ------------------------- |
-| /meals                                             | `get`   | Get all meals associated to a baby       |                    |                           |
-| /meals                                             | `post`  | Add new meals to an associated baby      | Body: Json         | {date, quantity, elapsed} |
-| /meals                                             | `patch` | Update a meal record with any new values | Body: Json         | {date, quantity, elapsed} |
-| /meals?date=YYYY-mm-dd                             | `get`   | Get all meals in a given date            |                    |                           |
-| /meals/summary?date=YYYY-mm-dd                     | `get`   | Get a summary from one day's data        | String             |                           |
-| /meals/summary/today                               | `get`   | Get a summary from today's data          |                    |                           |
-| /meals/summary/last?days=X                         | `get`   | Get a summary from last X days           | int                |                           |
-| /meals/summary/range?from=YYYY-mm-dd&to=YYYY-mm-dd | `get`   | Get a summary from date X up to date Y   | {String \| String} |                           |
+| Route                                              | Method   | Function                                 | Parameters                   | Arguments                 |
+| -------------------------------------------------- | -------- | ---------------------------------------- | ---------------------------- | ------------------------- |
+| /meals                                             | `get`    | Get all meals associated to a baby       |                              |                           |
+| /meals                                             | `post`   | Add new meals to an associated baby      | Body: Json                   | {date, quantity, elapsed} |
+| /meals                                             | `patch`  | Update a meal record with any new values | Body: Json                   | {date, quantity, elapsed} |
+| /meals?entry=X                                     | `delete` | Delete entry X from DB                   | entry: int                   |                           |
+| /meals?date=YYYY-mm-dd                             | `get`    | Get all meals in a given date            |                              |                           |
+| /meals/summary?date=YYYY-mm-dd                     | `get`    | Get a summary from one day's data        | date: String                 |                           |
+| /meals/summary/today                               | `get`    | Get a summary from today's data          |                              |                           |
+| /meals/summary/last?days=X                         | `get`    | Get a summary from last X days           | days: int                    |                           |
+| /meals/summary/range?from=YYYY-mm-dd&to=YYYY-mm-dd | `get`    | Get a summary from date X up to date Y   | {from: String \| to: String} |                           |
 
 ### Dreams: `/api/baby/:baby_id`
 
-| Route                                               | Method  | Function                                  | Parameters         | Arguments             |
-| --------------------------------------------------- | ------- | ----------------------------------------- | ------------------ | --------------------- |
-| /dreams                                             | `get`   | Get all dreams associated to a baby       |                    |                       |
-| /dreams                                             | `post`  | Add new dreams to an associated baby      | Body: Json         | {from_date, to_date } |
-| /dreams                                             | `patch` | Update a dream record with any new values | Body: Json         | {from_date, to_date } |
-| /dreams?date=YYYY-mm-dd                             | `get`   | Get all dreams in a given date            |                    |                       |
-| /dreams/summary?date=YYYY-mm-dd                     | `get`   | Get a summary from one day's data         | String             |                       |
-| /dreams/summary/today                               | `get`   | Get a summary from today's data           |                    |                       |
-| /dreams/summary/last?days=X                         | `get`   | Get a summary from last X days            | int                |                       |
-| /dreams/summary/range?from=YYYY-mm-dd&to=YYYY-mm-dd | `get`   | Get a summary from date X up to date Y    | {String \| String} |                       |
+| Route                                               | Method   | Function                                  | Parameters                   | Arguments             |
+| --------------------------------------------------- | -------- | ----------------------------------------- | ---------------------------- | --------------------- |
+| /dreams                                             | `get`    | Get all dreams associated to a baby       |                              |                       |
+| /dreams                                             | `post`   | Add new dreams to an associated baby      | Body: Json                   | {from_date, to_date } |
+| /dreams                                             | `patch`  | Update a dream record with any new values | Body: Json                   | {from_date, to_date } |
+| /dreams?entry=X                                     | `delete` | Delete entry X from DB                    | entry: int                   |                       |
+| /dreams?date=YYYY-mm-dd                             | `get`    | Get all dreams in a given date            |                              |                       |
+| /dreams/summary?date=YYYY-mm-dd                     | `get`    | Get a summary from one day's data         | date: String                 |                       |
+| /dreams/summary/today                               | `get`    | Get a summary from today's data           |                              |                       |
+| /dreams/summary/last?days=X                         | `get`    | Get a summary from last X days            | days: int                    |                       |
+| /dreams/summary/range?from=YYYY-mm-dd&to=YYYY-mm-dd | `get`    | Get a summary from date X up to date Y    | {from: String \| to: String} |                       |
 
 ### Weights: `/api/baby/:baby_id`
 
-| Route    | Method  | Function                                     | Parameters | Arguments      |
-| -------- | ------- | -------------------------------------------- | ---------- | -------------- |
-| /weights | `get`   | Get all weight measures associated to a baby |            |                |
-| /weights | `post`  | Add new weight measure to an associated baby | Body: Json | {date, value } |
-| /weights | `patch` | Update a measure with any new values         | Body: Json | {date, value } |
+| Route            | Method   | Function                                     | Parameters | Arguments      |
+| ---------------- | -------- | -------------------------------------------- | ---------- | -------------- |
+| /weights         | `get`    | Get all weight measures associated to a baby |            |                |
+| /weights         | `post`   | Add new weight measure to an associated baby | Body: Json | {date, value } |
+| /weights         | `patch`  | Update a measure with any new values         | Body: Json | {date, value } |
+| /weights?entry=X | `delete` | Delete entry X from DB                       | entry: int |                |
 
 ## Docs
 
@@ -360,11 +365,12 @@ Proposed layout.
 - [X] Time and dates.
 - [X] Implement meals and dreams tables.
 - [X] Set up associations.
-- [ ] User profile.
+- [X] User profile.
+- [ ] Admin panel.
 - [ ] Logout user.
 - [ ] Add co-parenting.
 - [X] Update fields.
-- [ ] Delete entries.
+- [X] Delete entries.
 - [ ] Add entries by batch.
 - [X] Elapsed times.
 - [ ] Recovery system.
