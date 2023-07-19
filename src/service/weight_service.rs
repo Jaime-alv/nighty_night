@@ -13,6 +13,8 @@ use crate::{
     },
 };
 
+use super::util_service::record_belongs_to_baby;
+
 pub async fn post_weight_service(
     new_measure: InputWeightDto,
     baby_id: i32,
@@ -37,9 +39,7 @@ pub async fn patch_weight_service(
     baby_id: i32,
 ) -> Result<Response, ApiError> {
     let old_record = find_weight_by_id(record).await?;
-    if old_record.baby_id().ne(&baby_id) {
-        return Err(ApiError::Forbidden);
-    }
+    record_belongs_to_baby(old_record.baby_id(), baby_id)?;
     let new_date = match measure.date {
         Some(value) => convert_to_date(&value)?,
         None => old_record.date(),

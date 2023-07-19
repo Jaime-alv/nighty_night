@@ -44,3 +44,12 @@ pub fn date_time_are_in_order(from: NaiveDateTime, to: NaiveDateTime) -> Result<
         Err(ApiError::DatesUnordered)
     }
 }
+
+/// Checks if records' baby is the same as the one you want to perform the modification on.
+pub fn record_belongs_to_baby(record_baby: i32, baby_id: i32) -> Result<(), ApiError> {
+    if record_baby.ne(&baby_id) {
+        Err(ApiError::Forbidden)
+    } else {
+        Ok(())
+    }
+}

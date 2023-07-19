@@ -12,7 +12,7 @@ use crate::{
     utils::{datetime::convert_to_date_time, response::Response},
 };
 
-use super::util_service::{date_time_are_in_order, uncover_date};
+use super::util_service::{date_time_are_in_order, uncover_date, record_belongs_to_baby};
 
 pub async fn post_dream_service(
     new_dream: InputDreamDto,
@@ -46,9 +46,7 @@ pub async fn patch_dream_service(
     baby_id: i32,
 ) -> Result<Response, ApiError> {
     let old_dream = find_dream_by_id(record).await?;
-    if baby_id.ne(&old_dream.baby_id()) {
-        return Err(ApiError::Forbidden);
-    }
+    record_belongs_to_baby(old_dream.baby_id(), baby_id)?;
     let new_from_date = match dream.from_date {
         Some(value) => convert_to_date_time(&value)?,
         None => old_dream.from_date(),
