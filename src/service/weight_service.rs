@@ -5,7 +5,8 @@ use crate::{
     error::error::ApiError,
     model::weight_model::{InsertableWeight, Weight},
     repository::weight_repository::{
-        find_weight_by_id, get_all_weights_from_baby, ingest_weight, patch_weight_record,
+        delete_weight_from_db, find_weight_by_id, get_all_weights_from_baby, ingest_weight,
+        patch_weight_record,
     },
     utils::{
         datetime::{convert_to_date, today},
@@ -58,4 +59,11 @@ pub async fn patch_weight_service(
 
 fn into_json(weights: Vec<Weight>) -> Json<Vec<WeightDto>> {
     Json(weights.into_iter().map(|measure| measure.into()).collect())
+}
+
+pub async fn delete_weight_service(record: i32, baby_id: i32) -> Result<Response, ApiError> {
+    let delete_record = find_weight_by_id(record).await?;
+    record_belongs_to_baby(delete_record.baby_id(), baby_id)?;
+    delete_weight_from_db(record).await?;
+    Ok(Response::DeleteRecord)
 }

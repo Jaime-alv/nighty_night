@@ -12,14 +12,19 @@ use crate::{
     model::session_model::CurrentUser,
     service::{
         session_service::authorize_and_has_baby,
-        weight_service::{get_weights_service, patch_weight_service, post_weight_service},
+        weight_service::{
+            delete_weight_service, get_weights_service, patch_weight_service, post_weight_service,
+        },
     },
 };
 
 pub(super) fn route_weight() -> Router {
     Router::new().route(
         "/:baby_id/weights",
-        get(get_weights).post(post_weight).patch(patch_weight),
+        get(get_weights)
+            .post(post_weight)
+            .patch(patch_weight)
+            .delete(delete_weight),
     )
 }
 
@@ -48,4 +53,13 @@ async fn patch_weight(
 ) -> impl IntoResponse {
     authorize_and_has_baby(auth, baby_id)?;
     patch_weight_service(measure, record.id(), baby_id).await
+}
+
+async fn delete_weight(
+    Path(baby_id): Path<i32>,
+    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
+    record_id: Query<IdDto>,
+) -> impl IntoResponse {
+    authorize_and_has_baby(auth, baby_id)?;
+    delete_weight_service(record_id.id(), baby_id).await
 }
