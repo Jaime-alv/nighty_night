@@ -7,7 +7,7 @@ use crate::{
     model::meals_model::{InsertableMeal, Meal},
     repository::meal_repository::{
         find_meal_by_id, find_meals_by_date, get_all_meals_from_baby, ingest_meal,
-        patch_meal_record,
+        patch_meal_record, delete_meal_from_db,
     },
     utils::{
         datetime::{convert_to_date_time, now},
@@ -15,7 +15,7 @@ use crate::{
     },
 };
 
-use super::util_service::{date_time_are_in_order, uncover_date};
+use super::util_service::{date_time_are_in_order, uncover_date, record_belongs_to_baby};
 
 pub async fn post_meal_service(new_meal: InputMealDto, baby_id: i32) -> Result<Response, ApiError> {
     let timestamp = uncover_date(new_meal.date)?;
@@ -36,9 +36,7 @@ pub async fn patch_meal_service(
     baby_id: i32,
 ) -> Result<Response, ApiError> {
     let old_meal = find_meal_by_id(record).await?;
-    if baby_id.ne(&old_meal.baby_id()) {
-        return Err(ApiError::Forbidden);
-    }
+    record_belongs_to_baby(old_meal.baby_id(), baby_id)?;
     let new_date = match meal.date {
         Some(v) => convert_to_date_time(&v)?,
         None => old_meal.date(),
@@ -85,4 +83,12 @@ pub async fn filter_meals_by_date_service(
 
 fn into_json(meals: Vec<Meal>) -> Json<Vec<MealDto>> {
     Json(meals.into_iter().map(|meal| meal.into()).collect())
+}
+
+
+pub async fn delete_meal_service(record: i32, baby_id: i32) -> Result<Response, ApiError> {
+    let meal_to_delete = find_meal_by_id(record).await?;
+    record_belongs_to_baby(meal_to_delete.baby_id(), baby_id)?;
+    delete_meal_from_db(record).await?;
+    Ok(Response::DeleteRecord)
 }

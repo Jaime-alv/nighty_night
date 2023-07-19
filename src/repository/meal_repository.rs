@@ -3,8 +3,9 @@ use diesel::{prelude::*, result::Error};
 use diesel_async::RunQueryDsl;
 
 use crate::{
+    data::meal_dto::UpdateMeal,
     model::meals_model::{InsertableMeal, Meal},
-    schema::meals, data::meal_dto::UpdateMeal,
+    schema::meals,
 };
 
 use super::connection_psql::establish_async_connection;
@@ -71,6 +72,13 @@ pub async fn patch_meal_record(record: i32, meal: UpdateMeal) -> Result<usize, E
             meals::quantity.eq(meal.quantity),
             meals::to_time.eq(meal.to_time),
         ))
+        .execute(conn)
+        .await
+}
+
+pub async fn delete_meal_from_db(record: i32) -> Result<usize, Error> {
+    let conn = &mut establish_async_connection().await;
+    diesel::delete(meals::table.find(record))
         .execute(conn)
         .await
 }
