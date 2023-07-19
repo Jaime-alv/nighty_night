@@ -7,7 +7,7 @@ use crate::{
     model::dream_model::{Dream, InsertableDream},
     repository::dream_repository::{
         find_dream_by_id, find_dreams_by_date, get_all_dreams_from_baby, ingest_new_dream,
-        patch_dream_record, update_last_dream,
+        patch_dream_record, update_last_dream, delete_dream_from_db,
     },
     utils::{datetime::convert_to_date_time, response::Response},
 };
@@ -84,4 +84,12 @@ pub async fn filter_dreams_by_date_service(
 
 fn into_json(dreams: Vec<Dream>) -> Json<Vec<DreamDto>> {
     Json(dreams.into_iter().map(|dream| dream.into()).collect())
+}
+
+
+pub async fn delete_dream_service(record: i32, baby_id: i32) -> Result<Response, ApiError> {
+    let old_dream = find_dream_by_id(record).await?;
+    record_belongs_to_baby(old_dream.baby_id(), baby_id)?;
+    delete_dream_from_db(record).await;
+    Ok(Response::DeleteRecord)
 }
