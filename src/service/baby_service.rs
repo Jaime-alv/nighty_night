@@ -4,7 +4,10 @@ use crate::{
     data::baby_dto::{BabyDto, InputBabyDto, UpdateBaby},
     error::error::ApiError,
     model::baby_model::{Baby, InsertableBaby},
-    repository::baby_repository::{ingest_new_baby_in_db, load_baby_by_id, query_babies, patch_baby_record},
+    repository::baby_repository::{
+        delete_baby_from_db, ingest_new_baby_in_db, load_baby_by_id, patch_baby_record,
+        query_babies,
+    },
     utils::{
         datetime::{convert_to_date, today},
         response::Response,
@@ -63,4 +66,9 @@ pub async fn patch_baby_service(baby_id: i32, update: InputBabyDto) -> Result<Re
     };
     patch_baby_record(baby_id, update_baby).await?;
     Ok(Response::UpdateRecord)
+}
+
+pub async fn delete_baby_service(baby_id: i32) -> Result<Response, ApiError> {
+    delete_baby_from_db(baby_id).await?;
+    Ok(Response::DeleteRecord)
 }

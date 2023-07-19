@@ -43,3 +43,8 @@ pub async fn patch_baby_record(baby: i32, update: UpdateBaby) -> Result<usize, E
         .execute(conn)
         .await
 }
+
+pub async fn delete_baby_from_db(baby: i32) -> Result<usize, Error> {
+    let conn = &mut establish_async_connection().await;
+    diesel::delete(babies::table.find(baby)).execute(conn).await
+}
