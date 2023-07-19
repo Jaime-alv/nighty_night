@@ -6,8 +6,8 @@ use crate::{
     error::error::ApiError,
     model::meals_model::{InsertableMeal, Meal},
     repository::meal_repository::{
-        find_meal_by_id, find_meals_by_date, get_all_meals_from_baby, ingest_meal,
-        patch_meal_record, delete_meal_from_db,
+        delete_meal_from_db, find_meal_by_id, find_meals_by_date, get_all_meals_from_baby,
+        ingest_meal, patch_meal_record,
     },
     utils::{
         datetime::{convert_to_date_time, now},
@@ -15,7 +15,7 @@ use crate::{
     },
 };
 
-use super::util_service::{date_time_are_in_order, uncover_date, record_belongs_to_baby};
+use super::util_service::{date_time_are_in_order, record_belongs_to_baby, uncover_date};
 
 pub async fn post_meal_service(new_meal: InputMealDto, baby_id: i32) -> Result<Response, ApiError> {
     let timestamp = uncover_date(new_meal.date)?;
@@ -84,7 +84,6 @@ pub async fn filter_meals_by_date_service(
 fn into_json(meals: Vec<Meal>) -> Json<Vec<MealDto>> {
     Json(meals.into_iter().map(|meal| meal.into()).collect())
 }
-
 
 pub async fn delete_meal_service(record: i32, baby_id: i32) -> Result<Response, ApiError> {
     let meal_to_delete = find_meal_by_id(record).await?;

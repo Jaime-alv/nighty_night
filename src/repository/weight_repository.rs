@@ -2,8 +2,9 @@ use diesel::{prelude::*, result::Error};
 use diesel_async::RunQueryDsl;
 
 use crate::{
+    data::weight_dto::UpdateWeight,
     model::weight_model::{InsertableWeight, Weight},
-    schema::weights, data::weight_dto::UpdateWeight,
+    schema::weights,
 };
 
 use super::connection_psql::establish_async_connection;
@@ -41,4 +42,11 @@ pub async fn patch_weight_record(record: i32, measure: UpdateWeight) -> Result<u
 pub async fn find_weight_by_id(id: i32) -> Result<Weight, Error> {
     let conn = &mut establish_async_connection().await;
     weights::table.find(id).first(conn).await
+}
+
+pub async fn delete_weight_from_db(record: i32) -> Result<usize, Error> {
+    let conn = &mut establish_async_connection().await;
+    diesel::delete(weights::table.find(record))
+        .execute(conn)
+        .await
 }
