@@ -1,8 +1,9 @@
 use std::collections::HashSet;
 
 use crate::{
+    data::user_dto::UpdateUser,
     model::user_model::{InsertableUser, User},
-    schema::{users, users_babies, users_roles}, data::user_dto::UpdateUser,
+    schema::{users, users_babies, users_roles},
 };
 use diesel::prelude::*;
 use diesel::result::Error;
@@ -82,4 +83,17 @@ pub async fn patch_user_record(user_id: i32, profile: UpdateUser) -> Result<usiz
         ))
         .execute(conn)
         .await
+}
+
+pub async fn alter_active_status_for_user(user: i32, active: bool) -> Result<usize, Error> {
+    let conn = &mut establish_async_connection().await;
+    diesel::update(users::table.find(user))
+        .set(users::active.eq(active))
+        .execute(conn)
+        .await
+}
+
+pub async fn delete_user_from_db(user: i32) -> Result<usize, Error> {
+    let conn = &mut establish_async_connection().await;
+    diesel::delete(users::table.find(user)).execute(conn).await
 }

@@ -360,7 +360,8 @@ Proposed layout.
 - [X] Time and dates.
 - [X] Implement meals and dreams tables.
 - [X] Set up associations.
-- [ ] User profile.
+- [X] User profile.
+- [ ] Admin panel.
 - [ ] Logout user.
 - [ ] Add co-parenting.
 - [X] Update fields.
