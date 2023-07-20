@@ -5,25 +5,11 @@ use crate::{
     data::meal_dto::MealSummaryDto,
     error::error::ApiError,
     model::{meals_model::Meal, summary_model::MealSummary},
-    repository::meal_repository::{find_meals_by_date_range, find_all_meals_sorted},
+    repository::meal_repository::{find_all_meals_sorted, find_meals_by_date_range},
     utils::datetime::{iter_between_two_dates, today},
 };
 
 use super::util_service::{check_days_out_of_bounds, dates_are_in_order};
-
-pub async fn meal_summary_service(
-    baby_id: i32,
-    date: NaiveDate,
-) -> Result<Json<MealSummaryDto>, ApiError> {
-    let record = one_day_summary(baby_id, date).await?;
-    Ok(Json(record.into()))
-}
-
-pub async fn meal_summary_today_service(baby_id: i32) -> Result<Json<MealSummaryDto>, ApiError> {
-    let date = today();
-    let record = one_day_summary(baby_id, date).await?;
-    Ok(Json(record.into()))
-}
 
 pub async fn meal_summary_range_service(
     baby_id: i32,
@@ -32,12 +18,6 @@ pub async fn meal_summary_range_service(
 ) -> Result<Json<Vec<MealSummaryDto>>, ApiError> {
     let summary = fetch_meal_summary_range(baby_id, from_date, to_date).await?;
     Ok(into_json_summary(summary))
-}
-
-async fn one_day_summary(baby_id: i32, day: NaiveDate) -> Result<MealSummary, ApiError> {
-    let summary = fetch_meal_summary_range(baby_id, day, day).await?;
-    let record = obtain_first_record(summary, day)?;
-    Ok(record)
 }
 
 /// Need to add plus one day to look for certain date.
@@ -63,16 +43,6 @@ async fn fetch_meal_summary_range(
         }
     }
     Ok(summary_vec)
-}
-
-fn obtain_first_record(
-    summaries: Vec<MealSummary>,
-    date: NaiveDate,
-) -> Result<MealSummary, ApiError> {
-    match summaries.first() {
-        Some(element) => Ok(element.clone()),
-        None => Err(ApiError::NoRecord(date)),
-    }
 }
 
 pub async fn meal_summary_last_days_service(

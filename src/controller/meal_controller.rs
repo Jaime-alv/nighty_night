@@ -10,7 +10,7 @@ use axum_session_auth::AuthSession;
 use crate::{
     data::{
         meal_dto::InputMealDto,
-        query_dto::{DateDto, DateRangeDto, IdDto, LastDaysDto},
+        query_dto::{AllRecords, DateDto, DateRangeDto, IdDto, LastDaysDto},
     },
     model::session_model::CurrentUser,
     service::{
@@ -20,7 +20,7 @@ use crate::{
         },
         meal_summary_service::{
             get_all_meals_summaries_service, meal_summary_last_days_service,
-            meal_summary_range_service, meal_summary_service, meal_summary_today_service,
+            meal_summary_range_service,
         },
         session_service::authorize_and_has_baby,
     },
@@ -36,10 +36,6 @@ pub(super) fn route_meal() -> Router {
                 .delete(delete_meal),
         )
         .route("/:baby_id/meals/summary", get(meal_summary))
-        .route("/:baby_id/meals/summary/today", get(meal_summary_today))
-        .route("/:baby_id/meals/summary/last", get(meal_summary_last))
-        .route("/:baby_id/meals/summary/range", get(meal_summary_range))
-        .route("/:baby_id/meals/summary/all", get(meal_summary_all))
 }
 
 async fn get_meals(
@@ -73,49 +69,6 @@ async fn patch_meal(
     patch_meal_service(meal, record_id.id(), baby_id).await
 }
 
-async fn meal_summary(
-    Path(baby_id): Path<i32>,
-    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
-    date: Query<DateDto>,
-) -> impl IntoResponse {
-    authorize_and_has_baby(auth, baby_id)?;
-    meal_summary_service(baby_id, date.date()?).await
-}
-
-async fn meal_summary_today(
-    Path(baby_id): Path<i32>,
-    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
-) -> impl IntoResponse {
-    authorize_and_has_baby(auth, baby_id)?;
-    meal_summary_today_service(baby_id).await
-}
-
-async fn meal_summary_last(
-    Path(baby_id): Path<i32>,
-    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
-    last_days: Query<LastDaysDto>,
-) -> impl IntoResponse {
-    authorize_and_has_baby(auth, baby_id)?;
-    meal_summary_last_days_service(baby_id, last_days.days()).await
-}
-
-async fn meal_summary_range(
-    Path(baby_id): Path<i32>,
-    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
-    value: Query<DateRangeDto>,
-) -> impl IntoResponse {
-    authorize_and_has_baby(auth, baby_id)?;
-    meal_summary_range_service(baby_id, value.from()?, value.to()?).await
-}
-
-async fn meal_summary_all(
-    Path(baby_id): Path<i32>,
-    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
-) -> impl IntoResponse {
-    authorize_and_has_baby(auth, baby_id)?;
-    get_all_meals_summaries_service(baby_id).await
-}
-
 async fn delete_meal(
     Path(baby_id): Path<i32>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
@@ -123,4 +76,31 @@ async fn delete_meal(
 ) -> impl IntoResponse {
     authorize_and_has_baby(auth, baby_id)?;
     delete_meal_service(record_id.id(), baby_id).await
+}
+
+/// Obtain summary records, if there are no parameters, it will try to get last 7 days.
+async fn meal_summary(
+    Path(baby_id): Path<i32>,
+    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
+    all_records: Option<Query<AllRecords>>,
+    date: Option<Query<DateDto>>,
+    range: Option<Query<DateRangeDto>>,
+    last_days: Option<Query<LastDaysDto>>,
+) -> impl IntoResponse {
+    authorize_and_has_baby(auth, baby_id)?;
+    if all_records.is_some() && all_records.unwrap().all() {
+        get_all_meals_summaries_service(baby_id).await
+    } else if date.is_some() {
+        meal_summary_range_service(
+            baby_id,
+            date.as_ref().unwrap().date()?,
+            date.unwrap().date()?,
+        )
+        .await
+    } else if range.is_some() {
+        let range_date = range.unwrap();
+        meal_summary_range_service(baby_id, range_date.from()?, range_date.to()?).await
+    } else {
+        meal_summary_last_days_service(baby_id, last_days.unwrap_or_default().days()).await
+    }
 }

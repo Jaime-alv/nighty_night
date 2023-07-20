@@ -8,7 +8,7 @@ use crate::{
 
 #[derive(Deserialize)]
 pub struct IdDto {
-    entry: i32
+    entry: i32,
 }
 
 impl IdDto {
@@ -24,7 +24,10 @@ pub struct DateDto {
 
 impl DateDto {
     pub fn date(&self) -> Result<NaiveDate, ApiError> {
-        parse_date(&self.date)
+        match self.date.as_str() {
+            "today" => Ok(today()),
+            _ => parse_date(&self.date),
+        }
     }
 }
 
@@ -38,12 +41,18 @@ impl Default for DateDto {
 
 #[derive(Deserialize)]
 pub struct LastDaysDto {
-    days: Option<u64>,
+    last_days: u64,
+}
+
+impl Default for LastDaysDto {
+    fn default() -> Self {
+        Self { last_days: 7 }
+    }
 }
 
 impl LastDaysDto {
     pub fn days(&self) -> u64 {
-        self.days.unwrap_or(7)
+        self.last_days
     }
 }
 
@@ -66,6 +75,17 @@ impl DateRangeDto {
     }
 }
 
+#[derive(Deserialize)]
+pub struct AllRecords {
+    all: bool
+}
+
+impl AllRecords {
+    pub fn all(&self) -> bool {
+        self.all
+    }
+}
+
 fn parse_date(date: &str) -> Result<NaiveDate, ApiError> {
     match convert_to_date(date) {
         Ok(date) => Ok(date),
@@ -75,7 +95,7 @@ fn parse_date(date: &str) -> Result<NaiveDate, ApiError> {
 
 #[derive(Deserialize)]
 pub struct Username {
-    value: Option<String>
+    value: Option<String>,
 }
 
 impl Username {
