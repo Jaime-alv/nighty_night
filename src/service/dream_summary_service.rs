@@ -6,24 +6,10 @@ use crate::{
     error::error::ApiError,
     model::{dream_model::Dream, summary_model::DreamSummary},
     repository::dream_repository::{find_all_dreams_sorted, find_dreams_summary},
-    utils::datetime::{iter_between_two_dates, today, now},
+    utils::datetime::{iter_between_two_dates, now, today},
 };
 
 use super::util_service::{check_days_out_of_bounds, dates_are_in_order};
-
-pub async fn dream_summary_service(
-    baby_id: i32,
-    date: NaiveDate,
-) -> Result<Json<DreamSummaryDto>, ApiError> {
-    let record = one_day_summary(baby_id, date).await?;
-    Ok(Json(record.into()))
-}
-
-pub async fn dream_summary_today_service(baby_id: i32) -> Result<Json<DreamSummaryDto>, ApiError> {
-    let date = today();
-    let record = one_day_summary(baby_id, date).await?;
-    Ok(Json(record.into()))
-}
 
 pub async fn dream_summary_range_service(
     baby_id: i32,
@@ -32,12 +18,6 @@ pub async fn dream_summary_range_service(
 ) -> Result<Json<Vec<DreamSummaryDto>>, ApiError> {
     let summary = fetch_dream_summary_range(baby_id, from_date, to_date).await?;
     Ok(into_json_summary(summary))
-}
-
-async fn one_day_summary(baby_id: i32, day: NaiveDate) -> Result<DreamSummary, ApiError> {
-    let summary = fetch_dream_summary_range(baby_id, day, day).await?;
-    let record = obtain_first_record(summary, day)?;
-    Ok(record)
 }
 
 /// Need to add plus one day to look for certain date.
@@ -63,16 +43,6 @@ async fn fetch_dream_summary_range(
         }
     }
     Ok(summary_vec)
-}
-
-fn obtain_first_record(
-    summaries: Vec<DreamSummary>,
-    date: NaiveDate,
-) -> Result<DreamSummary, ApiError> {
-    match summaries.first() {
-        Some(element) => Ok(element.clone()),
-        None => Err(ApiError::NoRecord(date)),
-    }
 }
 
 pub async fn dream_summary_last_days_service(

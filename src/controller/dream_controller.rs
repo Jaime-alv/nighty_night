@@ -10,7 +10,7 @@ use axum_session_auth::AuthSession;
 use crate::{
     data::{
         dream_dto::InputDreamDto,
-        query_dto::{DateDto, DateRangeDto, IdDto, LastDaysDto},
+        query_dto::{AllRecords, DateDto, DateRangeDto, IdDto, LastDaysDto},
     },
     model::session_model::CurrentUser,
     service::{
@@ -19,8 +19,8 @@ use crate::{
             patch_dream_service, post_dream_service,
         },
         dream_summary_service::{
-            dream_summary_last_days_service, dream_summary_range_service, dream_summary_service,
-            dream_summary_today_service, get_all_dream_summaries_service,
+            dream_summary_last_days_service, dream_summary_range_service,
+            get_all_dream_summaries_service,
         },
         session_service::authorize_and_has_baby,
     },
@@ -36,10 +36,6 @@ pub(super) fn route_dream() -> Router {
                 .delete(delete_dream),
         )
         .route("/:baby_id/dreams/summary", get(dream_summary))
-        .route("/:baby_id/dreams/summary/today", get(dream_summary_today))
-        .route("/:baby_id/dreams/summary/last", get(dream_summary_last))
-        .route("/:baby_id/dreams/summary/range", get(dream_summary_range))
-        .route("/:baby_id/dreams/summary/all", get(dream_summary_all))
 }
 
 async fn get_dreams(
@@ -73,50 +69,6 @@ async fn patch_dream(
     patch_dream_service(dream, record_id.id(), baby_id).await
 }
 
-async fn dream_summary(
-    Path(baby_id): Path<i32>,
-    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
-    date: Query<DateDto>,
-) -> impl IntoResponse {
-    authorize_and_has_baby(auth, baby_id)?;
-    let day = date.date()?;
-    dream_summary_service(baby_id, day).await
-}
-
-async fn dream_summary_today(
-    Path(baby_id): Path<i32>,
-    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
-) -> impl IntoResponse {
-    authorize_and_has_baby(auth, baby_id)?;
-    dream_summary_today_service(baby_id).await
-}
-
-async fn dream_summary_last(
-    Path(baby_id): Path<i32>,
-    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
-    last_days: Query<LastDaysDto>,
-) -> impl IntoResponse {
-    authorize_and_has_baby(auth, baby_id)?;
-    dream_summary_last_days_service(baby_id, last_days.days()).await
-}
-
-async fn dream_summary_range(
-    Path(baby_id): Path<i32>,
-    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
-    value: Query<DateRangeDto>,
-) -> impl IntoResponse {
-    authorize_and_has_baby(auth, baby_id)?;
-    dream_summary_range_service(baby_id, value.from()?, value.to()?).await
-}
-
-async fn dream_summary_all(
-    Path(baby_id): Path<i32>,
-    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
-) -> impl IntoResponse {
-    authorize_and_has_baby(auth, baby_id)?;
-    get_all_dream_summaries_service(baby_id).await
-}
-
 async fn delete_dream(
     Path(baby_id): Path<i32>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
@@ -124,4 +76,31 @@ async fn delete_dream(
 ) -> impl IntoResponse {
     authorize_and_has_baby(auth, baby_id)?;
     delete_dream_service(record_id.id(), baby_id).await
+}
+
+/// Obtain summary records, if there are no parameters, it will try to get last 7 days.
+async fn dream_summary(
+    Path(baby_id): Path<i32>,
+    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
+    all_records: Option<Query<AllRecords>>,
+    date: Option<Query<DateDto>>,
+    range: Option<Query<DateRangeDto>>,
+    last_days: Option<Query<LastDaysDto>>,
+) -> impl IntoResponse {
+    authorize_and_has_baby(auth, baby_id)?;
+    if all_records.is_some() && all_records.unwrap().all() {
+        get_all_dream_summaries_service(baby_id).await
+    } else if date.is_some() {
+        dream_summary_range_service(
+            baby_id,
+            date.as_ref().unwrap().date()?,
+            date.unwrap().date()?,
+        )
+        .await
+    } else if range.is_some() {
+        let range_date = range.unwrap();
+        dream_summary_range_service(baby_id, range_date.from()?, range_date.to()?).await
+    } else {
+        dream_summary_last_days_service(baby_id, last_days.unwrap_or_default().days()).await
+    }
 }
