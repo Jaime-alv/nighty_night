@@ -10,13 +10,13 @@ use axum_session_auth::AuthSession;
 use crate::{
     data::{
         meal_dto::InputMealDto,
-        query_dto::{AllRecords, DateDto, DateRangeDto, IdDto, LastDaysDto},
+        query_dto::{AllRecords, DateDto, DateRangeDto, IdDto, LastDaysDto, Pagination},
     },
     model::session_model::CurrentUser,
     service::{
         meal_service::{
-            delete_meal_service, filter_meals_by_date_service, get_meals_service,
-            patch_meal_service, post_meal_service,
+            delete_meal_service, filter_meals_by_last_days, filter_meals_by_range,
+            patch_meal_service, post_meal_service, get_all_meals_paginated_service,
         },
         meal_summary_service::{
             get_all_meals_summaries_service, meal_summary_last_days_service,
@@ -41,12 +41,25 @@ pub(super) fn route_meal() -> Router {
 async fn get_meals(
     Path(baby_id): Path<i32>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
+    all_records: Option<Query<AllRecords>>,
     date: Option<Query<DateDto>>,
+    page: Option<Query<Pagination>>,
+    range: Option<Query<DateRangeDto>>,
+    last_days: Option<Query<LastDaysDto>>,
 ) -> impl IntoResponse {
     authorize_and_has_baby(auth, baby_id)?;
-    match date {
-        Some(date) => filter_meals_by_date_service(baby_id, date.date()?).await,
-        None => get_meals_service(baby_id).await,
+    let pagination = page.unwrap_or_default().0;
+    if all_records.is_some() && all_records.unwrap().all()  {
+        get_all_meals_paginated_service(baby_id, pagination).await
+    } else if date.is_some() {
+        let day = date.unwrap().date()?;
+        filter_meals_by_range(baby_id, day, day, pagination).await
+    } else if range.is_some() {
+        let dates = range.unwrap();
+        filter_meals_by_range(baby_id, dates.from()?, dates.to()?, pagination).await
+    } else {
+        let last = last_days.unwrap_or_default().days();
+        filter_meals_by_last_days(baby_id, last, pagination).await
     }
 }
 

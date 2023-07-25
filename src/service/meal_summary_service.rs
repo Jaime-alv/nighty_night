@@ -29,7 +29,7 @@ async fn fetch_meal_summary_range(
     dates_are_in_order(from_date, to_date)?;
     let plus_one = to_date.checked_add_days(Days::new(1)).unwrap();
     let mut summary_vec: Vec<MealSummary> = Vec::new();
-    let dreams = find_meals_by_date_range(baby_id, from_date, plus_one).await?;
+    let dreams = find_meals_by_date_range(baby_id, from_date, plus_one)?;
     let dates = iter_between_two_dates(from_date, plus_one);
     for day in dates {
         let partial_meals = dreams
@@ -42,17 +42,24 @@ async fn fetch_meal_summary_range(
             summary_vec.push(summary)
         }
     }
-    Ok(summary_vec)
+    if summary_vec.is_empty() {
+        Err(ApiError::NoRecord)
+    } else {
+        Ok(summary_vec)
+    }
 }
 
 pub async fn meal_summary_last_days_service(
     baby_id: i32,
-    last_days: u64,
+    last_days: u32,
 ) -> Result<Json<Vec<MealSummaryDto>>, ApiError> {
     check_days_out_of_bounds(last_days)?;
     let today = today();
-    let from_date = today.checked_sub_days(Days::new(last_days)).unwrap();
+    let from_date = today
+        .checked_sub_days(Days::new(last_days.try_into().unwrap()))
+        .unwrap();
     let summaries = fetch_meal_summary_range(baby_id, from_date, today).await?;
+
     Ok(into_json_summary(summaries))
 }
 
@@ -64,7 +71,7 @@ pub async fn get_all_meals_summaries_service(
     baby_id: i32,
 ) -> Result<Json<Vec<MealSummaryDto>>, ApiError> {
     let mut summaries: Vec<MealSummary> = Vec::new();
-    let all_records = find_all_meals_sorted(baby_id).await?;
+    let all_records = find_all_meals_sorted(baby_id)?;
     let initial_record = match all_records.first() {
         Some(initial) => initial.date().date(),
         None => return Ok(into_json_summary(summaries)),

@@ -1,4 +1,7 @@
-use std::{fmt::Display, num::ParseIntError};
+use std::{
+    fmt::Display,
+    num::{ParseIntError, TryFromIntError},
+};
 
 use axum::{response::IntoResponse, Json};
 use chrono::NaiveDate;
@@ -14,15 +17,15 @@ pub enum ApiError {
     Forbidden,
     DuplicateUser,
     NoUser,
-    NoEntryFound,
     NoActiveUser,
     EmptyQuery,
     NotFound,
-    NoRecord(NaiveDate),
+    NoRecord,
     LoginRequired,
     DatesUnordered,
-    OutOfBounds(i16, i16),
+    OutOfBounds(u32, u32),
     InvalidValue(ParseIntError),
+    InvalidValueTry(TryFromIntError),
     DateFormat(chrono::ParseError),
     DBError(Error),
     Redis(RedisError),
@@ -45,7 +48,6 @@ impl ApiError {
                 String::from("User already exists."),
             ),
             ApiError::Generic400Error(msg) => (StatusCode::BAD_REQUEST, String::from(msg)),
-            ApiError::NoEntryFound => (StatusCode::BAD_REQUEST, String::from("No entry found.")),
             ApiError::Forbidden => (StatusCode::FORBIDDEN, String::from("Forbidden.")),
             ApiError::NoActiveUser => (
                 StatusCode::UNAUTHORIZED,
@@ -70,10 +72,7 @@ impl ApiError {
                 StatusCode::BAD_REQUEST,
                 String::from("Target date must be higher."),
             ),
-            ApiError::NoRecord(date) => (
-                StatusCode::BAD_REQUEST,
-                format!("No record found with date: {date}"),
-            ),
+            ApiError::NoRecord => (StatusCode::BAD_REQUEST, String::from("No record found.")),
             // 50X Error
             ApiError::DBError(error) => (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()),
             ApiError::Generic500Error(msg) => {
@@ -83,6 +82,7 @@ impl ApiError {
                 StatusCode::INTERNAL_SERVER_ERROR,
                 format!("Redis error: {error}"),
             ),
+            ApiError::InvalidValueTry(value) => (StatusCode::BAD_REQUEST, format!("{value}")),
         }
     }
 }

@@ -31,18 +31,18 @@ where
         None => today(),
     };
     let insert_baby = InsertableBaby::new(new_baby.name.unwrap(), birthdate);
-    let baby = ingest_new_baby_in_db(insert_baby).await?;
+    let baby = ingest_new_baby_in_db(insert_baby)?;
     add_baby_to_user_service(current_user.into(), baby.id().into()).await?;
     Ok(Json(baby.into()))
 }
 
 pub async fn find_baby_service(baby_id: i32) -> Result<Json<BabyDto>, ApiError> {
-    let baby = load_baby_by_id(baby_id).await?;
+    let baby = load_baby_by_id(baby_id)?;
     Ok(Json(baby.into()))
 }
 
 pub async fn get_all_babies_service() -> Result<Json<Vec<BabyDto>>, ApiError> {
-    let babies = query_babies().await?;
+    let babies = query_babies()?;
     Ok(into_json(babies))
 }
 
@@ -51,7 +51,7 @@ fn into_json(babies: Vec<Baby>) -> Json<Vec<BabyDto>> {
 }
 
 pub async fn patch_baby_service(baby_id: i32, update: InputBabyDto) -> Result<Response, ApiError> {
-    let old_record = load_baby_by_id(baby_id).await?;
+    let old_record = load_baby_by_id(baby_id)?;
     let new_name = match update.name {
         Some(value) => value,
         None => old_record.name(),
@@ -64,11 +64,11 @@ pub async fn patch_baby_service(baby_id: i32, update: InputBabyDto) -> Result<Re
         name: new_name,
         birthdate: new_birthdate,
     };
-    patch_baby_record(baby_id, update_baby).await?;
+    patch_baby_record(baby_id, update_baby)?;
     Ok(Response::UpdateRecord)
 }
 
 pub async fn delete_baby_service(baby_id: i32) -> Result<Response, ApiError> {
-    delete_baby_from_db(baby_id).await?;
+    delete_baby_from_db(baby_id)?;
     Ok(Response::DeleteRecord)
 }

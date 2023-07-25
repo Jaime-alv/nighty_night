@@ -1,5 +1,3 @@
-use std::time::SystemTime;
-
 use axum::Json;
 
 use crate::{
@@ -32,7 +30,7 @@ pub async fn create_user_service(new_user: NewUserDto) -> Result<(Response, i32)
     if valid_password(&new_user.password) {
         return Err(ApiError::Generic400Error("Password too short.".into()));
     }
-    let user = create_user(new_user).await?;
+    let user = create_user(new_user)?;
     assign_rol_as_user(user.id()).await?;
     let username = user.username();
     let id_binding = user.id();
@@ -45,12 +43,12 @@ async fn assign_rol_as_user(user_id: i32) -> Result<(), ApiError> {
 }
 
 pub async fn get_all_users_service() -> Result<Json<Vec<UserDto>>, ApiError> {
-    let users = query_users().await?;
+    let users = query_users()?;
     Ok(into_json(users))
 }
 
 pub async fn find_user_service(user: FindUserDto) -> Result<Json<UserDto>, ApiError> {
-    let user = load_user_by_username(&user.username).await?;
+    let user = load_user_by_username(&user.username)?;
     Ok(Json(user.into()))
 }
 
@@ -58,7 +56,7 @@ pub async fn login_service(login: LoginDto) -> Result<(Response, i32), ApiError>
     if validate_fields(&login.data()) {
         return Err(ApiError::EmptyBody);
     }
-    let current_user = match load_user_by_username(&login.username).await {
+    let current_user = match load_user_by_username(&login.username) {
         Ok(u) => u,
         Err(_) => return Err(ApiError::IncorrectPassword),
     };
@@ -75,12 +73,12 @@ pub async fn login_service(login: LoginDto) -> Result<(Response, i32), ApiError>
 }
 
 pub async fn find_user_by_id_service(user_id: i32) -> Result<Json<UserDto>, ApiError> {
-    let user = load_user_by_id(user_id).await?;
+    let user = load_user_by_id(user_id)?;
     Ok(Json(user.into()))
 }
 
 pub async fn find_user_by_username_service(username: &String) -> Result<User, ApiError> {
-    Ok(load_user_by_username(username).await?)
+    Ok(load_user_by_username(username)?)
 }
 
 fn into_json(users: Vec<User>) -> Json<Vec<UserDto>> {
@@ -96,7 +94,7 @@ pub async fn patch_user_service(
     user_id: i32,
     profile: UpdateUserDto,
 ) -> Result<Response, ApiError> {
-    let old_profile = load_user_by_id(user_id).await?;
+    let old_profile = load_user_by_id(user_id)?;
     let new_name = match profile.name {
         Some(value) => Some(value),
         None => old_profile.name(),
@@ -117,11 +115,11 @@ pub async fn patch_user_service(
         email: new_email,
         update_at: update_time,
     };
-    patch_user_record(user_id, update_profile).await?;
+    patch_user_record(user_id, update_profile)?;
     Ok(Response::UpdateRecord)
 }
 
 pub async fn deactivate_user_service(user_id: i32) -> Result<Response, ApiError> {
-    alter_active_status_for_user(user_id, false).await?;
+    alter_active_status_for_user(user_id, false)?;
     Ok(Response::ActiveStatusUpdate)
 }

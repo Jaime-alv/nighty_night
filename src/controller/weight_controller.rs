@@ -8,12 +8,17 @@ use axum_session::SessionRedisPool;
 use axum_session_auth::AuthSession;
 
 use crate::{
-    data::{query_dto::IdDto, weight_dto::InputWeightDto},
+    configuration::constant::GlobalCte,
+    data::{
+        query_dto::{AllRecords, DateDto, DateRangeDto, IdDto, LastDaysDto, Pagination},
+        weight_dto::InputWeightDto,
+    },
     model::session_model::CurrentUser,
     service::{
         session_service::authorize_and_has_baby,
         weight_service::{
-            delete_weight_service, get_weights_service, patch_weight_service, post_weight_service,
+            delete_weight_service, filter_weights_by_last_days, get_weight_range_service,
+            get_weights_service, patch_weight_service, post_weight_service,
         },
     },
 };
@@ -31,9 +36,30 @@ pub(super) fn route_weight() -> Router {
 async fn get_weights(
     Path(baby_id): Path<i32>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
+    all_records: Option<Query<AllRecords>>,
+    date: Option<Query<DateDto>>,
+    page: Option<Query<Pagination>>,
+    range: Option<Query<DateRangeDto>>,
+    last_days: Option<Query<LastDaysDto>>,
 ) -> impl IntoResponse {
     authorize_and_has_baby(auth, baby_id)?;
-    get_weights_service(baby_id).await
+    let pagination = page.unwrap_or_default().0;
+    if all_records.is_some() && all_records.unwrap().all() {
+        get_weights_service(baby_id, pagination).await
+    } else if date.is_some() {
+        let day = date.unwrap().date()?;
+        get_weight_range_service(baby_id, day, day, pagination).await
+    } else if range.is_some() {
+        let dates = range.unwrap();
+        get_weight_range_service(baby_id, dates.from()?, dates.to()?, pagination).await
+    } else {
+        let last = last_days
+            .unwrap_or(axum::extract::Query(LastDaysDto::new(
+                GlobalCte::WeightLastDaysDefault.get(),
+            )))
+            .days();
+        filter_weights_by_last_days(baby_id, last, pagination).await
+    }
 }
 
 async fn post_weight(

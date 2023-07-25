@@ -8,7 +8,7 @@ pub async fn add_rol_to_user_service<T>(user_id: T, rol: Rol) -> Result<(), ApiE
 where
     T: Into<i32>,
 {
-    add_rol_to_user(user_id.into(), rol.into()).await?;
+    add_rol_to_user(user_id.into(), rol.into())?;
     Ok(())
 }
 
@@ -16,6 +16,6 @@ pub async fn add_baby_to_user_service<T>(user_id: T, baby_id: T) -> Result<(), A
 where
     T: Into<i32>,
 {
-    add_baby_to_user(user_id.into(), baby_id.into()).await?;
+    add_baby_to_user(user_id.into(), baby_id.into())?;
     Ok(())
 }

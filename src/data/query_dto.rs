@@ -1,7 +1,9 @@
+use axum::extract::Query;
 use chrono::NaiveDate;
 use serde::Deserialize;
 
 use crate::{
+    configuration::constant::GlobalCte,
     error::error::ApiError,
     utils::datetime::{convert_to_date, format_date, today},
 };
@@ -41,17 +43,22 @@ impl Default for DateDto {
 
 #[derive(Deserialize)]
 pub struct LastDaysDto {
-    last_days: u64,
+    last_days: u32,
 }
 
 impl Default for LastDaysDto {
     fn default() -> Self {
-        Self { last_days: 7 }
+        Self {
+            last_days: GlobalCte::LastDaysCte.get(),
+        }
     }
 }
 
 impl LastDaysDto {
-    pub fn days(&self) -> u64 {
+    pub fn new(days: u32) -> Self {
+        Self { last_days: days }
+    }
+    pub fn days(&self) -> u32 {
         self.last_days
     }
 }
@@ -77,7 +84,7 @@ impl DateRangeDto {
 
 #[derive(Deserialize)]
 pub struct AllRecords {
-    all: bool
+    all: bool,
 }
 
 impl AllRecords {
@@ -101,5 +108,33 @@ pub struct Username {
 impl Username {
     pub fn value(&self) -> Option<String> {
         self.value.to_owned()
+    }
+}
+
+#[derive(Deserialize, Debug)]
+pub struct Pagination {
+    page: u32,
+    per_page: Option<u32>,
+}
+
+impl Default for Pagination {
+    fn default() -> Self {
+        Self {
+            page: 1,
+            per_page: GlobalCte::RecordsPerPage.get().try_into().unwrap(),
+        }
+    }
+}
+
+impl Pagination {
+    pub fn page(&self) -> u32 {
+        self.page
+    }
+
+    pub fn per_page(&self) -> u32 {
+        match self.per_page {
+            Some(quantity) => quantity,
+            None => GlobalCte::RecordsPerPage.get().try_into().unwrap(),
+        }
     }
 }
