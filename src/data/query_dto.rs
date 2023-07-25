@@ -75,9 +75,27 @@ impl DateRangeDto {
     }
 
     pub fn to(&self) -> Result<NaiveDate, ApiError> {
-        match &self.to {
-            Some(value) => parse_date(&value),
+        // If from() is a future day of to(), it will return from's date.
+        // If there is no value, it will return today's date.
+        let value = match &self.to {
+            Some(value) => {
+                let to_date = parse_date(&value);
+                Self::compare_dates(&self, to_date)
+            }
             None => Ok(today()),
+        };
+        value
+    }
+
+    fn compare_dates(&self, to_date: Result<NaiveDate, ApiError>) -> Result<NaiveDate, ApiError> {
+        let date = match to_date {
+            Ok(value) => value,
+            Err(e) => return Err(e),
+        };
+        if self.from()?.le(&date) {
+            to_date
+        } else {
+            self.from()
         }
     }
 }
