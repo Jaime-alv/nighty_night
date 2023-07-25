@@ -9,7 +9,7 @@ use crate::{
     error::error::ApiError,
     model::meals_model::{InsertableMeal, Meal},
     repository::meal_repository::{
-        delete_meal_from_db, find_meal_by_id, find_meals_by_date_range, get_all_meals_from_baby,
+        delete_meal_from_db, find_meal_by_id, get_all_meals_from_baby,
         ingest_meal, meals_paginated_from_db, patch_meal_record,
     },
     utils::{
