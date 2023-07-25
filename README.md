@@ -311,40 +311,47 @@ data:
 
 | Route                                        | Method   | Function                                     | Parameters                   | Arguments                 |
 | -------------------------------------------- | -------- | -------------------------------------------- | ---------------------------- | ------------------------- |
-| /meals                                       | `get`    | Get all meals associated to a baby           |                              |                           |
+| /meals?all=true                              | `get`    | Get all meals associated to a baby           | all: boolean                 |                           |
+| /meals?date=YYYY-mm-dd                       | `get`    | Get all meals in a given date                | date: String                 |                           |
+| /meals?from=YYYY-mm-dd&to=YYYY-mm-dd         | `get`    | Get all meals in a given range               | {from: String \| to: String} |                           |
+| /meals?last_days=X                           | `get`    | Get all meals from last X days, default to 7 | last_days: integer           |                           |
 | /meals                                       | `post`   | Add new meals to an associated baby          | Body: Json                   | {date, quantity, elapsed} |
 | /meals                                       | `patch`  | Update a meal record with any new values     | Body: Json                   | {date, quantity, elapsed} |
-| /meals?entry=X                               | `delete` | Delete entry X from DB                       | entry: int                   |                           |
-| /meals?date=YYYY-mm-dd                       | `get`    | Get all meals in a given date                |                              |                           |
+| /meals?entry=X                               | `delete` | Delete entry X from DB                       | entry: Integer               |                           |
 | /meals/summary?all=bool                      | `get`    | Get all summaries                            | all: Boolean                 |                           |
 | /meals/summary?date=YYYY-mm-dd               | `get`    | Get a summary from one day's data            | date: String                 |                           |
 | /meals/summary?date=today                    | `get`    | Get a summary from today's data              |                              |                           |
-| /meals/summary?last_days=X                   | `get`    | Get a summary from last X days, default to 7 | days: int                    |                           |
+| /meals/summary?last_days=X                   | `get`    | Get a summary from last X days, default to 7 | days: Integer                |                           |
 | /meals/summary?from=YYYY-mm-dd&to=YYYY-mm-dd | `get`    | Get a summary from date X up to date Y       | {from: String \| to: String} |                           |
 
 ### Dreams: `/api/baby/:baby_id`
 
-| Route                                         | Method   | Function                                     | Parameters                   | Arguments             |
-| --------------------------------------------- | -------- | -------------------------------------------- | ---------------------------- | --------------------- |
-| /dreams                                       | `get`    | Get all dreams associated to a baby          |                              |                       |
-| /dreams                                       | `post`   | Add new dreams to an associated baby         | Body: Json                   | {from_date, to_date } |
-| /dreams                                       | `patch`  | Update a dream record with any new values    | Body: Json                   | {from_date, to_date } |
-| /dreams?entry=X                               | `delete` | Delete entry X from DB                       | entry: int                   |                       |
-| /dreams?date=YYYY-mm-dd                       | `get`    | Get all dreams in a given date               |                              |                       |
-| /dreams/summary?all=bool                      | `get`    | Get all summaries                            | all: Boolean                 |                       |
-| /dreams/summary?date=YYYY-mm-dd               | `get`    | Get a summary from one day's data            | date: String                 |                       |
-| /dreams/summary?date=today                    | `get`    | Get a summary from today's data              |                              |                       |
-| /dreams/summary?days=X                        | `get`    | Get a summary from last X days, default to 7 | days: int                    |                       |
-| /dreams/summary?from=YYYY-mm-dd&to=YYYY-mm-dd | `get`    | Get a summary from date X up to date Y       | {from: String \| to: String} |                       |
+| Route                                         | Method   | Function                                      | Parameters                   | Arguments             |
+| --------------------------------------------- | -------- | --------------------------------------------- | ---------------------------- | --------------------- |
+| /dreams?all=true                              | `get`    | Get all dreams associated to a baby           | all: boolean                 |                       |
+| /dreams?date=YYYY-mm-dd                       | `get`    | Get all dreams in a given date                | date: String                 |                       |
+| /dreams?from=YYYY-mm-dd&to=YYYY-mm-dd         | `get`    | Get all dreams in a given range               | {from: String \| to: String} |                       |
+| /dreams?last_days=X                           | `get`    | Get all dreams from last X days, default to 7 | last_days: integer           |                       |
+| /dreams                                       | `post`   | Add new dreams to an associated baby          | Body: Json                   | {from_date, to_date } |
+| /dreams                                       | `patch`  | Update a dream record with any new values     | Body: Json                   | {from_date, to_date } |
+| /dreams?entry=X                               | `delete` | Delete entry X from DB                        | entry: Integer               |                       |
+| /dreams/summary?all=bool                      | `get`    | Get all summaries                             | all: Boolean                 |                       |
+| /dreams/summary?date=YYYY-mm-dd               | `get`    | Get a summary from one day's data             | date: String                 |                       |
+| /dreams/summary?date=today                    | `get`    | Get a summary from today's data               |                              |                       |
+| /dreams/summary?days=X                        | `get`    | Get a summary from last X days, default to 7  | days: Integer                |                       |
+| /dreams/summary?from=YYYY-mm-dd&to=YYYY-mm-dd | `get`    | Get a summary from date X up to date Y        | {from: String \| to: String} |                       |
 
 ### Weights: `/api/baby/:baby_id`
 
-| Route            | Method   | Function                                     | Parameters | Arguments      |
-| ---------------- | -------- | -------------------------------------------- | ---------- | -------------- |
-| /weights         | `get`    | Get all weight measures associated to a baby |            |                |
-| /weights         | `post`   | Add new weight measure to an associated baby | Body: Json | {date, value } |
-| /weights         | `patch`  | Update a measure with any new values         | Body: Json | {date, value } |
-| /weights?entry=X | `delete` | Delete entry X from DB                       | entry: int |                |
+| Route                                  | Method   | Function                                     | Parameters                   | Arguments      |
+| -------------------------------------- | -------- | -------------------------------------------- | ---------------------------- | -------------- |
+| /weights?all=true                      | `get`    | Get all weight measures associated to a baby | all: boolean                 |                |
+| /weights?date=YYYY-mm-dd               | `get`    | Get weight in a given date                   | date: String                 |                |
+| /weights?from=YYYY-mm-dd&to=YYYY-mm-dd | `get`    | Get weights in a given range                 | {from: String \| to: String} |                |
+| /weights?last_days=X                   | `get`    | Get weights from last X days, default to 30  | last_days: Integer           |                |
+| /weights                               | `post`   | Add new weight measure to an associated baby | Body: Json                   | {date, value } |
+| /weights                               | `patch`  | Update a measure with any new values         | Body: Json                   | {date, value } |
+| /weights?entry=X                       | `delete` | Delete entry X from DB                       | entry: Integer               |                |
 
 ## Docs
 
