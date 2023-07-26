@@ -156,3 +156,44 @@ impl Pagination {
         }
     }
 }
+
+#[cfg(test)]
+mod test_query {
+    use super::*;
+    #[test]
+    fn test_date_order() {
+        let correct_date_order = DateRangeDto {
+            from: "2023-06-01".to_string(),
+            to: Some("2023-06-03".to_string()),
+        };
+        assert_eq!(
+            correct_date_order.to().unwrap(),
+            NaiveDate::from_ymd_opt(2023, 6, 3).unwrap()
+        );
+        let incorrect_date_order = DateRangeDto {
+            from: "2023-06-03".to_string(),
+            to: Some("2023-06-01".to_string()),
+        };
+        assert_eq!(
+            incorrect_date_order.to().unwrap(),
+            NaiveDate::from_ymd_opt(2023, 6, 3).unwrap()
+        );
+    }
+
+    #[test]
+    fn test_input_date_range() {
+        let today = today();
+        let invalid_date = DateRangeDto{
+            from: "2023-06-bb".to_string(),
+            to: None,
+        };
+        assert!(invalid_date.from().is_err());
+        assert_eq!(invalid_date.to().unwrap(), today);
+        let invalid_date_to = DateRangeDto{
+            from: "2023-06-01".to_string(),
+            to: Some("2023-06-bb".to_string()),
+        };
+        assert!(invalid_date_to.to().is_err());
+
+    }
+}
