@@ -1,4 +1,4 @@
-use std::num::ParseIntError;
+use std::num::{ParseIntError, TryFromIntError};
 
 use diesel::result::Error;
 use redis::RedisError;
@@ -36,5 +36,11 @@ impl From<ApiError> for anyhow::Error {
 impl From<ParseIntError> for ApiError {
     fn from(value: ParseIntError) -> Self {
         ApiError::InvalidValue(value)
+    }
+}
+
+impl From<TryFromIntError> for ApiError {
+    fn from(value: TryFromIntError) -> Self {
+        ApiError::InvalidValueTry(value)
     }
 }

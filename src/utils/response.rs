@@ -23,7 +23,9 @@ impl Response {
             Response::NewUser(username) => {
                 (StatusCode::CREATED, format!("New user added: {username}."))
             }
-            Response::ActiveStatusUpdate => (StatusCode::ACCEPTED, "User status update.".to_string()),
+            Response::ActiveStatusUpdate => {
+                (StatusCode::ACCEPTED, "User status update.".to_string())
+            }
         }
     }
 }

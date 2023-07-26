@@ -1,6 +1,5 @@
 use axum_session::SessionRedisPool;
 use axum_session_auth::AuthSession;
-use tokio::try_join;
 
 use crate::{
     configuration::settings::Setting,
@@ -52,15 +51,13 @@ pub async fn load_user_session(id: i64) -> Result<CurrentUser, ApiError> {
 }
 
 pub async fn read_user_from_db(user: i32) -> Result<CurrentUser, ApiError> {
-    let current_user = load_user_by_id(user).await?;
+    let current_user = load_user_by_id(user)?;
     create_current_user(current_user).await
 }
 
 pub async fn create_current_user(current_user: User) -> Result<CurrentUser, ApiError> {
-    let (roles, babies) = try_join!(
-        find_roles_id(current_user.id()),
-        find_babies_id(current_user.id())
-    )?;
+    let roles = find_roles_id(current_user.id())?;
+    let babies = find_babies_id(current_user.id())?;
     let translate_roles: Vec<Rol> = translate_roles(&roles.into_iter().collect::<Vec<u8>>());
 
     let user_session = CurrentUser::new(

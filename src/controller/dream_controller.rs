@@ -10,13 +10,13 @@ use axum_session_auth::AuthSession;
 use crate::{
     data::{
         dream_dto::InputDreamDto,
-        query_dto::{AllRecords, DateDto, DateRangeDto, IdDto, LastDaysDto},
+        query_dto::{AllRecords, DateDto, DateRangeDto, IdDto, LastDaysDto, Pagination},
     },
     model::session_model::CurrentUser,
     service::{
         dream_service::{
-            delete_dream_service, filter_dreams_by_date_service, get_all_dreams_from_baby_service,
-            patch_dream_service, post_dream_service,
+            delete_dream_service, filter_dreams_by_last_days, get_dreams_by_range_date,
+            get_dreams_paginated_service, patch_dream_service, post_dream_service,
         },
         dream_summary_service::{
             dream_summary_last_days_service, dream_summary_range_service,
@@ -41,12 +41,25 @@ pub(super) fn route_dream() -> Router {
 async fn get_dreams(
     Path(baby_id): Path<i32>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
+    all_records: Option<Query<AllRecords>>,
     date: Option<Query<DateDto>>,
+    page: Option<Query<Pagination>>,
+    range: Option<Query<DateRangeDto>>,
+    last_days: Option<Query<LastDaysDto>>,
 ) -> impl IntoResponse {
     authorize_and_has_baby(auth, baby_id)?;
-    match date {
-        Some(date) => filter_dreams_by_date_service(baby_id, date.date()?).await,
-        None => get_all_dreams_from_baby_service(baby_id).await,
+    let pagination = page.unwrap_or_default().0;
+    if all_records.is_some() && all_records.unwrap().all() {
+        get_dreams_paginated_service(baby_id, pagination).await
+    } else if date.is_some() {
+        let day = date.unwrap().date()?;
+        get_dreams_by_range_date(baby_id, day, day, pagination).await
+    } else if range.is_some() {
+        let dates = range.unwrap();
+        get_dreams_by_range_date(baby_id, dates.from()?, dates.to()?, pagination).await
+    } else {
+        let last = last_days.unwrap_or_default().days();
+        filter_dreams_by_last_days(baby_id, last, pagination).await
     }
 }
 

@@ -7,55 +7,52 @@ use crate::{
 };
 use diesel::prelude::*;
 use diesel::result::Error;
-use diesel_async::RunQueryDsl;
 
-use super::connection_psql::establish_async_connection;
+use super::connection_psql::establish_connection;
 
 ///
 /// Get all users from database.
-pub async fn query_users() -> Result<Vec<User>, Error> {
-    let conn = &mut establish_async_connection().await;
-    users::table.load(conn).await
+pub fn query_users() -> Result<Vec<User>, Error> {
+    let conn = &mut establish_connection();
+    users::table.load(conn)
 }
 
-pub async fn load_user_by_username<T: Into<String>>(username: T) -> Result<User, Error> {
-    let conn = &mut establish_async_connection().await;
+pub fn load_user_by_username<T: Into<String>>(username: T) -> Result<User, Error> {
+    let conn = &mut establish_connection();
     users::table
         .filter(users::username.eq(username.into()))
         .first(conn)
-        .await
 }
 
-pub async fn load_user_by_id(user_id: i32) -> Result<User, Error> {
-    let conn = &mut establish_async_connection().await;
-    users::table.find(user_id).first(conn).await
+pub fn load_user_by_id(user_id: i32) -> Result<User, Error> {
+    let conn = &mut establish_connection();
+    users::table.find(user_id).first(conn)
 }
 
-pub async fn create_user<T: Into<InsertableUser>>(new_user: T) -> Result<User, Error> {
-    let conn = &mut establish_async_connection().await;
+pub fn create_user<T: Into<InsertableUser>>(new_user: T) -> Result<User, Error> {
+    let conn = &mut establish_connection();
     diesel::insert_into(users::table)
         .values(new_user.into())
         .returning(User::as_returning())
         .get_result(conn)
-        .await
+
     // .execute(conn)
 }
 
-pub async fn exists_username<T: Into<String>>(username: T) -> bool {
-    match load_user_by_username(username.into()).await {
+pub fn exists_username<T: Into<String>>(username: T) -> bool {
+    match load_user_by_username(username.into()) {
         Ok(_) => true,
         Err(_) => false,
     }
 }
 
-pub async fn find_roles_id(user_id: i32) -> Result<HashSet<u8>, Error> {
+pub fn find_roles_id(user_id: i32) -> Result<HashSet<u8>, Error> {
     let mut roles: HashSet<u8> = HashSet::new();
-    let conn = &mut establish_async_connection().await;
+    let conn = &mut establish_connection();
     users_roles::table
         .filter(users_roles::user_id.eq(user_id))
         .select(users_roles::rol_id)
-        .load::<i16>(conn)
-        .await?
+        .load::<i16>(conn)?
         .iter()
         .for_each(|id| {
             roles.insert((*id).try_into().unwrap());
@@ -63,17 +60,16 @@ pub async fn find_roles_id(user_id: i32) -> Result<HashSet<u8>, Error> {
     Ok(roles)
 }
 
-pub async fn find_babies_id(user_id: i32) -> Result<Vec<i32>, Error> {
-    let conn = &mut establish_async_connection().await;
+pub fn find_babies_id(user_id: i32) -> Result<Vec<i32>, Error> {
+    let conn = &mut establish_connection();
     users_babies::table
         .filter(users_babies::user_id.eq(user_id))
         .select(users_babies::baby_id)
         .load::<i32>(conn)
-        .await
 }
 
-pub async fn patch_user_record(user_id: i32, profile: UpdateUser) -> Result<usize, Error> {
-    let conn = &mut establish_async_connection().await;
+pub fn patch_user_record(user_id: i32, profile: UpdateUser) -> Result<usize, Error> {
+    let conn = &mut establish_connection();
     diesel::update(users::table.find(user_id))
         .set((
             users::name.eq(profile.name),
@@ -82,18 +78,16 @@ pub async fn patch_user_record(user_id: i32, profile: UpdateUser) -> Result<usiz
             users::updated_at.eq(profile.update_at),
         ))
         .execute(conn)
-        .await
 }
 
-pub async fn alter_active_status_for_user(user: i32, active: bool) -> Result<usize, Error> {
-    let conn = &mut establish_async_connection().await;
+pub fn alter_active_status_for_user(user: i32, active: bool) -> Result<usize, Error> {
+    let conn = &mut establish_connection();
     diesel::update(users::table.find(user))
         .set(users::active.eq(active))
         .execute(conn)
-        .await
 }
 
-pub async fn delete_user_from_db(user: i32) -> Result<usize, Error> {
-    let conn = &mut establish_async_connection().await;
-    diesel::delete(users::table.find(user)).execute(conn).await
+pub fn delete_user_from_db(user: i32) -> Result<usize, Error> {
+    let conn = &mut establish_connection();
+    diesel::delete(users::table.find(user)).execute(conn)
 }
