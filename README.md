@@ -29,6 +29,7 @@
     - [Meals: `/api/baby/:baby_id`](#meals-apibabybaby_id)
     - [Dreams: `/api/baby/:baby_id`](#dreams-apibabybaby_id)
     - [Weights: `/api/baby/:baby_id`](#weights-apibabybaby_id)
+    - [Pagination](#pagination)
   - [Docs](#docs)
   - [APP ROADMAP](#app-roadmap)
   - [License](#license)
@@ -352,6 +353,16 @@ data:
 | /weights                               | `post`   | Add new weight measure to an associated baby | Body: Json                   | {date, value } |
 | /weights                               | `patch`  | Update a measure with any new values         | Body: Json                   | {date, value } |
 | /weights?entry=X                       | `delete` | Delete entry X from DB                       | entry: Integer               |                |
+
+### Pagination
+
+It's implemented on methods that requests several hundred records from database. It needs two (2) parameters, `page` and `per_page`. `page` is page number requested, `per_page` are records per page requested. `page` is always requested and `per_page` could be omitted. By default, `page=1&per_page=100`.
+
+Pagination is implemented by default in `get` requests for:
+
+1. `/api/baby/:baby_id/dreams`
+2. `/api/baby/:baby_id/meals`
+3. `/api/baby/:baby_id/weights`
 
 ## Docs
 
