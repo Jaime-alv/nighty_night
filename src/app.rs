@@ -9,7 +9,7 @@ use tracing::{error, info_span};
 
 use crate::{
     configuration::settings::Setting,
-    controller,
+    controller::{self, admin_controller::route_admin},
     model::session_model::CurrentUser,
     repository::connection_redis::{auth_config, poll, private_cookies_session, session_config},
     utils::{app::error_404, logger::setup_logger},
@@ -37,7 +37,10 @@ pub(super) async fn create_app_route() -> Router {
     let app = Router::new()
         .nest(
             "/api",
-            Router::new().merge(route_user()).merge(route_baby()),
+            Router::new()
+                .merge(route_user())
+                .merge(route_baby())
+                .merge(route_admin()),
         )
         .layer(
             TraceLayer::new_for_http().make_span_with(|request: &Request<_>| {
