@@ -2,10 +2,10 @@ use crate::{
     data::user_dto::{FindUserDto, LoginDto, NewUserDto, UpdateUserDto},
     model::session_model::CurrentUser,
     service::{
-        session_service::{current_user_is_admin, login_required, login_session},
+        session_service::{login_required, login_session},
         user_service::{
-            create_user_service, deactivate_user_service, find_user_by_id_service,
-            find_user_service, get_all_users_service, login_service, patch_user_service,
+            alter_active_user_service, create_user_service, find_user_by_id_service,
+            find_user_service, login_service, patch_user_service,
         },
     },
 };
@@ -21,7 +21,6 @@ pub(crate) fn route_user() -> Router {
     let routes = Router::new()
         .route("/", get(test_welcome))
         .route("/register", post(register_new_user))
-        .route("/all", get(get_all_users))
         .route("/user", post(find_user))
         .route("/login", post(login_user))
         .route(
@@ -44,13 +43,6 @@ async fn register_new_user(
         }
         Err(error) => Err(error),
     }
-}
-
-async fn get_all_users(
-    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
-) -> impl IntoResponse {
-    current_user_is_admin(auth)?;
-    get_all_users_service().await
 }
 
 async fn find_user(Json(data): Json<FindUserDto>) -> impl IntoResponse {
@@ -103,5 +95,5 @@ async fn deactivate_user(
 ) -> impl IntoResponse {
     let binding_id: i32 = auth.id.try_into().unwrap();
     login_required(auth)?;
-    deactivate_user_service(binding_id).await
+    alter_active_user_service(binding_id, false).await
 }
