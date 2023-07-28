@@ -1,7 +1,7 @@
 use axum::Json;
 
 use crate::{
-    data::baby_dto::{BabyDto, InputBabyDto, UpdateBaby},
+    data::{baby_dto::{BabyDto, InputBabyDto, UpdateBaby}, query_dto::Pagination},
     error::error::ApiError,
     model::baby_model::{Baby, InsertableBaby},
     repository::baby_repository::{
@@ -41,8 +41,8 @@ pub async fn find_baby_service(baby_id: i32) -> Result<Json<BabyDto>, ApiError> 
     Ok(Json(baby.into()))
 }
 
-pub async fn get_all_babies_service() -> Result<Json<Vec<BabyDto>>, ApiError> {
-    let babies = query_babies()?;
+pub async fn get_all_babies_service(pagination: Pagination) -> Result<Json<Vec<BabyDto>>, ApiError> {
+    let (babies, _pages) = query_babies(pagination)?;
     Ok(into_json(babies))
 }
 
