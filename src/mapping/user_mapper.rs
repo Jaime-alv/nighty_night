@@ -1,5 +1,5 @@
 use crate::{
-    data::user_dto::{NewUserDto, UserDto},
+    data::user_dto::{AdminUserDto, NewUserDto, UserDto},
     model::user_model::{InsertableUser, User},
     security::security::hash_password,
     utils::datetime::now,
@@ -28,5 +28,18 @@ impl From<NewUserDto> for InsertableUser {
             new_user.surname,
             now(),
         )
+    }
+}
+
+impl From<User> for AdminUserDto {
+    fn from(user: User) -> Self {
+        AdminUserDto {
+            id: user.id(),
+            username: user.username(),
+            email: user.email(),
+            active: user.active(),
+            created_at: user.created_at(),
+            updated_at: user.updated_at(),
+        }
     }
 }
