@@ -8,10 +8,7 @@ use crate::{
     schema::meals,
 };
 
-use super::{
-    connection_psql::establish_connection,
-    paginator::{Paginate, Paginated},
-};
+use super::{connection_psql::establish_connection, paginator::Paginate};
 
 pub fn ingest_meal<T>(new_meal: T) -> Result<usize, Error>
 where

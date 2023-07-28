@@ -2,12 +2,12 @@ use diesel::prelude::*;
 use diesel::result::Error;
 
 use crate::{
-    data::baby_dto::UpdateBaby,
+    data::{baby_dto::UpdateBaby, query_dto::Pagination},
     model::baby_model::{Baby, InsertableBaby},
     schema::babies,
 };
 
-use super::connection_psql::establish_connection;
+use super::{connection_psql::establish_connection, paginator::Paginate};
 
 pub fn ingest_new_baby_in_db<T>(new_baby: T) -> Result<Baby, Error>
 where
@@ -27,9 +27,13 @@ pub fn load_baby_by_id(id: i32) -> Result<Baby, Error> {
     babies::table.find(id).first(conn)
 }
 
-pub fn query_babies() -> Result<Vec<Baby>, Error> {
+pub fn query_babies(pagination: Pagination) -> Result<(Vec<Baby>, u32), Error> {
     let conn = &mut establish_connection();
-    babies::table.load(conn)
+    babies::table
+        .select(babies::all_columns)
+        .paginate(pagination.page())
+        .per_page(pagination.per_page())
+        .load_and_count_pages(conn)
 }
 
 pub fn patch_baby_record(baby: i32, update: UpdateBaby) -> Result<usize, Error> {
