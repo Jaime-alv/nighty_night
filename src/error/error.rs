@@ -1,10 +1,6 @@
-use std::{
-    fmt::Display,
-    num::{ParseIntError, TryFromIntError},
-};
+use std::fmt::Display;
 
 use axum::{response::IntoResponse, Json};
-use chrono::NaiveDate;
 use diesel::result::Error;
 use hyper::StatusCode;
 use redis::RedisError;
@@ -18,15 +14,12 @@ pub enum ApiError {
     DuplicateUser,
     NoUser,
     NoActiveUser,
-    EmptyQuery,
     NotFound,
     NoRecord,
     LoginRequired,
     DatesUnordered,
+    CastError(String),
     OutOfBounds(u32, u32),
-    InvalidValue(ParseIntError),
-    InvalidValueTry(TryFromIntError),
-    DateFormat(chrono::ParseError),
     DBError(Error),
     Redis(RedisError),
     Generic500Error(String),
@@ -53,17 +46,11 @@ impl ApiError {
                 StatusCode::UNAUTHORIZED,
                 String::from("User is not active."),
             ),
-            ApiError::EmptyQuery => (
-                StatusCode::BAD_REQUEST,
-                String::from("Query option required."),
-            ),
-            ApiError::DateFormat(msg) => (StatusCode::BAD_REQUEST, String::from(msg.to_string())),
             ApiError::NotFound => (
                 StatusCode::NOT_FOUND,
                 String::from("This is not the page you are looking for."),
             ),
             ApiError::LoginRequired => (StatusCode::UNAUTHORIZED, String::from("Login required.")),
-            ApiError::InvalidValue(value) => (StatusCode::BAD_REQUEST, format!("{value}")),
             ApiError::OutOfBounds(min, max) => (
                 StatusCode::BAD_REQUEST,
                 format!("Out of bounds: range between {min} and {max}."),
@@ -73,6 +60,7 @@ impl ApiError {
                 String::from("Target date must be higher."),
             ),
             ApiError::NoRecord => (StatusCode::BAD_REQUEST, String::from("No record found.")),
+            ApiError::CastError(msg) => (StatusCode::BAD_REQUEST, format!("Casting error: {msg}")),
             // 50X Error
             ApiError::DBError(error) => (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()),
             ApiError::Generic500Error(msg) => {
@@ -82,7 +70,6 @@ impl ApiError {
                 StatusCode::INTERNAL_SERVER_ERROR,
                 format!("Redis error: {error}"),
             ),
-            ApiError::InvalidValueTry(value) => (StatusCode::BAD_REQUEST, format!("{value}")),
         }
     }
 }
