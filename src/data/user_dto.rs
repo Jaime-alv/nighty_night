@@ -45,6 +45,16 @@ impl UserDto {
     }
 }
 
+#[derive(Serialize)]
+pub struct AdminUserDto {
+    pub id: i32,
+    pub username: String,
+    pub email: Option<String>,
+    pub active: bool,
+    pub created_at: NaiveDateTime,
+    pub updated_at: Option<NaiveDateTime>,
+}
+
 #[derive(Debug, Deserialize)]
 pub struct FindUserDto {
     pub username: String,

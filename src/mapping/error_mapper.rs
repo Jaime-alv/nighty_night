@@ -7,7 +7,7 @@ use crate::error::error::ApiError;
 
 impl From<chrono::ParseError> for ApiError {
     fn from(value: chrono::ParseError) -> Self {
-        ApiError::DateFormat(value)
+        ApiError::CastError(value.to_string())
     }
 }
 
@@ -35,12 +35,12 @@ impl From<ApiError> for anyhow::Error {
 
 impl From<ParseIntError> for ApiError {
     fn from(value: ParseIntError) -> Self {
-        ApiError::InvalidValue(value)
+        ApiError::CastError(value.to_string())
     }
 }
 
 impl From<TryFromIntError> for ApiError {
     fn from(value: TryFromIntError) -> Self {
-        ApiError::InvalidValueTry(value)
+        ApiError::CastError(value.to_string())
     }
 }

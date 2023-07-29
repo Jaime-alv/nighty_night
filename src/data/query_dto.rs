@@ -1,4 +1,3 @@
-use axum::extract::Query;
 use chrono::NaiveDate;
 use serde::Deserialize;
 
@@ -139,7 +138,7 @@ impl Default for Pagination {
     fn default() -> Self {
         Self {
             page: 1,
-            per_page: GlobalCte::RecordsPerPage.get().try_into().unwrap(),
+            per_page: Some(GlobalCte::RecordsPerPage.get()),
         }
     }
 }
@@ -151,8 +150,14 @@ impl Pagination {
 
     pub fn per_page(&self) -> u32 {
         match self.per_page {
-            Some(quantity) => quantity,
-            None => GlobalCte::RecordsPerPage.get().try_into().unwrap(),
+            Some(quantity) => {
+                if quantity.gt(&GlobalCte::MaxPaginationThreshold.get()) {
+                    GlobalCte::MaxPaginationThreshold.get()
+                } else {
+                    quantity
+                }
+            }
+            None => GlobalCte::RecordsPerPage.get(),
         }
     }
 }
@@ -183,17 +188,24 @@ mod test_query {
     #[test]
     fn test_input_date_range() {
         let today = today();
-        let invalid_date = DateRangeDto{
+        let invalid_date = DateRangeDto {
             from: "2023-06-bb".to_string(),
             to: None,
         };
         assert!(invalid_date.from().is_err());
         assert_eq!(invalid_date.to().unwrap(), today);
-        let invalid_date_to = DateRangeDto{
+        let invalid_date_to = DateRangeDto {
             from: "2023-06-01".to_string(),
             to: Some("2023-06-bb".to_string()),
         };
         assert!(invalid_date_to.to().is_err());
+    }
 
+    #[test]
+    fn test_date() {
+        let date = DateDto {
+            date: "today".to_string(),
+        };
+        assert_eq!(date.date().unwrap(), today());
     }
 }

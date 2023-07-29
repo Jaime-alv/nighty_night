@@ -9,7 +9,7 @@ use crate::{
     utils::datetime::{iter_between_two_dates, now, today},
 };
 
-use super::util_service::{check_days_out_of_bounds, dates_are_in_order};
+use super::util_service::check_days_out_of_bounds;
 
 pub async fn dream_summary_range_service(
     baby_id: i32,
@@ -26,7 +26,7 @@ async fn fetch_dream_summary_range(
     from_date: NaiveDate,
     to_date: NaiveDate,
 ) -> Result<Vec<DreamSummary>, ApiError> {
-    dates_are_in_order(from_date, to_date)?;
+    // dates_are_in_order(from_date, to_date)?;
     let plus_one = to_date.checked_add_days(Days::new(1)).unwrap();
     let mut summary_vec: Vec<DreamSummary> = Vec::new();
     let dreams = find_dreams_summary(baby_id, from_date, plus_one)?;

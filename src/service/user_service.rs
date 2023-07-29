@@ -1,15 +1,19 @@
 use axum::Json;
 
 use crate::{
+    configuration::constant::GlobalCte,
     data::{
+        query_dto::Pagination,
         traits::Mandatory,
-        user_dto::{FindUserDto, LoginDto, NewUserDto, UpdateUser, UpdateUserDto, UserDto},
+        user_dto::{
+            AdminUserDto, FindUserDto, LoginDto, NewUserDto, UpdateUser, UpdateUserDto, UserDto,
+        },
     },
     error::error::ApiError,
     model::{role_model::Rol, user_model::User},
     repository::user_repository::{
-        alter_active_status_for_user, create_user, load_user_by_id, load_user_by_username,
-        patch_user_record, query_users,
+        alter_active_status_for_user, create_user, delete_user_from_db, load_user_by_id,
+        load_user_by_username, patch_user_record, query_users,
     },
     utils::{
         datetime::now,
@@ -42,9 +46,11 @@ async fn assign_rol_as_user(user_id: i32) -> Result<(), ApiError> {
     add_rol_to_user_service(user_id, Rol::User).await
 }
 
-pub async fn get_all_users_service() -> Result<Json<Vec<UserDto>>, ApiError> {
-    let users = query_users()?;
-    Ok(into_json(users))
+pub async fn get_all_users_service(
+    pagination: Pagination,
+) -> Result<Json<Vec<AdminUserDto>>, ApiError> {
+    let (users, _pages) = query_users(pagination)?;
+    Ok(Json(users.into_iter().map(|user| user.into()).collect()))
 }
 
 pub async fn find_user_service(user: FindUserDto) -> Result<Json<UserDto>, ApiError> {
@@ -119,7 +125,23 @@ pub async fn patch_user_service(
     Ok(Response::UpdateRecord)
 }
 
-pub async fn deactivate_user_service(user_id: i32) -> Result<Response, ApiError> {
-    alter_active_status_for_user(user_id, false)?;
+pub async fn alter_active_user_service(user_id: i32, active: bool) -> Result<Response, ApiError> {
+    let time = now();
+    alter_active_status_for_user(user_id, active, time)?;
     Ok(Response::ActiveStatusUpdate)
+}
+
+/// User must be active = false and last updated 180 days ago (as per DeleteAccount const).
+pub async fn delete_user_service(user_id: i32, current_user: i32) -> Result<Response, ApiError> {
+    let user = load_user_by_id(user_id)?;
+    let inactive_period: i64 = GlobalCte::DeleteAccount.get().into();
+    let inactive_time = (now() - user.updated_at().unwrap_or_default())
+        .num_days()
+        .ge(&inactive_period);
+    if current_user.ne(&user_id) && inactive_time && !user.active() {
+        delete_user_from_db(user_id)?;
+        Ok(Response::DeleteRecord)
+    } else {
+        Err(ApiError::Forbidden)
+    }
 }

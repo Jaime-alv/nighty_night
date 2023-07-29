@@ -29,6 +29,7 @@
     - [Meals: `/api/baby/:baby_id`](#meals-apibabybaby_id)
     - [Dreams: `/api/baby/:baby_id`](#dreams-apibabybaby_id)
     - [Weights: `/api/baby/:baby_id`](#weights-apibabybaby_id)
+    - [Admin: `/api/admin`](#admin-apiadmin)
     - [Pagination](#pagination)
   - [Docs](#docs)
   - [APP ROADMAP](#app-roadmap)
@@ -291,7 +292,6 @@ data:
 | --------- | -------- | --------------------- | ---------- | ------------------------------------------ |
 | /         | `get`    | Endpoint test         |            |                                            |
 | /register | `post`   | Create a new user     | Body: Json | {username, password, email, name, surname} |
-| /all      | `get`    | Get all users         |            |                                            |
 | /user     | `post`   | find user by username | Body: Json | {username}                                 |
 | /login    | `post`   | login user            | Body: Json | {username, password}                       |
 | /profile  | `get`    | Get user profile      |            |                                            |
@@ -303,10 +303,8 @@ data:
 | Route     | Method   | Function                                     | Parameters              | Arguments         |
 | --------- | -------- | -------------------------------------------- | ----------------------- | ----------------- |
 | /new      | `post`   | Add new baby                                 | Body: Json              | {name, birthdate} |
-| /:baby_id | `get`    | Get baby info by id                          | Path: i32               |                   |
 | /:baby_id | `patch`  | Update baby info by id                       | Path: i32 \| Body: Json | {name, birthdate} |
 | /:baby_id | `delete` | Delete baby and all records associated to it | Path: i32               |                   |
-| /all      | `get`    | Get all babies in system                     |                         |                   |
 
 ### Meals: `/api/baby/:baby_id`
 
@@ -353,6 +351,17 @@ data:
 | /weights                               | `post`   | Add new weight measure to an associated baby | Body: Json                   | {date, value } |
 | /weights                               | `patch`  | Update a measure with any new values         | Body: Json                   | {date, value } |
 | /weights?entry=X                       | `delete` | Delete entry X from DB                       | entry: Integer               |                |
+
+### Admin: `/api/admin`
+
+| Route          | Method   | Function                           | Parameters     | Arguments |
+| -------------- | -------- | ---------------------------------- | -------------- | --------- |
+| /user          | `get`    | Get all users in db                |                |           |
+| /user          | `patch`  | Activate user by id                | entry: Integer |           |
+| /user          | `delete` | Delete a user by id                | entry: Integer |           |
+| /baby          | `get`    | Get all babies in db               |                |           |
+| /baby/:baby_id | `get`    | Get baby info by id                | Path: i32      |           |
+| /stats         | `get`    | Get number of records & statistics |                |           |
 
 ### Pagination
 

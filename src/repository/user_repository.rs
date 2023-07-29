@@ -1,20 +1,25 @@
 use std::collections::HashSet;
 
 use crate::{
-    data::user_dto::UpdateUser,
+    data::{query_dto::Pagination, user_dto::UpdateUser},
     model::user_model::{InsertableUser, User},
     schema::{users, users_babies, users_roles},
 };
+use chrono::NaiveDateTime;
 use diesel::prelude::*;
 use diesel::result::Error;
 
-use super::connection_psql::establish_connection;
+use super::{connection_psql::establish_connection, paginator::Paginate};
 
 ///
 /// Get all users from database.
-pub fn query_users() -> Result<Vec<User>, Error> {
+pub fn query_users(pagination: Pagination) -> Result<(Vec<User>, u32), Error> {
     let conn = &mut establish_connection();
-    users::table.load(conn)
+    users::table
+        .select(users::all_columns)
+        .paginate(pagination.page())
+        .per_page(pagination.per_page())
+        .load_and_count_pages(conn)
 }
 
 pub fn load_user_by_username<T: Into<String>>(username: T) -> Result<User, Error> {
@@ -80,14 +85,23 @@ pub fn patch_user_record(user_id: i32, profile: UpdateUser) -> Result<usize, Err
         .execute(conn)
 }
 
-pub fn alter_active_status_for_user(user: i32, active: bool) -> Result<usize, Error> {
+pub fn alter_active_status_for_user(
+    user: i32,
+    active: bool,
+    time: NaiveDateTime,
+) -> Result<usize, Error> {
     let conn = &mut establish_connection();
     diesel::update(users::table.find(user))
-        .set(users::active.eq(active))
+        .set((users::active.eq(active), users::updated_at.eq(time)))
         .execute(conn)
 }
 
 pub fn delete_user_from_db(user: i32) -> Result<usize, Error> {
     let conn = &mut establish_connection();
     diesel::delete(users::table.find(user)).execute(conn)
+}
+
+pub fn count_users() -> Result<i64, Error> {
+    let conn = &mut establish_connection();
+    users::table.select(users::id).count().get_result(conn)
 }
