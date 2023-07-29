@@ -100,3 +100,8 @@ pub fn delete_user_from_db(user: i32) -> Result<usize, Error> {
     let conn = &mut establish_connection();
     diesel::delete(users::table.find(user)).execute(conn)
 }
+
+pub fn count_users() -> Result<i64, Error> {
+    let conn = &mut establish_connection();
+    users::table.select(users::id).count().get_result(conn)
+}

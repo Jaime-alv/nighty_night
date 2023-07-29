@@ -68,3 +68,8 @@ pub fn weights_paginated_from_db(
         .per_page(pagination.per_page())
         .load_and_count_pages(conn)
 }
+
+pub fn count_weights() -> Result<i64, Error> {
+    let conn = &mut establish_connection();
+    weights::table.select(weights::id).count().get_result(conn)
+}

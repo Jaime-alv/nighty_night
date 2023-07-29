@@ -100,3 +100,8 @@ pub fn meals_paginated_from_db(
         .per_page(pagination.per_page())
         .load_and_count_pages(conn)
 }
+
+pub fn count_meals() -> Result<i64, Error> {
+    let conn = &mut establish_connection();
+    meals::table.select(meals::id).count().get_result(conn)
+}

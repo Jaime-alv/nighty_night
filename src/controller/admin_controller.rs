@@ -11,6 +11,7 @@ use crate::{
     data::query_dto::{IdDto, Pagination},
     model::session_model::CurrentUser,
     service::{
+        admin_service::show_stats_service,
         baby_service::{find_baby_service, get_all_babies_service},
         session_service::current_user_is_admin,
         user_service::{alter_active_user_service, delete_user_service, get_all_users_service},
@@ -24,7 +25,8 @@ pub(crate) fn route_admin() -> Router {
             "/user",
             get(get_all_users).delete(delete_user).patch(activate_user),
         )
-        .route("/baby/:baby_id", get(find_baby_by_id));
+        .route("/baby/:baby_id", get(find_baby_by_id))
+        .route("/stats", get(show_records_stats));
     Router::new().nest("/admin", routes)
 }
 
@@ -69,4 +71,11 @@ async fn find_baby_by_id(
 ) -> impl IntoResponse {
     current_user_is_admin(auth)?;
     find_baby_service(baby_id).await
+}
+
+async fn show_records_stats(
+    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
+) -> impl IntoResponse {
+    current_user_is_admin(auth)?;
+    show_stats_service().await
 }
