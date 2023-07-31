@@ -370,8 +370,10 @@ It's implemented on methods that requests several hundred records from database.
 Pagination is implemented by default in `get` requests for:
 
 1. `/api/baby/:baby_id/dreams`
-2. `/api/baby/:baby_id/meals`
-3. `/api/baby/:baby_id/weights`
+2. `/api/baby/:baby_id/dreams/summary`
+3. `/api/baby/:baby_id/meals`
+4. `/api/baby/:baby_id/meals/summary`
+5. `/api/baby/:baby_id/weights`
 
 ## Docs
 
