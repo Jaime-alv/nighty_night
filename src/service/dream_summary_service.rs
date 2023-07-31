@@ -2,21 +2,25 @@ use axum::Json;
 use chrono::{Days, NaiveDate};
 
 use crate::{
-    data::dream_dto::DreamSummaryDto,
+    data::{dream_dto::DreamSummaryDto, query_dto::Pagination},
     error::error::ApiError,
     model::{dream_model::Dream, summary_model::DreamSummary},
-    repository::dream_repository::{find_all_dreams_sorted, find_dreams_summary},
+    repository::dream_repository::{
+        find_all_dreams_sorted, find_dreams_summary, obtain_first_and_last_dream_date,
+    },
     utils::datetime::{iter_between_two_dates, now, today},
 };
 
-use super::util_service::check_days_out_of_bounds;
+use super::util_service::{paginate_over_dates, records_is_not_empty};
 
 pub async fn dream_summary_range_service(
     baby_id: i32,
     from_date: NaiveDate,
     to_date: NaiveDate,
+    pagination: Pagination,
 ) -> Result<Json<Vec<DreamSummaryDto>>, ApiError> {
-    let summary = fetch_dream_summary_range(baby_id, from_date, to_date).await?;
+    let (start, stop) = paginate_over_dates(pagination, from_date, to_date);
+    let summary = fetch_dream_summary_range(baby_id, start, stop).await?;
     Ok(into_json_summary(summary))
 }
 
@@ -42,19 +46,20 @@ async fn fetch_dream_summary_range(
             summary_vec.push(summary)
         }
     }
-    Ok(summary_vec)
+    records_is_not_empty(summary_vec)
 }
 
 pub async fn dream_summary_last_days_service(
     baby_id: i32,
     last_days: u32,
+    pagination: Pagination,
 ) -> Result<Json<Vec<DreamSummaryDto>>, ApiError> {
-    check_days_out_of_bounds(last_days)?;
     let today = today();
     let from_date = today
         .checked_sub_days(Days::new(last_days.try_into().unwrap()))
         .unwrap();
-    let summaries = fetch_dream_summary_range(baby_id, from_date, today).await?;
+    let (start, stop) = paginate_over_dates(pagination, from_date, today);
+    let summaries = fetch_dream_summary_range(baby_id, start, stop).await?;
     Ok(into_json_summary(summaries))
 }
 
@@ -85,4 +90,14 @@ pub async fn get_all_dream_summaries_service(
         }
     }
     Ok(into_json_summary(summaries))
+}
+
+pub async fn get_all_summary_records_paginated(
+    baby_id: i32,
+    pagination: Pagination,
+) -> Result<Json<Vec<DreamSummaryDto>>, ApiError> {
+    let (raw_start, raw_stop) = obtain_first_and_last_dream_date(baby_id)?;
+    let (start, stop) = paginate_over_dates(pagination, raw_start, raw_stop);
+    let summary = fetch_dream_summary_range(baby_id, start, stop).await?;
+    Ok(into_json_summary(summary))
 }

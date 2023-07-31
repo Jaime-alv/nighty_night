@@ -157,3 +157,20 @@ pub fn count_dreams() -> Result<i64, Error> {
     let conn = &mut establish_connection();
     dreams::table.select(dreams::id).count().get_result(conn)
 }
+
+pub fn obtain_first_and_last_dream_date(baby: i32) -> Result<(NaiveDate, NaiveDate), Error> {
+    let conn = &mut establish_connection();
+    let start: Option<NaiveDateTime> = dreams::table
+        .filter(dreams::baby_id.eq(baby))
+        .select(dreams::to_date)
+        .filter(dreams::to_date.is_not_null())
+        .order(dreams::to_date.asc())
+        .first(conn)?;
+    let stop: Option<NaiveDateTime> = dreams::table
+        .filter(dreams::baby_id.eq(baby))
+        .select(dreams::to_date)
+        .filter(dreams::to_date.is_not_null())
+        .order(dreams::to_date.desc())
+        .first(conn)?;
+    Ok((start.unwrap().date(), stop.unwrap().date()))
+}

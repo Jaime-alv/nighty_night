@@ -25,6 +25,7 @@ use crate::{
 use super::{
     association_service::add_rol_to_user_service,
     session_service::{create_current_user, save_user_session},
+    util_service::records_is_not_empty,
 };
 
 pub async fn create_user_service(new_user: NewUserDto) -> Result<(Response, i32), ApiError> {
@@ -50,7 +51,12 @@ pub async fn get_all_users_service(
     pagination: Pagination,
 ) -> Result<Json<Vec<AdminUserDto>>, ApiError> {
     let (users, _pages) = query_users(pagination)?;
-    Ok(Json(users.into_iter().map(|user| user.into()).collect()))
+    Ok(Json(
+        records_is_not_empty(users)?
+            .into_iter()
+            .map(|user| user.into())
+            .collect(),
+    ))
 }
 
 pub async fn find_user_service(user: FindUserDto) -> Result<Json<UserDto>, ApiError> {
@@ -87,9 +93,6 @@ pub async fn find_user_by_username_service(username: &String) -> Result<User, Ap
     Ok(load_user_by_username(username)?)
 }
 
-fn into_json(users: Vec<User>) -> Json<Vec<UserDto>> {
-    Json(users.into_iter().map(|user| user.into()).collect())
-}
 
 async fn cache_user_in_session(user: User) -> Result<(), ApiError> {
     let current_user = create_current_user(user).await?;
