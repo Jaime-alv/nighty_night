@@ -144,6 +144,10 @@ impl Default for Pagination {
 }
 
 impl Pagination {
+    pub fn new(page: u32, per_page: Option<u32>) -> Self {
+        Self { page, per_page }
+    }
+
     pub fn page(&self) -> u32 {
         self.page
     }

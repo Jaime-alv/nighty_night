@@ -20,7 +20,7 @@ use crate::{
         },
         dream_summary_service::{
             dream_summary_last_days_service, dream_summary_range_service,
-            get_all_dream_summaries_service,
+            get_all_dream_summaries_service, get_all_summary_records_paginated,
         },
         session_service::authorize_and_has_baby,
     },
@@ -96,24 +96,28 @@ async fn dream_summary(
     Path(baby_id): Path<i32>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     all_records: Option<Query<AllRecords>>,
+    page: Option<Query<Pagination>>,
     date: Option<Query<DateDto>>,
     range: Option<Query<DateRangeDto>>,
     last_days: Option<Query<LastDaysDto>>,
 ) -> impl IntoResponse {
     authorize_and_has_baby(auth, baby_id)?;
+    let pagination = page.unwrap_or_default().0;
     if all_records.is_some() && all_records.unwrap().all() {
-        get_all_dream_summaries_service(baby_id).await
+        get_all_summary_records_paginated(baby_id, pagination).await
     } else if date.is_some() {
         dream_summary_range_service(
             baby_id,
             date.as_ref().unwrap().date()?,
             date.unwrap().date()?,
+            pagination,
         )
         .await
     } else if range.is_some() {
         let range_date = range.unwrap();
-        dream_summary_range_service(baby_id, range_date.from()?, range_date.to()?).await
+        dream_summary_range_service(baby_id, range_date.from()?, range_date.to()?, pagination).await
     } else {
-        dream_summary_last_days_service(baby_id, last_days.unwrap_or_default().days()).await
+        dream_summary_last_days_service(baby_id, last_days.unwrap_or_default().days(), pagination)
+            .await
     }
 }

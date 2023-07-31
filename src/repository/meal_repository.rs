@@ -1,4 +1,4 @@
-use chrono::NaiveDate;
+use chrono::{NaiveDate, NaiveDateTime};
 use diesel::{prelude::*, result::Error};
 // use diesel_::RunQueryDsl;
 
@@ -104,4 +104,19 @@ pub fn meals_paginated_from_db(
 pub fn count_meals() -> Result<i64, Error> {
     let conn = &mut establish_connection();
     meals::table.select(meals::id).count().get_result(conn)
+}
+
+pub fn obtain_first_and_last_meal_date(baby: i32) -> Result<(NaiveDate, NaiveDate), Error> {
+    let conn = &mut establish_connection();
+    let start: NaiveDateTime = meals::table
+        .filter(meals::baby_id.eq(baby))
+        .select(meals::date)
+        .order(meals::date.asc())
+        .first(conn)?;
+    let stop: NaiveDateTime = meals::table
+        .filter(meals::baby_id.eq(baby))
+        .select(meals::date)
+        .order(meals::date.desc())
+        .first(conn)?;
+    Ok((start.date(), stop.date()))
 }

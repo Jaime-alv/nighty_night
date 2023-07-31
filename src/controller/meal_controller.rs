@@ -16,11 +16,11 @@ use crate::{
     service::{
         meal_service::{
             delete_meal_service, filter_meals_by_last_days, filter_meals_by_range,
-            patch_meal_service, post_meal_service, get_all_meals_paginated_service,
+            get_all_meals_paginated_service, patch_meal_service, post_meal_service,
         },
         meal_summary_service::{
-            get_all_meals_summaries_service, meal_summary_last_days_service,
-            meal_summary_range_service,
+            get_all_meals_summaries_service, get_all_summary_records_paginated,
+            meal_summary_last_days_service, meal_summary_range_service,
         },
         session_service::authorize_and_has_baby,
     },
@@ -49,7 +49,7 @@ async fn get_meals(
 ) -> impl IntoResponse {
     authorize_and_has_baby(auth, baby_id)?;
     let pagination = page.unwrap_or_default().0;
-    if all_records.is_some() && all_records.unwrap().all()  {
+    if all_records.is_some() && all_records.unwrap().all() {
         get_all_meals_paginated_service(baby_id, pagination).await
     } else if date.is_some() {
         let day = date.unwrap().date()?;
@@ -95,25 +95,29 @@ async fn delete_meal(
 async fn meal_summary(
     Path(baby_id): Path<i32>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
+    page: Option<Query<Pagination>>,
     all_records: Option<Query<AllRecords>>,
     date: Option<Query<DateDto>>,
     range: Option<Query<DateRangeDto>>,
     last_days: Option<Query<LastDaysDto>>,
 ) -> impl IntoResponse {
     authorize_and_has_baby(auth, baby_id)?;
+    let pagination = page.unwrap_or_default().0;
     if all_records.is_some() && all_records.unwrap().all() {
-        get_all_meals_summaries_service(baby_id).await
+        get_all_summary_records_paginated(baby_id, pagination).await
     } else if date.is_some() {
         meal_summary_range_service(
             baby_id,
             date.as_ref().unwrap().date()?,
             date.unwrap().date()?,
+            pagination,
         )
         .await
     } else if range.is_some() {
         let range_date = range.unwrap();
-        meal_summary_range_service(baby_id, range_date.from()?, range_date.to()?).await
+        meal_summary_range_service(baby_id, range_date.from()?, range_date.to()?, pagination).await
     } else {
-        meal_summary_last_days_service(baby_id, last_days.unwrap_or_default().days()).await
+        meal_summary_last_days_service(baby_id, last_days.unwrap_or_default().days(), pagination)
+            .await
     }
 }

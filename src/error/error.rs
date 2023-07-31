@@ -19,7 +19,6 @@ pub enum ApiError {
     LoginRequired,
     DatesUnordered,
     CastError(String),
-    OutOfBounds(u32, u32),
     DBError(Error),
     Redis(RedisError),
     Generic500Error(String),
@@ -51,10 +50,6 @@ impl ApiError {
                 String::from("This is not the page you are looking for."),
             ),
             ApiError::LoginRequired => (StatusCode::UNAUTHORIZED, String::from("Login required.")),
-            ApiError::OutOfBounds(min, max) => (
-                StatusCode::BAD_REQUEST,
-                format!("Out of bounds: range between {min} and {max}."),
-            ),
             ApiError::DatesUnordered => (
                 StatusCode::BAD_REQUEST,
                 String::from("Target date must be higher."),

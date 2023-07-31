@@ -1,7 +1,10 @@
 use axum::Json;
 
 use crate::{
-    data::{baby_dto::{BabyDto, InputBabyDto, UpdateBaby}, query_dto::Pagination},
+    data::{
+        baby_dto::{BabyDto, InputBabyDto, UpdateBaby},
+        query_dto::Pagination,
+    },
     error::error::ApiError,
     model::baby_model::{Baby, InsertableBaby},
     repository::baby_repository::{
@@ -14,7 +17,7 @@ use crate::{
     },
 };
 
-use super::association_service::add_baby_to_user_service;
+use super::{association_service::add_baby_to_user_service, util_service::records_is_not_empty};
 
 pub async fn ingest_new_baby<T>(
     new_baby: InputBabyDto,
@@ -41,13 +44,16 @@ pub async fn find_baby_service(baby_id: i32) -> Result<Json<BabyDto>, ApiError> 
     Ok(Json(baby.into()))
 }
 
-pub async fn get_all_babies_service(pagination: Pagination) -> Result<Json<Vec<BabyDto>>, ApiError> {
+pub async fn get_all_babies_service(
+    pagination: Pagination,
+) -> Result<Json<Vec<BabyDto>>, ApiError> {
     let (babies, _pages) = query_babies(pagination)?;
-    Ok(into_json(babies))
-}
-
-fn into_json(babies: Vec<Baby>) -> Json<Vec<BabyDto>> {
-    Json(babies.into_iter().map(|baby| baby.into()).collect())
+    Ok(Json(
+        records_is_not_empty(babies)?
+            .into_iter()
+            .map(|baby| baby.into())
+            .collect(),
+    ))
 }
 
 pub async fn patch_baby_service(baby_id: i32, update: InputBabyDto) -> Result<Response, ApiError> {

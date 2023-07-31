@@ -1,10 +1,10 @@
-use chrono::{NaiveDate, NaiveDateTime};
+use chrono::{Days, NaiveDate, NaiveDateTime};
 
 use crate::{
-    configuration::constant::GlobalCte,
+    data::query_dto::Pagination,
     error::error::ApiError,
     utils::datetime::{
-        convert_to_date_time, date_is_lower_than_other_date, date_time_is_lower_than_other_date,
+        convert_to_date_time, date_time_is_lower_than_other_date,
     },
 };
 
@@ -22,24 +22,6 @@ pub fn uncover_date(date: Option<String>) -> Result<Option<NaiveDateTime>, ApiEr
     }
 }
 
-pub fn check_days_out_of_bounds(days: u32) -> Result<(), ApiError> {
-    if days.ge(&0) && days.lt(&GlobalCte::DaysOutOfBoundsCte.get()) {
-        Ok(())
-    } else {
-        Err(ApiError::OutOfBounds(
-            0,
-            GlobalCte::DaysOutOfBoundsCte.get(),
-        ))
-    }
-}
-
-pub fn dates_are_in_order(from: NaiveDate, to: NaiveDate) -> Result<(), ApiError> {
-    if date_is_lower_than_other_date(from, to) {
-        Ok(())
-    } else {
-        Err(ApiError::DatesUnordered)
-    }
-}
 
 pub fn date_time_are_in_order(from: NaiveDateTime, to: NaiveDateTime) -> Result<(), ApiError> {
     if date_time_is_lower_than_other_date(from, to) {
@@ -58,16 +40,75 @@ pub fn record_belongs_to_baby(record_baby: i32, baby_id: i32) -> Result<(), ApiE
     }
 }
 
-pub fn check_dates_are_in_bound(from: NaiveDate, to: NaiveDate) -> Result<(), ApiError> {
-    let days: u32 = (to - from).num_days().try_into()?;
-    check_days_out_of_bounds(days)
-}
-
-
 pub fn records_is_not_empty<T>(records: Vec<T>) -> Result<Vec<T>, ApiError> {
     if records.is_empty() {
         Err(ApiError::NoRecord)
     } else {
         Ok(records)
+    }
+}
+
+pub fn paginate_over_dates(
+    pagination: Pagination,
+    from: NaiveDate,
+    to: NaiveDate,
+) -> (NaiveDate, NaiveDate) {
+    let days: u64 = ((pagination.page() - 1) * pagination.per_page()).into();
+    let days_stop: u64 = ((pagination.page() * pagination.per_page()) - 1).into();
+    let start = from.checked_add_days(Days::new(days)).unwrap();
+    let stop = from.checked_add_days(Days::new(days_stop)).unwrap();
+    let start_date = if start.gt(&to) { to } else { start };
+    let end_date = if stop.gt(&to) { to } else { stop };
+    (start_date, end_date)
+}
+
+#[cfg(test)]
+mod test_service {
+    use super::*;
+
+    #[test]
+    fn test_pagination_dates() {
+        let page_1 = Pagination::new(1, Some(10));
+        let page_2 = Pagination::new(2, Some(10));
+        let page_3 = Pagination::new(3, Some(10));
+        let page_4 = Pagination::new(4, Some(10));
+        let page_5 = Pagination::new(5, Some(10));
+        let from = NaiveDate::from_ymd_opt(2023, 06, 01).unwrap();
+        let to = NaiveDate::from_ymd_opt(2023, 07, 05).unwrap();
+        assert_eq!(
+            paginate_over_dates(page_1, from, to),
+            (
+                NaiveDate::from_ymd_opt(2023, 06, 01).unwrap(),
+                NaiveDate::from_ymd_opt(2023, 06, 10).unwrap()
+            )
+        );
+        assert_eq!(
+            paginate_over_dates(page_2, from, to),
+            (
+                NaiveDate::from_ymd_opt(2023, 06, 11).unwrap(),
+                NaiveDate::from_ymd_opt(2023, 06, 20).unwrap()
+            )
+        );
+        assert_eq!(
+            paginate_over_dates(page_3, from, to),
+            (
+                NaiveDate::from_ymd_opt(2023, 06, 21).unwrap(),
+                NaiveDate::from_ymd_opt(2023, 06, 30).unwrap()
+            )
+        );
+        assert_eq!(
+            paginate_over_dates(page_4, from, to),
+            (
+                NaiveDate::from_ymd_opt(2023, 07, 01).unwrap(),
+                NaiveDate::from_ymd_opt(2023, 07, 05).unwrap()
+            )
+        );
+        assert_eq!(
+            paginate_over_dates(page_5, from, to),
+            (
+                NaiveDate::from_ymd_opt(2023, 07, 05).unwrap(),
+                NaiveDate::from_ymd_opt(2023, 07, 05).unwrap()
+            )
+        );
     }
 }
