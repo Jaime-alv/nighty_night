@@ -8,7 +8,7 @@ use crate::{
     mapping::rol_mapper::translate_roles,
     model::{role_model::Rol, session_model::CurrentUser, user_model::User},
     repository::{
-        session_repository::{delete_user_session, exists_user, get_user, set_user},
+        session_repository::{delete_user_session, get_user, set_user},
         user_repository::{find_babies_id, find_roles_id, load_user_by_id},
     },
     utils::response::Response,
@@ -86,11 +86,6 @@ pub async fn create_current_user(current_user: User) -> Result<CurrentUser, ApiE
         babies,
     );
     Ok(user_session)
-}
-
-pub async fn user_session_exists(id: i64) -> bool {
-    let key = user_redis_key(id);
-    exists_user(&key).await.unwrap()
 }
 
 fn user_redis_key(id: i64) -> String {

@@ -20,7 +20,7 @@ use crate::{
         },
         dream_summary_service::{
             dream_summary_last_days_service, dream_summary_range_service,
-            get_all_dream_summaries_service, get_all_summary_records_paginated,
+            get_all_summary_records_paginated,
         },
         session_service::authorize_and_has_baby,
     },

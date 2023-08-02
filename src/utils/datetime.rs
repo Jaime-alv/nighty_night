@@ -32,15 +32,6 @@ pub fn date_time_is_lower_than_other_date(date: NaiveDateTime, other_date: Naive
     }
 }
 
-/// Compare two dates, date must be equal or lower than other_date.
-pub fn date_is_lower_than_other_date(date: NaiveDate, other_date: NaiveDate) -> bool {
-    if let std::cmp::Ordering::Less = other_date.cmp(&date) {
-        false
-    } else {
-        true
-    }
-}
-
 pub fn format_duration(elapsed_minutes: i64) -> String {
     let hours: u32 = (elapsed_minutes / 60).try_into().unwrap();
     let minutes: u32 = (elapsed_minutes % 60).try_into().unwrap();
@@ -60,7 +51,7 @@ pub fn iter_between_two_dates(from: NaiveDate, to: NaiveDate) -> Vec<NaiveDate> 
 
 #[cfg(test)]
 mod test_timestamp {
-    use chrono::{Days, NaiveDate};
+    use chrono::NaiveDate;
 
     use super::*;
 
@@ -95,21 +86,6 @@ mod test_timestamp {
         ));
     }
 
-    #[test]
-    fn test_higher_date() {
-        assert!(date_is_lower_than_other_date(
-            today(),
-            today().checked_add_days(Days::new(0)).unwrap()
-        ));
-        assert!(date_is_lower_than_other_date(
-            today(),
-            today().checked_add_days(Days::new(1)).unwrap()
-        ));
-        assert!(!date_is_lower_than_other_date(
-            today(),
-            today().checked_sub_days(Days::new(1)).unwrap()
-        ));
-    }
     #[test]
     fn test_duration() {
         assert_eq!(

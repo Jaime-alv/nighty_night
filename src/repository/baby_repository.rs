@@ -50,8 +50,3 @@ pub fn delete_baby_from_db(baby: i32) -> Result<usize, Error> {
     let conn = &mut establish_connection();
     diesel::delete(babies::table.find(baby)).execute(conn)
 }
-
-pub fn count_babies() -> Result<i64, Error> {
-    let conn = &mut establish_connection();
-    babies::table.select(babies::id).count().get_result(conn)
-}

@@ -9,3 +9,4 @@ pub mod dream_repository;
 pub mod weight_repository;
 pub mod common_repository;
 pub mod paginator;
+pub mod admin_repository;
