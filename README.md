@@ -294,6 +294,7 @@ data:
 | /register | `post`   | Create a new user     | Body: Json | {username, password, email, name, surname} |
 | /user     | `post`   | find user by username | Body: Json | {username}                                 |
 | /login    | `post`   | login user            | Body: Json | {username, password}                       |
+| /logout   | `get`    | logout user           |            |                                            |
 | /profile  | `get`    | Get user profile      |            |                                            |
 | /profile  | `patch`  | Update user profile   | Body: Json | {name, surname, email, }                   |
 | /profile  | `delete` | Deactivate user       |            |                                            |
@@ -369,11 +370,13 @@ It's implemented on methods that requests several hundred records from database.
 
 Pagination is implemented by default in `get` requests for:
 
-1. `/api/baby/:baby_id/dreams`
-2. `/api/baby/:baby_id/dreams/summary`
-3. `/api/baby/:baby_id/meals`
-4. `/api/baby/:baby_id/meals/summary`
-5. `/api/baby/:baby_id/weights`
+1. `/api/admin/user`
+2. `/api/admin/baby`
+3. `/api/baby/:baby_id/dreams`
+4. `/api/baby/:baby_id/dreams/summary`
+5. `/api/baby/:baby_id/meals`
+6. `/api/baby/:baby_id/meals/summary`
+7. `/api/baby/:baby_id/weights`
 
 ## Docs
 

@@ -9,6 +9,7 @@ pub enum Response {
     UserLogIn(String),
     NewUser(String),
     ActiveStatusUpdate,
+    LogoutUser,
 }
 
 impl Response {
@@ -26,6 +27,7 @@ impl Response {
             Response::ActiveStatusUpdate => {
                 (StatusCode::ACCEPTED, "User status update.".to_string())
             }
+            Response::LogoutUser => (StatusCode::ACCEPTED, "User logged out".to_string()),
         }
     }
 }

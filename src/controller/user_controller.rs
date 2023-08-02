@@ -2,7 +2,7 @@ use crate::{
     data::user_dto::{FindUserDto, LoginDto, NewUserDto, UpdateUserDto},
     model::session_model::CurrentUser,
     service::{
-        session_service::{login_required, login_session},
+        session_service::{login_required, login_session, logout_session},
         user_service::{
             alter_active_user_service, create_user_service, find_user_by_id_service,
             find_user_service, login_service, patch_user_service,
@@ -23,6 +23,7 @@ pub(crate) fn route_user() -> Router {
         .route("/register", post(register_new_user))
         .route("/user", post(find_user))
         .route("/login", post(login_user))
+        .route("/logout", get(logout_user))
         .route(
             "/profile",
             get(get_profile)
@@ -60,6 +61,14 @@ async fn login_user(
         }
         Err(error) => Err(error),
     }
+}
+
+async fn logout_user(
+    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
+) -> impl IntoResponse {
+    let binding_id: i32 = auth.id.try_into().unwrap();
+    login_required(auth.clone())?;
+    logout_session(auth, binding_id).await
 }
 
 async fn test_welcome(

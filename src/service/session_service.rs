@@ -8,9 +8,10 @@ use crate::{
     mapping::rol_mapper::translate_roles,
     model::{role_model::Rol, session_model::CurrentUser, user_model::User},
     repository::{
-        session_repository::{exists_user, get_user, set_user},
+        session_repository::{delete_user_session, exists_user, get_user, set_user},
         user_repository::{find_babies_id, find_roles_id, load_user_by_id},
     },
+    utils::response::Response,
 };
 
 pub async fn login_session<T>(
@@ -23,6 +24,22 @@ where
 {
     auth.login_user(user_id.into());
     Ok(())
+}
+
+pub async fn logout_session<T>(
+    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
+    user_id: T,
+) -> Result<Response, ApiError>
+where
+    i32: From<T>,
+    i64: From<T>,
+{
+    let key = user_redis_key(user_id.into());
+    auth.logout_user();
+    match delete_user_session(&key).await {
+        Ok(_) => Ok(Response::LogoutUser),
+        Err(e) => Err(ApiError::Redis(e)),
+    }
 }
 
 pub async fn save_user_session(user: &CurrentUser) -> Result<(), ApiError> {
