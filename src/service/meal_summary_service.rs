@@ -5,9 +5,7 @@ use crate::{
     data::{meal_dto::MealSummaryDto, query_dto::Pagination},
     error::error::ApiError,
     model::{meals_model::Meal, summary_model::MealSummary},
-    repository::meal_repository::{
-        find_all_meals_sorted, find_meals_by_date_range, obtain_first_and_last_meal_date,
-    },
+    repository::meal_repository::{find_meals_by_date_range, obtain_first_and_last_meal_date},
     utils::datetime::{iter_between_two_dates, today},
 };
 
@@ -65,31 +63,6 @@ pub async fn meal_summary_last_days_service(
 
 fn into_json_summary(summaries: Vec<MealSummary>) -> Json<Vec<MealSummaryDto>> {
     Json(summaries.into_iter().map(|item| item.into()).collect())
-}
-
-pub async fn get_all_meals_summaries_service(
-    baby_id: i32,
-) -> Result<Json<Vec<MealSummaryDto>>, ApiError> {
-    let mut summaries: Vec<MealSummary> = Vec::new();
-    let all_records = find_all_meals_sorted(baby_id)?;
-    let initial_record = match all_records.first() {
-        Some(initial) => initial.date().date(),
-        None => return Ok(into_json_summary(summaries)),
-    };
-    let today = today().checked_add_days(Days::new(1)).unwrap();
-    let dates = iter_between_two_dates(initial_record, today);
-    for day in dates {
-        let partial_dreams = all_records
-            .clone()
-            .into_iter()
-            .filter(|meal| meal.date().date().eq(&day))
-            .collect::<Vec<Meal>>();
-        if !partial_dreams.is_empty() {
-            let summary = MealSummary::new(day, partial_dreams);
-            summaries.push(summary)
-        }
-    }
-    Ok(into_json_summary(summaries))
 }
 
 pub async fn get_all_summary_records_paginated(

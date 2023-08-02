@@ -33,10 +33,6 @@ pub fn get_all_meals_from_baby(
         .load_and_count_pages(conn)
 }
 
-pub fn find_meals_by_date(baby: i32, date: NaiveDate) -> Result<Vec<Meal>, Error> {
-    find_meals_by_date_range(baby, date, date)
-}
-
 pub fn find_meals_by_date_range(
     baby: i32,
     from_date: NaiveDate,
@@ -49,14 +45,6 @@ pub fn find_meals_by_date_range(
         .filter(meals::baby_id.eq(baby))
         .filter(meals::date.ge(from))
         .filter(meals::date.le(to))
-        .order(meals::date.asc())
-        .load::<Meal>(conn)
-}
-
-pub fn find_all_meals_sorted(baby: i32) -> Result<Vec<Meal>, Error> {
-    let conn = &mut establish_connection();
-    meals::table
-        .filter(meals::baby_id.eq(baby))
         .order(meals::date.asc())
         .load::<Meal>(conn)
 }
@@ -99,11 +87,6 @@ pub fn meals_paginated_from_db(
         .paginate(pagination.page())
         .per_page(pagination.per_page())
         .load_and_count_pages(conn)
-}
-
-pub fn count_meals() -> Result<i64, Error> {
-    let conn = &mut establish_connection();
-    meals::table.select(meals::id).count().get_result(conn)
 }
 
 pub fn obtain_first_and_last_meal_date(baby: i32) -> Result<(NaiveDate, NaiveDate), Error> {

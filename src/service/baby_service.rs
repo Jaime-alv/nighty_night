@@ -6,7 +6,7 @@ use crate::{
         query_dto::Pagination,
     },
     error::error::ApiError,
-    model::baby_model::{Baby, InsertableBaby},
+    model::baby_model::InsertableBaby,
     repository::baby_repository::{
         delete_baby_from_db, ingest_new_baby_in_db, load_baby_by_id, patch_baby_record,
         query_babies,

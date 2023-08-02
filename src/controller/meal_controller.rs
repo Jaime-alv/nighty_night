@@ -19,8 +19,8 @@ use crate::{
             get_all_meals_paginated_service, patch_meal_service, post_meal_service,
         },
         meal_summary_service::{
-            get_all_meals_summaries_service, get_all_summary_records_paginated,
-            meal_summary_last_days_service, meal_summary_range_service,
+            get_all_summary_records_paginated, meal_summary_last_days_service,
+            meal_summary_range_service,
         },
         session_service::authorize_and_has_baby,
     },

@@ -44,7 +44,7 @@ pub fn create_user<T: Into<InsertableUser>>(new_user: T) -> Result<User, Error> 
     // .execute(conn)
 }
 
-pub fn exists_username<T: Into<String>>(username: T) -> bool {
+pub fn _exists_username<T: Into<String>>(username: T) -> bool {
     match load_user_by_username(username.into()) {
         Ok(_) => true,
         Err(_) => false,
@@ -99,9 +99,4 @@ pub fn alter_active_status_for_user(
 pub fn delete_user_from_db(user: i32) -> Result<usize, Error> {
     let conn = &mut establish_connection();
     diesel::delete(users::table.find(user)).execute(conn)
-}
-
-pub fn count_users() -> Result<i64, Error> {
-    let conn = &mut establish_connection();
-    users::table.select(users::id).count().get_result(conn)
 }

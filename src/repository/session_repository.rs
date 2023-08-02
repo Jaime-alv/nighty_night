@@ -13,17 +13,6 @@ pub async fn set_user(key: &str, user: CurrentUserDto, duration: usize) -> Resul
         .await
 }
 
-pub async fn exists_user(key: &str) -> Result<bool, RedisError> {
-    let mut conn = poll().await.get_async_connection().await?;
-    let exists: Result<bool, RedisError> =
-        redis::cmd("EXISTS").arg(key).query_async(&mut conn).await;
-
-    match exists {
-        Ok(value) => Ok(value),
-        Err(error) => Err(error),
-    }
-}
-
 pub async fn get_user(key: &str) -> Result<String, RedisError> {
     let mut conn = poll().await.get_async_connection().await?;
     redis::cmd("GET").arg(key).query_async(&mut conn).await
