@@ -400,8 +400,8 @@ Proposed layout.
 - [X] Implement meals and dreams tables.
 - [X] Set up associations.
 - [X] User profile.
-- [ ] Admin panel.
-- [ ] Logout user.
+- [X] Admin panel.
+- [X] Logout user.
 - [ ] Add co-parenting.
 - [X] Update fields.
 - [X] Delete entries.
