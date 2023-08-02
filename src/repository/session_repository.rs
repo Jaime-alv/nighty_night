@@ -25,8 +25,13 @@ pub async fn exists_user(key: &str) -> Result<bool, RedisError> {
 }
 
 pub async fn get_user(key: &str) -> Result<String, RedisError> {
-    let mut conn = poll().await.get_async_connection().await.unwrap();
+    let mut conn = poll().await.get_async_connection().await?;
     redis::cmd("GET").arg(key).query_async(&mut conn).await
+}
+
+pub async fn delete_user_session(key: &str) -> Result<(), RedisError> {
+    let mut conn = poll().await.get_async_connection().await?;
+    redis::cmd("DEL").arg(key).query_async(&mut conn).await
 }
 #[cfg(test)]
 mod redis_test {
