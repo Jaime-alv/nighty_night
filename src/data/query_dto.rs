@@ -119,12 +119,15 @@ fn parse_date(date: &str) -> Result<NaiveDate, ApiError> {
 
 #[derive(Deserialize)]
 pub struct Username {
-    value: Option<String>,
+    username: Option<String>,
 }
 
 impl Username {
-    pub fn value(&self) -> Option<String> {
-        self.value.to_owned()
+    pub fn username(&self) -> Result<String, ApiError> {
+        match self.username.to_owned() {
+            Some(value) => Ok(value),
+            None => Err(ApiError::EmptyBody),
+        }
     }
 }
 
