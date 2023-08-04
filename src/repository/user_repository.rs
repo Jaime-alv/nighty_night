@@ -65,12 +65,18 @@ pub fn find_roles_id(user_id: i32) -> Result<HashSet<u8>, Error> {
     Ok(roles)
 }
 
-pub fn find_babies_id(user_id: i32) -> Result<Vec<i32>, Error> {
+pub fn find_babies_id(user_id: i32) -> Result<HashSet<i32>, Error> {
+    let mut babies: HashSet<i32> = HashSet::new();
     let conn = &mut establish_connection();
     users_babies::table
         .filter(users_babies::user_id.eq(user_id))
         .select(users_babies::baby_id)
-        .load::<i32>(conn)
+        .load::<i32>(conn)?
+        .into_iter()
+        .for_each(|id| {
+            babies.insert(id);
+        });
+    Ok(babies)
 }
 
 pub fn patch_user_record(user_id: i32, profile: UpdateUser) -> Result<usize, Error> {
