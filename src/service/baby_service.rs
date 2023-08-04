@@ -8,8 +8,8 @@ use crate::{
     error::error::ApiError,
     model::baby_model::InsertableBaby,
     repository::baby_repository::{
-        delete_baby_from_db, ingest_new_baby_in_db, load_baby_by_id, patch_baby_record,
-        query_babies,
+        delete_baby_from_db, get_all_babies_with_id, ingest_new_baby_in_db, load_baby_by_id,
+        patch_baby_record, query_babies,
     },
     utils::{
         datetime::{convert_to_date, today},
@@ -17,7 +17,7 @@ use crate::{
     },
 };
 
-use super::{association_service::add_baby_to_user_service, util_service::records_is_not_empty};
+use super::{session_service::load_user_session, util_service::records_is_not_empty};
 
 pub async fn ingest_new_baby<T>(
     new_baby: InputBabyDto,
@@ -34,8 +34,7 @@ where
         None => today(),
     };
     let insert_baby = InsertableBaby::new(new_baby.name.unwrap(), birthdate);
-    let baby = ingest_new_baby_in_db(insert_baby)?;
-    add_baby_to_user_service(current_user.into(), baby.id().into()).await?;
+    let baby = ingest_new_baby_in_db(insert_baby, current_user.into())?;
     Ok(Json(baby.into()))
 }
 
@@ -77,4 +76,18 @@ pub async fn patch_baby_service(baby_id: i32, update: InputBabyDto) -> Result<Re
 pub async fn delete_baby_service(baby_id: i32) -> Result<Response, ApiError> {
     delete_baby_from_db(baby_id)?;
     Ok(Response::DeleteRecord)
+}
+
+pub async fn load_babies_for_current_user(
+    user_id: i64,
+    pagination: Pagination,
+) -> Result<Json<Vec<BabyDto>>, ApiError> {
+    let user = load_user_session(user_id).await?;
+    let (babies, _last_page) = get_all_babies_with_id(user.baby_id(), pagination)?;
+    Ok(Json(
+        records_is_not_empty(babies)?
+            .into_iter()
+            .map(|baby| baby.into())
+            .collect(),
+    ))
 }

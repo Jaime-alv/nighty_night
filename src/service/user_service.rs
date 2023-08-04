@@ -89,8 +89,11 @@ pub async fn find_user_by_id_service(user_id: i32) -> Result<Json<UserDto>, ApiE
     Ok(Json(user.into()))
 }
 
-pub async fn find_user_by_username_service(username: &String) -> Result<User, ApiError> {
-    Ok(load_user_by_username(username)?)
+pub async fn find_user_by_username_service(username: &str) -> Result<User, ApiError> {
+    match load_user_by_username(username) {
+        Ok(user) => Ok(user),
+        Err(_) => Err(ApiError::NoUser),
+    }
 }
 
 
