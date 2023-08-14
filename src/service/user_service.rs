@@ -6,8 +6,8 @@ use crate::{
         query_dto::Pagination,
         traits::Mandatory,
         user_dto::{
-            AdminUserDto, FindUserDto, LoginDto, NewUserDto, UpdateUser, UpdateUserDto, UserDto,
-        },
+            FindUserDto, LoginDto, NewUserDto, UpdateUser, UpdateUserDto, UserDto,
+        }, admin_dto::AdminUserDto,
     },
     error::error::ApiError,
     model::{role_model::Rol, user_model::User},

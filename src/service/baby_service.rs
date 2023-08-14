@@ -2,6 +2,7 @@ use axum::Json;
 
 use crate::{
     data::{
+        admin_dto::AdminBabyDto,
         baby_dto::{BabyDto, InputBabyDto, UpdateBaby},
         query_dto::Pagination,
     },
@@ -45,7 +46,7 @@ pub async fn find_baby_service(baby_id: i32) -> Result<Json<BabyDto>, ApiError> 
 
 pub async fn get_all_babies_service(
     pagination: Pagination,
-) -> Result<Json<Vec<BabyDto>>, ApiError> {
+) -> Result<Json<Vec<AdminBabyDto>>, ApiError> {
     let (babies, _pages) = query_babies(pagination)?;
     Ok(Json(
         records_is_not_empty(babies)?
@@ -73,9 +74,15 @@ pub async fn patch_baby_service(baby_id: i32, update: InputBabyDto) -> Result<Re
     Ok(Response::UpdateRecord)
 }
 
-pub async fn delete_baby_service(baby_id: i32) -> Result<Response, ApiError> {
-    delete_baby_from_db(baby_id)?;
-    Ok(Response::DeleteRecord)
+pub async fn delete_baby_service(baby_id: i32, user: i32) -> Result<Response, ApiError> {
+    let baby = load_baby_by_id(baby_id)?;
+    match baby.belongs_to().eq(&user) {
+        true => {
+            delete_baby_from_db(baby_id)?;
+            Ok(Response::DeleteRecord)
+        }
+        false => Err(ApiError::Forbidden),
+    }
 }
 
 pub async fn load_babies_for_current_user(
