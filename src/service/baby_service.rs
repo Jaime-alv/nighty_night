@@ -8,9 +8,12 @@ use crate::{
     },
     error::error::ApiError,
     model::baby_model::InsertableBaby,
-    repository::baby_repository::{
-        delete_baby_from_db, get_all_babies_with_id, ingest_new_baby_in_db, load_baby_by_id,
-        patch_baby_record, query_babies,
+    repository::{
+        association_repository::delete_baby_association,
+        baby_repository::{
+            delete_baby_from_db, get_all_babies_with_id, ingest_new_baby_in_db, load_baby_by_id,
+            patch_baby_record, query_babies,
+        },
     },
     utils::{
         datetime::{convert_to_date, today},
@@ -74,6 +77,10 @@ pub async fn patch_baby_service(baby_id: i32, update: InputBabyDto) -> Result<Re
     Ok(Response::UpdateRecord)
 }
 
+/*
+If baby belongs to current user, delete everything from said baby, if not, delete only the
+association between user and baby.
+*/
 pub async fn delete_baby_service(baby_id: i32, user: i32) -> Result<Response, ApiError> {
     let baby = load_baby_by_id(baby_id)?;
     match baby.belongs_to().eq(&user) {
@@ -81,7 +88,10 @@ pub async fn delete_baby_service(baby_id: i32, user: i32) -> Result<Response, Ap
             delete_baby_from_db(baby_id)?;
             Ok(Response::DeleteRecord)
         }
-        false => Err(ApiError::Forbidden),
+        false => {
+            delete_baby_association(baby_id, user)?;
+            Ok(Response::DeleteRecord)
+        }
     }
 }
 
