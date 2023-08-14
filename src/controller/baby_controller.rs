@@ -77,9 +77,12 @@ async fn delete_baby(
     Path(baby_id): Path<i32>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
 ) -> impl IntoResponse {
+    let user_binding: i32 = auth.id.try_into().unwrap();
     authorize_and_has_baby(auth.clone(), baby_id)?;
-    let message = delete_baby_service(baby_id).await;
-    update_user_session(auth).await?;
+    let message = delete_baby_service(baby_id, user_binding).await;
+    if message.is_ok() {
+        update_user_session(auth).await?;
+    }    
     message
 }
 

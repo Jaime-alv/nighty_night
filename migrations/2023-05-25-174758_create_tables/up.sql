@@ -26,7 +26,10 @@ CREATE TABLE
     IF NOT EXISTS babies (
         "id" SERIAL PRIMARY KEY not NULL,
         "name" VARCHAR(64) not NULL,
-        "birthdate" DATE not NULL
+        "birthdate" DATE not NULL,
+        "belongs_to" INTEGER not NULL,
+        "added_on" TIMESTAMP not NULL,
+        CONSTRAINT fk_belongs_to FOREIGN KEY (belongs_to) REFERENCES users (id) ON DELETE CASCADE ON UPDATE CASCADE
     );
 
 -- create table dreams

@@ -5,6 +5,8 @@ diesel::table! {
         id -> Int4,
         name -> Varchar,
         birthdate -> Date,
+        belongs_to -> Int4,
+        added_on -> Timestamp,
     }
 }
 
@@ -73,6 +75,7 @@ diesel::table! {
     }
 }
 
+diesel::joinable!(babies -> users (belongs_to));
 diesel::joinable!(dreams -> babies (baby_id));
 diesel::joinable!(meals -> babies (baby_id));
 diesel::joinable!(users_babies -> babies (baby_id));

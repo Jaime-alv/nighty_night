@@ -38,3 +38,13 @@ pub fn add_baby_to_user(user: i32, baby: i32) -> Result<usize, Error> {
         _ => Ok(1),
     }
 }
+
+pub fn delete_baby_association(baby: i32, user: i32) -> Result<usize, Error> {
+    let conn = &mut establish_connection();
+    diesel::delete(
+        users_babies::table
+            .filter(users_babies::user_id.eq(user))
+            .filter(users_babies::baby_id.eq(baby)),
+    )
+    .execute(conn)
+}

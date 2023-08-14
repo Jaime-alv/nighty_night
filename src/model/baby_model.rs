@@ -1,4 +1,4 @@
-use chrono::NaiveDate;
+use chrono::{NaiveDate, NaiveDateTime};
 use diesel::{Identifiable, Insertable, Queryable, Selectable};
 
 use crate::{schema::babies, utils::datetime::format_date};
@@ -9,6 +9,8 @@ pub struct Baby {
     id: i32,
     name: String,
     birthdate: NaiveDate,
+    belongs_to: i32,
+    added_on: NaiveDateTime,
 }
 
 impl Baby {
@@ -26,6 +28,18 @@ impl Baby {
 
     pub(crate) fn formatted_birthdate(&self) -> String {
         format_date(self.birthdate)
+    }
+
+    pub fn belongs_to(&self) -> i32 {
+        self.belongs_to
+    }
+
+    pub fn added_on(&self) -> NaiveDateTime {
+        self.added_on
+    }
+
+    pub fn formatted_added_on(&self) -> String {
+        format_date(self.added_on.date())
     }
 }
 
