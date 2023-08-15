@@ -73,3 +73,10 @@ pub fn get_all_babies_with_id(
         .per_page(pagination.per_page())
         .load_and_count_pages(conn)
 }
+
+pub fn transfer_baby_records(baby: i32, new_user: i32) -> Result<usize, Error> {
+    let conn = &mut establish_connection();
+    diesel::update(babies::table.find(baby))
+        .set(babies::belongs_to.eq(new_user))
+        .execute(conn)
+}
