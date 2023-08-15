@@ -1,7 +1,7 @@
 use axum::{
     extract::{Path, Query},
     response::IntoResponse,
-    routing::{get, post},
+    routing::{get, patch, post},
     Json, Router,
 };
 use axum_session::SessionRedisPool;
@@ -35,10 +35,8 @@ pub(crate) fn route_baby() -> Router {
             "/:baby_id",
             get(find_baby_by_id).patch(patch_baby).delete(delete_baby),
         )
-        .route(
-            "/:baby_id/share",
-            post(share_ownership).patch(transfer_owner),
-        )
+        .route("/:baby_id/share", post(share_ownership))
+        .route("/:baby_id/transfer", patch(transfer_owner))
         .merge(route_meal())
         .merge(route_dream())
         .merge(route_weight());
