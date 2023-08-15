@@ -1,18 +1,24 @@
 use axum::{
-    extract::Path,
+    extract::{Path, Query},
     response::IntoResponse,
-    routing::{get, post},
+    routing::{get, patch, post},
     Json, Router,
 };
 use axum_session::SessionRedisPool;
 use axum_session_auth::AuthSession;
 
 use crate::{
-    data::baby_dto::InputBabyDto,
+    data::{
+        baby_dto::InputBabyDto,
+        query_dto::{Pagination, Username},
+        user_dto::FindUserDto,
+    },
     model::session_model::CurrentUser,
     service::{
+        association_service::add_baby_to_user_service,
         baby_service::{
-            delete_baby_service, find_baby_service, ingest_new_baby, patch_baby_service,
+            delete_baby_service, find_baby_service, ingest_new_baby, load_babies_for_current_user,
+            patch_baby_service, transfer_baby_service,
         },
         session_service::{authorize_and_has_baby, login_required, update_user_session},
     },
@@ -24,11 +30,13 @@ use super::{
 
 pub(crate) fn route_baby() -> Router {
     let routes: Router = Router::new()
-        .route("/new", post(register_baby))
+        .route("/", get(get_babies_for_user).post(register_baby))
         .route(
             "/:baby_id",
             get(find_baby_by_id).patch(patch_baby).delete(delete_baby),
         )
+        .route("/:baby_id/share", post(share_ownership))
+        .route("/:baby_id/transfer", patch(transfer_owner))
         .merge(route_meal())
         .merge(route_dream())
         .merge(route_weight());
@@ -43,7 +51,7 @@ async fn register_baby(
     login_required(auth.clone())?;
     match ingest_new_baby(new_baby, id).await {
         Ok(baby) => {
-            update_user_session(&auth.current_user.unwrap()).await?;
+            update_user_session(auth).await?;
             Ok(baby)
         }
         Err(error) => Err(error),
@@ -71,6 +79,40 @@ async fn delete_baby(
     Path(baby_id): Path<i32>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
 ) -> impl IntoResponse {
+    let user_binding: i32 = auth.id.try_into().unwrap();
+    authorize_and_has_baby(auth.clone(), baby_id)?;
+    let message = delete_baby_service(baby_id, user_binding).await;
+    if message.is_ok() {
+        update_user_session(auth).await?;
+    }
+    message
+}
+
+async fn get_babies_for_user(
+    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
+    page: Option<Query<Pagination>>,
+) -> impl IntoResponse {
+    let id: i64 = auth.id;
+    let pagination = page.unwrap_or_default().0;
+    login_required(auth)?;
+    load_babies_for_current_user(id, pagination).await
+}
+
+async fn share_ownership(
+    Path(baby_id): Path<i32>,
+    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
+    user: Query<Username>,
+) -> impl IntoResponse {
     authorize_and_has_baby(auth, baby_id)?;
-    delete_baby_service(baby_id).await
+    let username = user.username()?;
+    add_baby_to_user_service(baby_id, &username).await
+}
+
+async fn transfer_owner(
+    Path(baby_id): Path<i32>,
+    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
+    Json(username): Json<FindUserDto>,
+) -> impl IntoResponse {
+    authorize_and_has_baby(auth, baby_id)?;
+    transfer_baby_service(baby_id, &username.username).await
 }

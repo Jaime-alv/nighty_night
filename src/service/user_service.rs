@@ -6,8 +6,8 @@ use crate::{
         query_dto::Pagination,
         traits::Mandatory,
         user_dto::{
-            AdminUserDto, FindUserDto, LoginDto, NewUserDto, UpdateUser, UpdateUserDto, UserDto,
-        },
+            FindUserDto, LoginDto, NewUserDto, UpdateUser, UpdateUserDto, UserDto,
+        }, admin_dto::AdminUserDto,
     },
     error::error::ApiError,
     model::{role_model::Rol, user_model::User},
@@ -23,7 +23,6 @@ use crate::{
 };
 
 use super::{
-    association_service::add_rol_to_user_service,
     session_service::{create_current_user, save_user_session},
     util_service::records_is_not_empty,
 };
@@ -35,16 +34,11 @@ pub async fn create_user_service(new_user: NewUserDto) -> Result<(Response, i32)
     if valid_password(&new_user.password) {
         return Err(ApiError::Generic400Error("Password too short.".into()));
     }
-    let user = create_user(new_user)?;
-    assign_rol_as_user(user.id()).await?;
+    let user = create_user(new_user, Rol::User.into())?;
     let username = user.username();
     let id_binding = user.id();
     cache_user_in_session(user).await?;
     Ok((Response::NewUser(username), id_binding))
-}
-
-async fn assign_rol_as_user(user_id: i32) -> Result<(), ApiError> {
-    add_rol_to_user_service(user_id, Rol::User).await
 }
 
 pub async fn get_all_users_service(
@@ -89,10 +83,12 @@ pub async fn find_user_by_id_service(user_id: i32) -> Result<Json<UserDto>, ApiE
     Ok(Json(user.into()))
 }
 
-pub async fn find_user_by_username_service(username: &String) -> Result<User, ApiError> {
-    Ok(load_user_by_username(username)?)
+pub async fn find_user_by_username_service(username: &str) -> Result<User, ApiError> {
+    match load_user_by_username(username) {
+        Ok(user) => Ok(user),
+        Err(_) => Err(ApiError::NoUser),
+    }
 }
-
 
 async fn cache_user_in_session(user: User) -> Result<(), ApiError> {
     let current_user = create_current_user(user).await?;

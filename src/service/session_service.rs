@@ -52,8 +52,12 @@ pub async fn save_user_session(user: &CurrentUser) -> Result<(), ApiError> {
     Ok(())
 }
 
-pub async fn update_user_session(user: &CurrentUser) -> Result<(), ApiError> {
-    let update_user = read_user_from_db(user.id().try_into().unwrap()).await?;
+pub async fn update_user_session(
+    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
+) -> Result<(), ApiError> {
+    let user_id: i32 = auth.id.try_into().unwrap();
+    clear_cache_current_user(&auth);
+    let update_user = read_user_from_db(user_id).await?;
     save_user_session(&update_user).await
 }
 
@@ -74,7 +78,7 @@ pub async fn read_user_from_db(user: i32) -> Result<CurrentUser, ApiError> {
 
 pub async fn create_current_user(current_user: User) -> Result<CurrentUser, ApiError> {
     let roles = find_roles_id(current_user.id())?;
-    let babies = find_babies_id(current_user.id())?;
+    let babies = find_babies_id(current_user.id())?.into_iter().collect();
     let translate_roles: Vec<Rol> = translate_roles(&roles.into_iter().collect::<Vec<u8>>());
 
     let user_session = CurrentUser::new(
@@ -131,4 +135,10 @@ pub fn login_required(
         true => Ok(()),
         false => Err(ApiError::LoginRequired),
     }
+}
+
+pub fn clear_cache_current_user(
+    auth: &AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
+) -> () {
+    auth.cache_clear_user(auth.id)
 }

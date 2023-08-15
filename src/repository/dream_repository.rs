@@ -5,6 +5,7 @@ use crate::{
     data::{dream_dto::UpdateDream, query_dto::Pagination},
     model::dream_model::{Dream, InsertableDream},
     schema::dreams,
+    utils::datetime::now,
 };
 
 use super::{connection_psql::establish_connection, paginator::Paginate};
@@ -102,6 +103,10 @@ pub fn dreams_paginated_from_db(
         .load_and_count_pages(conn)
 }
 
+/*
+Get first Option<date> and last Option<date> for a baby id, if both records are null, default
+to today date.
+ */
 pub fn obtain_first_and_last_dream_date(baby: i32) -> Result<(NaiveDate, NaiveDate), Error> {
     let conn = &mut establish_connection();
     let start: Option<NaiveDateTime> = dreams::table
@@ -116,5 +121,5 @@ pub fn obtain_first_and_last_dream_date(baby: i32) -> Result<(NaiveDate, NaiveDa
         .filter(dreams::to_date.is_not_null())
         .order(dreams::to_date.desc())
         .first(conn)?;
-    Ok((start.unwrap().date(), stop.unwrap().date()))
+    Ok((start.unwrap_or(now()).date(), stop.unwrap_or(now()).date()))
 }

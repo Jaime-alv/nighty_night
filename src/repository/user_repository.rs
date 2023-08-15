@@ -34,14 +34,25 @@ pub fn load_user_by_id(user_id: i32) -> Result<User, Error> {
     users::table.find(user_id).first(conn)
 }
 
-pub fn create_user<T: Into<InsertableUser>>(new_user: T) -> Result<User, Error> {
+pub fn create_user<T: Into<InsertableUser>>(new_user: T, rol: i16) -> Result<User, Error> {
     let conn = &mut establish_connection();
-    diesel::insert_into(users::table)
+    // Create user entry in db.
+    let user: Result<User, Error> = diesel::insert_into(users::table)
         .values(new_user.into())
         .returning(User::as_returning())
-        .get_result(conn)
-
-    // .execute(conn)
+        .get_result(conn);
+    let binding = match user {
+        Ok(ref value) => value.id(),
+        Err(e) => return Err(e),
+    };
+    // Associate user and rol.
+    diesel::insert_into(users_roles::table)
+        .values((
+            &users_roles::rol_id.eq(rol),
+            &users_roles::user_id.eq(binding),
+        ))
+        .execute(conn)?;
+    user
 }
 
 pub fn _exists_username<T: Into<String>>(username: T) -> bool {
@@ -65,12 +76,18 @@ pub fn find_roles_id(user_id: i32) -> Result<HashSet<u8>, Error> {
     Ok(roles)
 }
 
-pub fn find_babies_id(user_id: i32) -> Result<Vec<i32>, Error> {
+pub fn find_babies_id(user_id: i32) -> Result<HashSet<i32>, Error> {
+    let mut babies: HashSet<i32> = HashSet::new();
     let conn = &mut establish_connection();
     users_babies::table
         .filter(users_babies::user_id.eq(user_id))
         .select(users_babies::baby_id)
-        .load::<i32>(conn)
+        .load::<i32>(conn)?
+        .into_iter()
+        .for_each(|id| {
+            babies.insert(id);
+        });
+    Ok(babies)
 }
 
 pub fn patch_user_record(user_id: i32, profile: UpdateUser) -> Result<usize, Error> {

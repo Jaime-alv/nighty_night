@@ -14,10 +14,7 @@ pub struct NewUserDto {
 
 impl Mandatory for NewUserDto {
     fn data(&self) -> Vec<&str> {
-        vec![
-            self.username.as_str(),
-            self.password.as_str(),
-        ]
+        vec![self.username.as_str(), self.password.as_str()]
     }
 }
 
@@ -45,16 +42,6 @@ impl UserDto {
     }
 }
 
-#[derive(Serialize)]
-pub struct AdminUserDto {
-    pub id: i32,
-    pub username: String,
-    pub email: Option<String>,
-    pub active: bool,
-    pub created_at: NaiveDateTime,
-    pub updated_at: Option<NaiveDateTime>,
-}
-
 #[derive(Debug, Deserialize)]
 pub struct FindUserDto {
     pub username: String,
@@ -72,12 +59,11 @@ impl Mandatory for LoginDto {
     }
 }
 
-
 #[derive(Deserialize)]
 pub struct UpdateUserDto {
     pub email: Option<String>,
     pub name: Option<String>,
-    pub surname: Option<String>
+    pub surname: Option<String>,
 }
 
 pub struct UpdateUser {
@@ -85,5 +71,5 @@ pub struct UpdateUser {
     pub name: Option<String>,
     pub surname: Option<String>,
     pub email: Option<String>,
-    pub update_at: Option<NaiveDateTime>
+    pub update_at: Option<NaiveDateTime>,
 }
