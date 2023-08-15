@@ -9,10 +9,10 @@ use crate::{
     error::error::ApiError,
     model::baby_model::InsertableBaby,
     repository::{
-        association_repository::delete_baby_association,
+        association_repository::{add_baby_to_user, delete_baby_association},
         baby_repository::{
             delete_baby_from_db, get_all_babies_with_id, ingest_new_baby_in_db, load_baby_by_id,
-            patch_baby_record, query_babies,
+            patch_baby_record, query_babies, transfer_baby_records,
         },
     },
     utils::{
@@ -21,7 +21,10 @@ use crate::{
     },
 };
 
-use super::{session_service::load_user_session, util_service::records_is_not_empty};
+use super::{
+    session_service::load_user_session, user_service::find_user_by_username_service,
+    util_service::records_is_not_empty,
+};
 
 pub async fn ingest_new_baby<T>(
     new_baby: InputBabyDto,
@@ -103,4 +106,13 @@ pub async fn load_babies_for_current_user(
             .map(|baby| baby.into())
             .collect(),
     ))
+}
+
+pub async fn transfer_baby_service(baby_id: i32, username: &str) -> Result<Response, ApiError> {
+    let user = find_user_by_username_service(username).await?;
+    add_baby_to_user(user.id(), baby_id)?;
+    match transfer_baby_records(baby_id, user.id()) {
+        Ok(_) => Ok(Response::UpdateRecord),
+        Err(error) => Err(error.into()),
+    }
 }

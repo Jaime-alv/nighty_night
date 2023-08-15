@@ -11,13 +11,14 @@ use crate::{
     data::{
         baby_dto::InputBabyDto,
         query_dto::{Pagination, Username},
+        user_dto::FindUserDto,
     },
     model::session_model::CurrentUser,
     service::{
         association_service::add_baby_to_user_service,
         baby_service::{
             delete_baby_service, find_baby_service, ingest_new_baby, load_babies_for_current_user,
-            patch_baby_service,
+            patch_baby_service, transfer_baby_service,
         },
         session_service::{authorize_and_has_baby, login_required, update_user_session},
     },
@@ -34,7 +35,10 @@ pub(crate) fn route_baby() -> Router {
             "/:baby_id",
             get(find_baby_by_id).patch(patch_baby).delete(delete_baby),
         )
-        .route("/:baby_id/share", post(share_ownership))
+        .route(
+            "/:baby_id/share",
+            post(share_ownership).patch(transfer_owner),
+        )
         .merge(route_meal())
         .merge(route_dream())
         .merge(route_weight());
@@ -82,7 +86,7 @@ async fn delete_baby(
     let message = delete_baby_service(baby_id, user_binding).await;
     if message.is_ok() {
         update_user_session(auth).await?;
-    }    
+    }
     message
 }
 
@@ -104,4 +108,13 @@ async fn share_ownership(
     authorize_and_has_baby(auth, baby_id)?;
     let username = user.username()?;
     add_baby_to_user_service(baby_id, &username).await
+}
+
+async fn transfer_owner(
+    Path(baby_id): Path<i32>,
+    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
+    Json(username): Json<FindUserDto>,
+) -> impl IntoResponse {
+    authorize_and_has_baby(auth, baby_id)?;
+    transfer_baby_service(baby_id, &username.username).await
 }
