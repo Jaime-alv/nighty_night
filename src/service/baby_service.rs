@@ -30,6 +30,7 @@ pub async fn ingest_new_baby<T>(
 where
     T: Into<i32>,
 {
+    let user: i32 = current_user.into();
     if new_baby.name.is_none() {
         return Err(ApiError::EmptyBody);
     }
@@ -37,8 +38,8 @@ where
         Some(day) => convert_to_date(&day)?,
         None => today(),
     };
-    let insert_baby = InsertableBaby::new(new_baby.name.unwrap(), birthdate);
-    let baby = ingest_new_baby_in_db(insert_baby, current_user.into())?;
+    let insert_baby = InsertableBaby::new(new_baby.name.unwrap(), birthdate, user);
+    let baby = ingest_new_baby_in_db(insert_baby, user)?;
     Ok(Json(baby.into()))
 }
 
@@ -84,15 +85,10 @@ association between user and baby.
 pub async fn delete_baby_service(baby_id: i32, user: i32) -> Result<Response, ApiError> {
     let baby = load_baby_by_id(baby_id)?;
     match baby.belongs_to().eq(&user) {
-        true => {
-            delete_baby_from_db(baby_id)?;
-            Ok(Response::DeleteRecord)
-        }
-        false => {
-            delete_baby_association(baby_id, user)?;
-            Ok(Response::DeleteRecord)
-        }
-    }
+        true => delete_baby_from_db(baby_id)?,
+        false => delete_baby_association(baby_id, user)?,
+    };
+    Ok(Response::DeleteRecord)
 }
 
 pub async fn load_babies_for_current_user(
