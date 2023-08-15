@@ -308,6 +308,7 @@ data:
 | /:baby_id                         | `patch`  | Update baby info by id                       | Path: i32 \| Body: Json       | {name, birthdate} |
 | /:baby_id                         | `delete` | Delete baby and all records associated to it | Path: i32                     |                   |
 | /:baby_id/share?username=username | `post`   | Associate current baby to another username   | Path: i32 \| username: String |                   |
+| /:baby_id/transfer                | `patch`  | Transfer current baby to another username    | Path: i32 \| Body: Json       | {username}        |
 
 ### Meals: `/api/baby/:baby_id`
 
