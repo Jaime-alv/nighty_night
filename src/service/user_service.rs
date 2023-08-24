@@ -1,19 +1,20 @@
 use axum::Json;
+use chrono::Days;
 
 use crate::{
     configuration::constant::GlobalCte,
     data::{
+        admin_dto::AdminUserDto,
         query_dto::Pagination,
         traits::Mandatory,
-        user_dto::{
-            FindUserDto, LoginDto, NewUserDto, UpdateUser, UpdateUserDto, UserDto,
-        }, admin_dto::AdminUserDto,
+        user_dto::{FindUserDto, LoginDto, NewUserDto, UpdateUser, UpdateUserDto, UserDto},
     },
     error::error::ApiError,
     model::{role_model::Rol, user_model::User},
     repository::user_repository::{
-        alter_active_status_for_user, create_user, delete_user_from_db, load_user_by_id,
-        load_user_by_username, patch_user_record, query_users,
+        alter_active_status_for_user, create_user, delete_user_from_db,
+        delete_users_from_db_in_batch, load_user_by_id, load_user_by_username, patch_user_record,
+        query_users,
     },
     utils::{
         datetime::now,
@@ -130,7 +131,8 @@ pub async fn alter_active_user_service(user_id: i32, active: bool) -> Result<Res
     Ok(Response::ActiveStatusUpdate)
 }
 
-/// User must be active = false and last updated 180 days ago (as per DeleteAccount const).
+/// User must be active = false, last updated 180 days ago (as per DeleteAccount const)
+/// and user must not be current user.
 pub async fn delete_user_service(user_id: i32, current_user: i32) -> Result<Response, ApiError> {
     let user = load_user_by_id(user_id)?;
     let inactive_period: i64 = GlobalCte::DeleteAccount.get().into();
@@ -143,4 +145,11 @@ pub async fn delete_user_service(user_id: i32, current_user: i32) -> Result<Resp
     } else {
         Err(ApiError::Forbidden)
     }
+}
+
+pub async fn delete_old_users_service() -> Result<Response, ApiError> {
+    let inactive_period: u64 = GlobalCte::DeleteAccount.get().into();
+    let older_than = now().checked_sub_days(Days::new(inactive_period)).unwrap();
+    let rows = delete_users_from_db_in_batch(older_than)?;
+    Ok(Response::DeleteXRecords(rows))
 }
