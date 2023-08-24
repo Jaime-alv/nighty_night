@@ -117,3 +117,13 @@ pub fn delete_user_from_db(user: i32) -> Result<usize, Error> {
     let conn = &mut establish_connection();
     diesel::delete(users::table.find(user)).execute(conn)
 }
+
+pub fn delete_users_from_db_in_batch(older_than: NaiveDateTime) -> Result<usize, Error> {
+    let conn = &mut establish_connection();
+    diesel::delete(
+        users::table
+            .filter(users::active.eq(false))
+            .filter(users::updated_at.le(older_than)),
+    )
+    .execute(conn)
+}

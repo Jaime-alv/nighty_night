@@ -6,6 +6,7 @@ pub enum Response {
     NewRecord,
     UpdateRecord,
     DeleteRecord,
+    DeleteXRecords(usize),
     UserLogIn(String),
     NewUser(String),
     ActiveStatusUpdate,
@@ -28,6 +29,9 @@ impl Response {
                 (StatusCode::ACCEPTED, "User status update.".to_string())
             }
             Response::LogoutUser => (StatusCode::ACCEPTED, "User logged out".to_string()),
+            Response::DeleteXRecords(number) => {
+                (StatusCode::ACCEPTED, format!("{number} records deleted."))
+            }
         }
     }
 }

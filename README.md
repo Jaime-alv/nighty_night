@@ -362,7 +362,8 @@ data:
 | -------------- | -------- | ---------------------------------- | -------------- | --------- |
 | /user          | `get`    | Get all users in db                |                |           |
 | /user          | `patch`  | Activate user by id                | entry: Integer |           |
-| /user          | `delete` | Delete a user by id                | entry: Integer |           |
+| /user          | `delete` | Delete all inactive users          |                |           |
+| /user?entry=X  | `delete` | Delete a user by id                | entry: Integer |           |
 | /baby          | `get`    | Get all babies in db               |                |           |
 | /baby/:baby_id | `get`    | Get baby info by id                | Path: i32      |           |
 | /stats         | `get`    | Get number of records & statistics |                |           |

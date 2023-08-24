@@ -14,7 +14,7 @@ use crate::{
         admin_service::show_stats_service,
         baby_service::{find_baby_service, get_all_babies_service},
         session_service::current_user_is_admin,
-        user_service::{alter_active_user_service, delete_user_service, get_all_users_service},
+        user_service::{alter_active_user_service, delete_user_service, get_all_users_service, delete_old_users_service},
     },
 };
 
@@ -50,11 +50,14 @@ async fn get_all_users(
 
 async fn delete_user(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
-    user_id: Query<IdDto>,
+    user_id: Option<Query<IdDto>>,
 ) -> impl IntoResponse {
     let binding: i32 = auth.id.try_into().unwrap();
     current_user_is_admin(auth)?;
-    delete_user_service(user_id.id(), binding).await
+    match user_id {
+        Some(value) => delete_user_service(value.id(), binding).await,
+        None => delete_old_users_service().await,
+    }    
 }
 
 async fn activate_user(
