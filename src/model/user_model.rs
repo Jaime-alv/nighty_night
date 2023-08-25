@@ -4,7 +4,7 @@ use serde::Serialize;
 
 use crate::{schema::users, security::security::verify_password};
 
-#[derive(Queryable, Selectable, Identifiable, Debug)]
+#[derive(Queryable, Selectable, Identifiable)]
 #[diesel(table_name = users)]
 pub struct User {
     id: i32,
