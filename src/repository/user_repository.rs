@@ -13,7 +13,7 @@ use super::{connection_psql::establish_connection, paginator::Paginate};
 
 ///
 /// Get all users from database.
-pub fn query_users(pagination: Pagination) -> Result<(Vec<User>, u32), Error> {
+pub fn query_users(pagination: Pagination) -> Result<(Vec<User>, i64), Error> {
     let conn = &mut establish_connection();
     users::table
         .select(users::all_columns)

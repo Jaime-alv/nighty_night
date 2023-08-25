@@ -22,7 +22,6 @@ mod app;
 mod configuration;
 mod controller;
 mod data;
-mod error;
 mod mapping;
 mod model;
 mod repository;
@@ -30,6 +29,7 @@ mod schema;
 mod security;
 mod service;
 mod utils;
+mod response;
 
 #[tokio::main]
 async fn main() {

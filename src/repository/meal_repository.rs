@@ -23,7 +23,7 @@ where
 pub fn get_all_meals_from_baby(
     baby: i32,
     pagination: Pagination,
-) -> Result<(Vec<Meal>, u32), Error> {
+) -> Result<(Vec<Meal>, i64), Error> {
     let conn = &mut establish_connection();
     meals::table
         .filter(meals::baby_id.eq(baby))
@@ -75,7 +75,7 @@ pub fn meals_paginated_from_db(
     from_date: NaiveDate,
     to_date: NaiveDate,
     pagination: Pagination,
-) -> Result<(Vec<Meal>, u32), Error> {
+) -> Result<(Vec<Meal>, i64), Error> {
     let conn = &mut establish_connection();
     let from = from_date.and_hms_opt(0, 0, 1).unwrap();
     let to = to_date.and_hms_opt(23, 59, 59).unwrap();

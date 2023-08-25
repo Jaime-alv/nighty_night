@@ -1,4 +1,3 @@
-use axum::Json;
 use chrono::{Days, NaiveDate};
 
 use crate::{
@@ -6,15 +5,14 @@ use crate::{
         dream_dto::{DreamDto, InputDreamDto, UpdateDream},
         query_dto::Pagination,
     },
-    error::error::ApiError,
     model::dream_model::{Dream, InsertableDream},
     repository::dream_repository::{
         delete_dream_from_db, dreams_paginated_from_db, find_dream_by_id, get_all_dreams_from_baby,
         ingest_new_dream, patch_dream_record, update_last_dream,
     },
+    response::{data_response::{PageInfo, PagedResponse}, response::Response, error::ApiError},
     utils::{
         datetime::{convert_to_date_time, today},
-        response::Response,
     },
 };
 
@@ -80,23 +78,30 @@ pub async fn get_dreams_by_range_date(
     from_date: NaiveDate,
     to_date: NaiveDate,
     pagination: Pagination,
-) -> Result<Json<Vec<DreamDto>>, ApiError> {
-    let (dreams, _total_pages) = dreams_paginated_from_db(baby_id, pagination, from_date, to_date)?;
-    Ok(into_json(records_is_not_empty(dreams)?))
+) -> Result<PagedResponse<Vec<DreamDto>>, ApiError> {
+    let current = pagination.page();
+    let (dreams, total_pages) = dreams_paginated_from_db(baby_id, pagination, from_date, to_date)?;
+    let dreams: Vec<DreamDto> = into_dreams_dto(dreams)?;
+    let pager = PageInfo::new(current, total_pages);
+    let response = PagedResponse::new(dreams, pager);
+    Ok(response)
 }
 
 pub async fn filter_dreams_by_last_days(
     baby_id: i32,
     last_days: u32,
     pagination: Pagination,
-) -> Result<Json<Vec<DreamDto>>, ApiError> {
+) -> Result<PagedResponse<Vec<DreamDto>>, ApiError> {
     let today = today();
     let from_date = today.checked_sub_days(Days::new(last_days.into())).unwrap();
     get_dreams_by_range_date(baby_id, from_date, today, pagination).await
 }
 
-fn into_json(dreams: Vec<Dream>) -> Json<Vec<DreamDto>> {
-    Json(dreams.into_iter().map(|dream| dream.into()).collect())
+fn into_dreams_dto(dreams: Vec<Dream>) -> Result<Vec<DreamDto>, ApiError> {
+    Ok(records_is_not_empty(dreams)?
+        .into_iter()
+        .map(|dream| dream.into())
+        .collect())
 }
 
 pub async fn delete_dream_service(record: i32, baby_id: i32) -> Result<Response, ApiError> {
@@ -109,7 +114,11 @@ pub async fn delete_dream_service(record: i32, baby_id: i32) -> Result<Response,
 pub async fn get_dreams_paginated_service(
     baby_id: i32,
     pagination: Pagination,
-) -> Result<Json<Vec<DreamDto>>, ApiError> {
-    let (dreams, _total_pages) = get_all_dreams_from_baby(baby_id, pagination)?;
-    Ok(into_json(records_is_not_empty(dreams)?))
+) -> Result<PagedResponse<Vec<DreamDto>>, ApiError> {
+    let current = pagination.page();
+    let (dreams, total_pages) = get_all_dreams_from_baby(baby_id, pagination)?;
+    let dreams: Vec<DreamDto> = into_dreams_dto(dreams)?;
+    let pager = PageInfo::new(current, total_pages);
+    let response = PagedResponse::new(dreams, pager);
+    Ok(response)
 }

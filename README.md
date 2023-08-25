@@ -382,6 +382,25 @@ Pagination is implemented by default in `get` requests for:
 6. `/api/baby/:baby_id/meals/summary`
 7. `/api/baby/:baby_id/weights`
 
+Response is like:
+
+```json
+{
+  "data": [
+    {
+      "added_on": "2023-08-01T12:31:21.198923",
+      "belongs_to": 2,
+      "id": 1,
+      "name": "BabyName"
+    }
+  ],
+  "page_info": {
+    "current": 1,
+    "total_pages": 1
+  }
+}
+```
+
 ## Docs
 
 [Axum](https://docs.rs/axum/latest/axum/)

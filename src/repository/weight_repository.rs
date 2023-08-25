@@ -22,7 +22,7 @@ where
 pub fn get_all_weights_from_baby(
     baby: i32,
     pagination: Pagination,
-) -> Result<(Vec<Weight>, u32), Error> {
+) -> Result<(Vec<Weight>, i64), Error> {
     let conn = &mut establish_connection();
     weights::table
         .filter(weights::baby_id.eq(baby))
@@ -57,7 +57,7 @@ pub fn weights_paginated_from_db(
     from: NaiveDate,
     to: NaiveDate,
     pagination: Pagination,
-) -> Result<(Vec<Weight>, u32), Error> {
+) -> Result<(Vec<Weight>, i64), Error> {
     let conn = &mut establish_connection();
     weights::table
         .filter(weights::baby_id.eq(baby_id))

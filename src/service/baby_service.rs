@@ -6,7 +6,6 @@ use crate::{
         baby_dto::{BabyDto, InputBabyDto, UpdateBaby},
         query_dto::Pagination,
     },
-    error::error::ApiError,
     model::baby_model::InsertableBaby,
     repository::{
         association_repository::{add_baby_to_user, delete_baby_association},
@@ -15,10 +14,12 @@ use crate::{
             patch_baby_record, query_babies, transfer_baby_records,
         },
     },
-    utils::{
-        datetime::{convert_to_date, today},
+    response::{
+        data_response::{PageInfo, PagedResponse},
+        error::ApiError,
         response::Response,
     },
+    utils::datetime::{convert_to_date, today},
 };
 
 use super::{
@@ -53,14 +54,16 @@ pub async fn find_baby_service(baby_id: i32) -> Result<Json<BabyDto>, ApiError> 
 
 pub async fn get_all_babies_service(
     pagination: Pagination,
-) -> Result<Json<Vec<AdminBabyDto>>, ApiError> {
-    let (babies, _pages) = query_babies(pagination)?;
-    Ok(Json(
-        records_is_not_empty(babies)?
-            .into_iter()
-            .map(|baby| baby.into())
-            .collect(),
-    ))
+) -> Result<PagedResponse<Vec<AdminBabyDto>>, ApiError> {
+    let current = pagination.page();
+    let (babies, total_pages) = query_babies(pagination)?;
+    let babies: Vec<AdminBabyDto> = records_is_not_empty(babies)?
+        .into_iter()
+        .map(|baby| baby.into())
+        .collect();
+    let pager = PageInfo::new(current, total_pages);
+    let response = PagedResponse::new(babies, pager);
+    Ok(response)
 }
 
 pub async fn patch_baby_service(baby_id: i32, update: InputBabyDto) -> Result<Response, ApiError> {

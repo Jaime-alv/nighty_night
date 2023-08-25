@@ -1,4 +1,3 @@
-use axum::Json;
 use chrono::{Days, NaiveDate};
 
 use crate::{
@@ -6,16 +5,17 @@ use crate::{
         meal_dto::{InputMealDto, MealDto, UpdateMeal},
         query_dto::Pagination,
     },
-    error::error::ApiError,
     model::meals_model::{InsertableMeal, Meal},
     repository::meal_repository::{
-        delete_meal_from_db, find_meal_by_id, get_all_meals_from_baby,
-        ingest_meal, meals_paginated_from_db, patch_meal_record,
+        delete_meal_from_db, find_meal_by_id, get_all_meals_from_baby, ingest_meal,
+        meals_paginated_from_db, patch_meal_record,
     },
-    utils::{
-        datetime::{convert_to_date_time, now, today},
+    response::{
+        data_response::{PageInfo, PagedResponse},
+        error::ApiError,
         response::Response,
     },
+    utils::datetime::{convert_to_date_time, now, today},
 };
 
 use super::util_service::{
@@ -78,24 +78,31 @@ pub async fn filter_meals_by_range(
     from_date: NaiveDate,
     to_date: NaiveDate,
     pagination: Pagination,
-) -> Result<Json<Vec<MealDto>>, ApiError> {
-    let (meals, _total_pages) = meals_paginated_from_db(baby_id, from_date, to_date, pagination)?;
-    Ok(into_json(records_is_not_empty(meals)?))
+) -> Result<PagedResponse<Vec<MealDto>>, ApiError> {
+    let current = pagination.page();
+    let (meals, total_pages) = meals_paginated_from_db(baby_id, from_date, to_date, pagination)?;
+    let dreams: Vec<MealDto> = into_meals_dto(meals)?;
+    let pager = PageInfo::new(current, total_pages);
+    let response = PagedResponse::new(dreams, pager);
+    Ok(response)
 }
 
 pub async fn filter_meals_by_last_days(
     baby_id: i32,
     last_days: u32,
-    pagination: Pagination
-) -> Result<Json<Vec<MealDto>>, ApiError> {
+    pagination: Pagination,
+) -> Result<PagedResponse<Vec<MealDto>>, ApiError> {
     let from_date = today()
         .checked_sub_days(Days::new(last_days.into()))
         .unwrap();
     filter_meals_by_range(baby_id, from_date, today(), pagination).await
 }
 
-fn into_json(meals: Vec<Meal>) -> Json<Vec<MealDto>> {
-    Json(meals.into_iter().map(|meal| meal.into()).collect())
+fn into_meals_dto(meals: Vec<Meal>) -> Result<Vec<MealDto>, ApiError> {
+    Ok(records_is_not_empty(meals)?
+        .into_iter()
+        .map(|dream| dream.into())
+        .collect())
 }
 
 pub async fn delete_meal_service(record: i32, baby_id: i32) -> Result<Response, ApiError> {
@@ -108,7 +115,11 @@ pub async fn delete_meal_service(record: i32, baby_id: i32) -> Result<Response, 
 pub async fn get_all_meals_paginated_service(
     baby_id: i32,
     pagination: Pagination,
-) -> Result<Json<Vec<MealDto>>, ApiError> {
-    let (meals, _total_pages) = get_all_meals_from_baby(baby_id, pagination)?;
-    Ok(into_json(records_is_not_empty(meals)?))
+) -> Result<PagedResponse<Vec<MealDto>>, ApiError> {
+    let current = pagination.page();
+    let (meals, total_pages) = get_all_meals_from_baby(baby_id, pagination)?;
+    let meals = into_meals_dto(meals)?;
+    let pager = PageInfo::new(current, total_pages);
+    let response = PagedResponse::new(meals, pager);
+    Ok(response)
 }
