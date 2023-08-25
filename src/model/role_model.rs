@@ -2,7 +2,7 @@ use diesel::{Identifiable, Queryable, Selectable};
 
 use crate::schema::roles;
 
-#[derive(Queryable, Selectable, Identifiable, Debug)]
+#[derive(Queryable, Selectable, Identifiable)]
 #[diesel(table_name = roles)]
 pub struct Role {
     id: i16,
