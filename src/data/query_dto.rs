@@ -3,7 +3,7 @@ use serde::Deserialize;
 
 use crate::{
     configuration::constant::GlobalCte,
-    error::error::ApiError,
+    response::error::ApiError,
     utils::datetime::{convert_to_date, format_date, today},
 };
 
@@ -133,38 +133,40 @@ impl Username {
 
 #[derive(Deserialize, Debug)]
 pub struct Pagination {
-    page: u32,
-    per_page: Option<u32>,
+    page: i32,
+    per_page: Option<i32>,
 }
 
 impl Default for Pagination {
     fn default() -> Self {
         Self {
             page: 1,
-            per_page: Some(GlobalCte::RecordsPerPage.get()),
+            per_page: Some(GlobalCte::RecordsPerPage.get().try_into().unwrap()),
         }
     }
 }
 
 impl Pagination {
-    pub fn new(page: u32, per_page: Option<u32>) -> Self {
+    pub fn new(page: i32, per_page: Option<i32>) -> Self {
         Self { page, per_page }
     }
 
-    pub fn page(&self) -> u32 {
-        self.page
+    pub fn page(&self) -> i64 {
+        self.page.into()
     }
 
-    pub fn per_page(&self) -> u32 {
+    pub fn per_page(&self) -> i64 {
+        let threshold: i64 = GlobalCte::MaxPaginationThreshold.get().try_into().unwrap();
         match self.per_page {
             Some(quantity) => {
-                if quantity.gt(&GlobalCte::MaxPaginationThreshold.get()) {
-                    GlobalCte::MaxPaginationThreshold.get()
+                let bind: i64 = quantity.into();
+                if bind.gt(&threshold) {
+                    threshold
                 } else {
-                    quantity
+                    bind
                 }
             }
-            None => GlobalCte::RecordsPerPage.get(),
+            None => GlobalCte::RecordsPerPage.get().try_into().unwrap(),
         }
     }
 }

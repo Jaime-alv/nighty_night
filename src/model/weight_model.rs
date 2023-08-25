@@ -3,7 +3,7 @@ use diesel::{Identifiable, Insertable, Queryable};
 
 use crate::{schema::weights, utils::datetime::format_date};
 
-#[derive(Queryable, Identifiable)]
+#[derive(Queryable, Identifiable, Debug)]
 #[diesel(table_name = weights)]
 pub struct Weight {
     id: i32,

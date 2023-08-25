@@ -23,7 +23,7 @@ where
 pub fn get_all_dreams_from_baby(
     baby: i32,
     pagination: Pagination,
-) -> Result<(Vec<Dream>, u32), Error> {
+) -> Result<(Vec<Dream>, i64), Error> {
     let conn = &mut establish_connection();
     dreams::table
         .filter(dreams::baby_id.eq(baby))
@@ -89,7 +89,7 @@ pub fn dreams_paginated_from_db(
     pagination: Pagination,
     from: NaiveDate,
     to: NaiveDate,
-) -> Result<(Vec<Dream>, u32), Error> {
+) -> Result<(Vec<Dream>, i64), Error> {
     let conn = &mut establish_connection();
     let from_timestamp = from.and_hms_opt(0, 0, 1).unwrap();
     let to_timestamp = to.and_hms_opt(23, 59, 59).unwrap();

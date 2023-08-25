@@ -3,7 +3,7 @@ use std::num::{ParseIntError, TryFromIntError};
 use diesel::result::Error;
 use redis::RedisError;
 
-use crate::error::error::ApiError;
+use crate::response::error::ApiError;
 
 impl From<chrono::ParseError> for ApiError {
     fn from(value: chrono::ParseError) -> Self {

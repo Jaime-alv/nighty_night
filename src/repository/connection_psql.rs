@@ -2,7 +2,7 @@ use diesel::pg::PgConnection;
 use diesel::prelude::*;
 
 use crate::configuration::settings::Setting;
-use crate::error::error::ApiError;
+use crate::response::error::ApiError;
 
 pub fn establish_connection() -> PgConnection {
     let database_url = Setting::DatabaseUrl.get();

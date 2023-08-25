@@ -9,16 +9,15 @@ use crate::{
         traits::Mandatory,
         user_dto::{FindUserDto, LoginDto, NewUserDto, UpdateUser, UpdateUserDto, UserDto},
     },
-    error::error::ApiError,
     model::{role_model::Rol, user_model::User},
     repository::user_repository::{
         alter_active_status_for_user, create_user, delete_user_from_db,
         delete_users_from_db_in_batch, load_user_by_id, load_user_by_username, patch_user_record,
         query_users,
     },
+    response::{data_response::{PageInfo, PagedResponse}, error::ApiError, response::Response},
     utils::{
         datetime::now,
-        response::Response,
         validator::{valid_password, validate_fields},
     },
 };
@@ -44,14 +43,16 @@ pub async fn create_user_service(new_user: NewUserDto) -> Result<(Response, i32)
 
 pub async fn get_all_users_service(
     pagination: Pagination,
-) -> Result<Json<Vec<AdminUserDto>>, ApiError> {
-    let (users, _pages) = query_users(pagination)?;
-    Ok(Json(
-        records_is_not_empty(users)?
-            .into_iter()
-            .map(|user| user.into())
-            .collect(),
-    ))
+) -> Result<PagedResponse<Vec<AdminUserDto>>, ApiError> {
+    let current = pagination.page();
+    let (users, pages) = query_users(pagination)?;
+    let users: Vec<AdminUserDto> = records_is_not_empty(users)?
+        .into_iter()
+        .map(|user| user.into())
+        .collect();
+    let pager = PageInfo::new(current, pages);
+    let response = PagedResponse::new(users, pager);
+    Ok(response)
 }
 
 pub async fn find_user_service(user: FindUserDto) -> Result<Json<UserDto>, ApiError> {

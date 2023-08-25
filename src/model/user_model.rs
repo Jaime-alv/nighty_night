@@ -1,9 +1,10 @@
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
+use serde::Serialize;
 
 use crate::{schema::users, security::security::verify_password};
 
-#[derive(Queryable, Selectable, Identifiable)]
+#[derive(Queryable, Selectable, Identifiable, Debug)]
 #[diesel(table_name = users)]
 pub struct User {
     id: i32,

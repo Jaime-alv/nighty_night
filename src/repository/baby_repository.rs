@@ -38,7 +38,7 @@ pub fn load_baby_by_id(id: i32) -> Result<Baby, Error> {
     babies::table.find(id).first(conn)
 }
 
-pub fn query_babies(pagination: Pagination) -> Result<(Vec<Baby>, u32), Error> {
+pub fn query_babies(pagination: Pagination) -> Result<(Vec<Baby>, i64), Error> {
     let conn = &mut establish_connection();
     babies::table
         .select(babies::all_columns)
@@ -65,7 +65,7 @@ pub fn delete_baby_from_db(baby: i32) -> Result<usize, Error> {
 pub fn get_all_babies_with_id(
     babies: Vec<i32>,
     pagination: Pagination,
-) -> Result<(Vec<Baby>, u32), Error> {
+) -> Result<(Vec<Baby>, i64), Error> {
     let conn = &mut establish_connection();
     babies::table
         .filter(babies::id.eq_any(babies))

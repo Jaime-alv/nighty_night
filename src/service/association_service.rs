@@ -1,8 +1,7 @@
 use crate::{
-    error::error::ApiError,
     model::role_model::Rol,
     repository::association_repository::{add_baby_to_user, add_rol_to_user},
-    utils::response::Response,
+    response::{error::ApiError, response::Response},
 };
 
 use super::user_service::find_user_by_username_service;

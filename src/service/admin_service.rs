@@ -2,8 +2,8 @@ use axum::Json;
 use serde::Serialize;
 
 use crate::{
-    error::error::ApiError,
     repository::admin_repository::{count_records, StatsDB},
+    response::error::ApiError,
 };
 
 #[derive(Serialize)]

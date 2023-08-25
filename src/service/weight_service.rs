@@ -1,4 +1,3 @@
-use axum::Json;
 use chrono::{Days, NaiveDate};
 
 use crate::{
@@ -6,16 +5,17 @@ use crate::{
         query_dto::Pagination,
         weight_dto::{InputWeightDto, UpdateWeight, WeightDto},
     },
-    error::error::ApiError,
     model::weight_model::{InsertableWeight, Weight},
     repository::weight_repository::{
         delete_weight_from_db, find_weight_by_id, get_all_weights_from_baby, ingest_weight,
         patch_weight_record, weights_paginated_from_db,
     },
-    utils::{
-        datetime::{convert_to_date, today},
+    response::{
+        data_response::{PageInfo, PagedResponse},
+        error::ApiError,
         response::Response,
     },
+    utils::datetime::{convert_to_date, today},
 };
 
 use super::util_service::{record_belongs_to_baby, records_is_not_empty};
@@ -36,9 +36,13 @@ pub async fn post_weight_service(
 pub async fn get_weights_service(
     baby_id: i32,
     pagination: Pagination,
-) -> Result<Json<Vec<WeightDto>>, ApiError> {
-    let (measures, _total_pages) = get_all_weights_from_baby(baby_id, pagination)?;
-    Ok(into_json(records_is_not_empty(measures)?))
+) -> Result<PagedResponse<Vec<WeightDto>>, ApiError> {
+    let current = pagination.page();
+    let (measures, total_pages) = get_all_weights_from_baby(baby_id, pagination)?;
+    let measures = into_weight_dto(measures)?;
+    let pager = PageInfo::new(current, total_pages);
+    let response = PagedResponse::new(measures, pager);
+    Ok(response)
 }
 
 pub async fn get_weight_range_service(
@@ -46,16 +50,20 @@ pub async fn get_weight_range_service(
     from: NaiveDate,
     to: NaiveDate,
     pagination: Pagination,
-) -> Result<Json<Vec<WeightDto>>, ApiError> {
-    let (measures, _total_pages) = weights_paginated_from_db(baby_id, from, to, pagination)?;
-    Ok(into_json(records_is_not_empty(measures)?))
+) -> Result<PagedResponse<Vec<WeightDto>>, ApiError> {
+    let current = pagination.page();
+    let (measures, total_pages) = weights_paginated_from_db(baby_id, from, to, pagination)?;
+    let measures = into_weight_dto(measures)?;
+    let pager = PageInfo::new(current, total_pages);
+    let response = PagedResponse::new(measures, pager);
+    Ok(response)
 }
 
 pub async fn filter_weights_by_last_days(
     baby_id: i32,
     last_days: u32,
     pagination: Pagination,
-) -> Result<Json<Vec<WeightDto>>, ApiError> {
+) -> Result<PagedResponse<Vec<WeightDto>>, ApiError> {
     let today = today();
     let from = today.checked_sub_days(Days::new(last_days.into())).unwrap();
     get_weight_range_service(baby_id, from, today, pagination).await
@@ -84,8 +92,11 @@ pub async fn patch_weight_service(
     Ok(Response::UpdateRecord)
 }
 
-fn into_json(weights: Vec<Weight>) -> Json<Vec<WeightDto>> {
-    Json(weights.into_iter().map(|measure| measure.into()).collect())
+fn into_weight_dto(measures: Vec<Weight>) -> Result<Vec<WeightDto>, ApiError> {
+    Ok(records_is_not_empty(measures)?
+        .into_iter()
+        .map(|measure| measure.into())
+        .collect())
 }
 
 pub async fn delete_weight_service(record: i32, baby_id: i32) -> Result<Response, ApiError> {
