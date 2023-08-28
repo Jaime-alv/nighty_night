@@ -15,7 +15,7 @@ pub enum ApiError {
     DuplicateUser,
     NoUser,
     NoActiveUser,
-    NotFound,
+    PageNotFound,
     NoRecord,
     LoginRequired,
     DatesUnordered,
@@ -46,7 +46,7 @@ impl ApiError {
                 StatusCode::UNAUTHORIZED,
                 String::from("User is not active."),
             ),
-            ApiError::NotFound => (
+            ApiError::PageNotFound => (
                 StatusCode::NOT_FOUND,
                 String::from("This is not the page you are looking for."),
             ),
