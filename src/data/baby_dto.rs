@@ -10,11 +10,17 @@ pub struct InputBabyDto {
 #[derive(Serialize)]
 pub struct BabyDto {
     pub id: i32,
-    pub name: String,
-    pub birthdate: String
+    pub r#type: &'static str,
+    pub attributes: BabyAttributes,
 }
 
 pub struct UpdateBaby {
     pub name: String,
-    pub birthdate: NaiveDate
+    pub birthdate: NaiveDate,
+}
+
+#[derive(Serialize)]
+pub struct BabyAttributes {
+    pub name: String,
+    pub birthdate: String,
 }
