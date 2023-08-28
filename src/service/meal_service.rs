@@ -11,9 +11,8 @@ use crate::{
         meals_paginated_from_db, patch_meal_record,
     },
     response::{
-        data_response::{PageInfo, PagedResponse},
         error::ApiError,
-        response::Response,
+        response::{MsgResponse, PagedResponse},
     },
     utils::datetime::{convert_to_date_time, now, today},
 };
@@ -22,7 +21,7 @@ use super::util_service::{
     date_time_are_in_order, record_belongs_to_baby, records_is_not_empty, uncover_date,
 };
 
-pub async fn post_meal_service(new_meal: InputMealDto, baby_id: i32) -> Result<Response, ApiError> {
+pub async fn post_meal_service(new_meal: InputMealDto, baby_id: i32) -> Result<MsgResponse, ApiError> {
     let timestamp = uncover_date(new_meal.date)?;
     let timestamp_to_time = uncover_date(new_meal.to_time)?;
     let meal = InsertableMeal::new(
@@ -32,14 +31,14 @@ pub async fn post_meal_service(new_meal: InputMealDto, baby_id: i32) -> Result<R
         timestamp_to_time,
     );
     ingest_meal(meal)?;
-    Ok(Response::NewRecord)
+    Ok(MsgResponse::NewRecord)
 }
 
 pub async fn patch_meal_service(
     meal: InputMealDto,
     record: i32,
     baby_id: i32,
-) -> Result<Response, ApiError> {
+) -> Result<MsgResponse, ApiError> {
     let old_meal = find_meal_by_id(record)?;
     record_belongs_to_baby(old_meal.baby_id(), baby_id)?;
     let new_date = match meal.date {
@@ -70,7 +69,7 @@ pub async fn patch_meal_service(
         to_time: new_to_time,
     };
     patch_meal_record(record, update_meal)?;
-    Ok(Response::UpdateRecord)
+    Ok(MsgResponse::UpdateRecord)
 }
 
 pub async fn filter_meals_by_range(
@@ -82,8 +81,7 @@ pub async fn filter_meals_by_range(
     let current = pagination.page();
     let (meals, total_pages) = meals_paginated_from_db(baby_id, from_date, to_date, pagination)?;
     let dreams: Vec<MealDto> = into_meals_dto(meals)?;
-    let pager = PageInfo::new(current, total_pages);
-    let response = PagedResponse::new(dreams, pager);
+    let response = PagedResponse::new(dreams, current, total_pages);
     Ok(response)
 }
 
@@ -105,11 +103,11 @@ fn into_meals_dto(meals: Vec<Meal>) -> Result<Vec<MealDto>, ApiError> {
         .collect())
 }
 
-pub async fn delete_meal_service(record: i32, baby_id: i32) -> Result<Response, ApiError> {
+pub async fn delete_meal_service(record: i32, baby_id: i32) -> Result<MsgResponse, ApiError> {
     let meal_to_delete = find_meal_by_id(record)?;
     record_belongs_to_baby(meal_to_delete.baby_id(), baby_id)?;
     delete_meal_from_db(record)?;
-    Ok(Response::DeleteRecord)
+    Ok(MsgResponse::DeleteRecord)
 }
 
 pub async fn get_all_meals_paginated_service(
@@ -119,7 +117,6 @@ pub async fn get_all_meals_paginated_service(
     let current = pagination.page();
     let (meals, total_pages) = get_all_meals_from_baby(baby_id, pagination)?;
     let meals = into_meals_dto(meals)?;
-    let pager = PageInfo::new(current, total_pages);
-    let response = PagedResponse::new(meals, pager);
+    let response = PagedResponse::new(meals, current, total_pages);
     Ok(response)
 }

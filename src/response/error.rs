@@ -1,10 +1,11 @@
 use std::fmt::Display;
 
-use axum::{response::IntoResponse, Json};
+use axum::response::IntoResponse;
 use diesel::result::Error;
 use hyper::StatusCode;
 use redis::RedisError;
-use serde_json::json;
+
+use super::response_helper::display_as;
 
 #[derive(Debug)]
 pub enum ApiError {
@@ -72,8 +73,7 @@ impl ApiError {
 impl IntoResponse for ApiError {
     fn into_response(self) -> axum::response::Response {
         let (status_code, msg) = self.get_error();
-        let code = status_code.as_u16();
-        let body = Json(json!({ "code": code, "message": msg }));
+        let body = display_as(msg, None, status_code);
 
         (status_code, body).into_response()
     }

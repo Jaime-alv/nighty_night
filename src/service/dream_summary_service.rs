@@ -5,7 +5,7 @@ use crate::{
     model::{dream_model::Dream, summary_model::DreamSummary},
     repository::dream_repository::{find_dreams_summary, obtain_first_and_last_dream_date},
     response::{
-        data_response::{PageInfo, PagedResponse},
+        response::PagedResponse,
         error::ApiError,
     },
     utils::datetime::{iter_between_two_dates, now, today},
@@ -23,8 +23,7 @@ pub async fn dream_summary_range_service(
     let total_pages = round_total_pages(from_date, to_date, pagination.per_page());
     let (start, stop) = paginate_over_dates(pagination, from_date, to_date);
     let summary = fetch_dream_summary_range(baby_id, start, stop).await?;
-    let pager = PageInfo::new(current, total_pages);
-    let response = PagedResponse::new(into_summary_dto(summary), pager);
+    let response = PagedResponse::new(into_summary_dto(summary), current, total_pages);
     Ok(response)
 }
 
@@ -78,7 +77,6 @@ pub async fn get_all_summary_records_paginated(
     let total_pages = round_total_pages(raw_start, raw_stop, pagination.per_page());
     let (start, stop) = paginate_over_dates(pagination, raw_start, raw_stop);
     let summary = fetch_dream_summary_range(baby_id, start, stop).await?;
-    let pager = PageInfo::new(current, total_pages);
-    let response = PagedResponse::new(into_summary_dto(summary), pager);
+    let response = PagedResponse::new(into_summary_dto(summary), current, total_pages);
     Ok(response)
 }

@@ -1,4 +1,3 @@
-use axum::Json;
 use chrono::Days;
 
 use crate::{
@@ -15,7 +14,10 @@ use crate::{
         delete_users_from_db_in_batch, load_user_by_id, load_user_by_username, patch_user_record,
         query_users,
     },
-    response::{data_response::{PageInfo, PagedResponse}, error::ApiError, response::Response},
+    response::{
+        error::ApiError,
+        response::{MsgResponse, PagedResponse, RecordResponse},
+    },
     utils::{
         datetime::now,
         validator::{valid_password, validate_fields},
@@ -27,7 +29,7 @@ use super::{
     util_service::records_is_not_empty,
 };
 
-pub async fn create_user_service(new_user: NewUserDto) -> Result<(Response, i32), ApiError> {
+pub async fn create_user_service(new_user: NewUserDto) -> Result<(MsgResponse, i32), ApiError> {
     if validate_fields(&new_user.data()) {
         return Err(ApiError::EmptyBody);
     }
@@ -38,29 +40,29 @@ pub async fn create_user_service(new_user: NewUserDto) -> Result<(Response, i32)
     let username = user.username();
     let id_binding = user.id();
     cache_user_in_session(user).await?;
-    Ok((Response::NewUser(username), id_binding))
+    Ok((MsgResponse::NewUser(username), id_binding))
 }
 
 pub async fn get_all_users_service(
     pagination: Pagination,
 ) -> Result<PagedResponse<Vec<AdminUserDto>>, ApiError> {
     let current = pagination.page();
-    let (users, pages) = query_users(pagination)?;
+    let (users, total_pages) = query_users(pagination)?;
     let users: Vec<AdminUserDto> = records_is_not_empty(users)?
         .into_iter()
         .map(|user| user.into())
         .collect();
-    let pager = PageInfo::new(current, pages);
-    let response = PagedResponse::new(users, pager);
+    let response = PagedResponse::new(users, current, total_pages);
     Ok(response)
 }
 
-pub async fn find_user_service(user: FindUserDto) -> Result<Json<UserDto>, ApiError> {
+pub async fn find_user_service(user: FindUserDto) -> Result<RecordResponse<UserDto>, ApiError> {
     let user = load_user_by_username(&user.username)?;
-    Ok(Json(user.into()))
+    let response = RecordResponse::new(user.into());
+    Ok(response)
 }
 
-pub async fn login_service(login: LoginDto) -> Result<(Response, i32), ApiError> {
+pub async fn login_service(login: LoginDto) -> Result<(MsgResponse, i32), ApiError> {
     if validate_fields(&login.data()) {
         return Err(ApiError::EmptyBody);
     }
@@ -75,14 +77,15 @@ pub async fn login_service(login: LoginDto) -> Result<(Response, i32), ApiError>
         let username = current_user.username();
         let binding_id = current_user.id();
         cache_user_in_session(current_user).await?;
-        return Ok((Response::UserLogIn(username), binding_id));
+        return Ok((MsgResponse::UserLogIn(username), binding_id));
     }
     Err(ApiError::IncorrectPassword)
 }
 
-pub async fn find_user_by_id_service(user_id: i32) -> Result<Json<UserDto>, ApiError> {
+pub async fn find_user_by_id_service(user_id: i32) -> Result<RecordResponse<UserDto>, ApiError> {
     let user = load_user_by_id(user_id)?;
-    Ok(Json(user.into()))
+    let response = RecordResponse::new(user.into());
+    Ok(response)
 }
 
 pub async fn find_user_by_username_service(username: &str) -> Result<User, ApiError> {
@@ -100,7 +103,7 @@ async fn cache_user_in_session(user: User) -> Result<(), ApiError> {
 pub async fn patch_user_service(
     user_id: i32,
     profile: UpdateUserDto,
-) -> Result<Response, ApiError> {
+) -> Result<MsgResponse, ApiError> {
     let old_profile = load_user_by_id(user_id)?;
     let new_name = match profile.name {
         Some(value) => Some(value),
@@ -123,18 +126,21 @@ pub async fn patch_user_service(
         update_at: update_time,
     };
     patch_user_record(user_id, update_profile)?;
-    Ok(Response::UpdateRecord)
+    Ok(MsgResponse::UpdateRecord)
 }
 
-pub async fn alter_active_user_service(user_id: i32, active: bool) -> Result<Response, ApiError> {
+pub async fn alter_active_user_service(
+    user_id: i32,
+    active: bool,
+) -> Result<MsgResponse, ApiError> {
     let time = now();
     alter_active_status_for_user(user_id, active, time)?;
-    Ok(Response::ActiveStatusUpdate)
+    Ok(MsgResponse::ActiveStatusUpdate)
 }
 
 /// User must be active = false, last updated 180 days ago (as per DeleteAccount const)
 /// and user must not be current user.
-pub async fn delete_user_service(user_id: i32, current_user: i32) -> Result<Response, ApiError> {
+pub async fn delete_user_service(user_id: i32, current_user: i32) -> Result<MsgResponse, ApiError> {
     let user = load_user_by_id(user_id)?;
     let inactive_period: i64 = GlobalCte::DeleteAccount.get().into();
     let inactive_time = (now() - user.updated_at().unwrap_or_default())
@@ -142,15 +148,15 @@ pub async fn delete_user_service(user_id: i32, current_user: i32) -> Result<Resp
         .ge(&inactive_period);
     if current_user.ne(&user_id) && inactive_time && !user.active() {
         delete_user_from_db(user_id)?;
-        Ok(Response::DeleteRecord)
+        Ok(MsgResponse::DeleteRecord)
     } else {
         Err(ApiError::Forbidden)
     }
 }
 
-pub async fn delete_old_users_service() -> Result<Response, ApiError> {
+pub async fn delete_old_users_service() -> Result<MsgResponse, ApiError> {
     let inactive_period: u64 = GlobalCte::DeleteAccount.get().into();
     let older_than = now().checked_sub_days(Days::new(inactive_period)).unwrap();
     let rows = delete_users_from_db_in_batch(older_than)?;
-    Ok(Response::DeleteXRecords(rows))
+    Ok(MsgResponse::DeleteXRecords(rows))
 }

@@ -10,10 +10,11 @@ use crate::{
         delete_dream_from_db, dreams_paginated_from_db, find_dream_by_id, get_all_dreams_from_baby,
         ingest_new_dream, patch_dream_record, update_last_dream,
     },
-    response::{data_response::{PageInfo, PagedResponse}, response::Response, error::ApiError},
-    utils::{
-        datetime::{convert_to_date_time, today},
+    response::{
+        error::ApiError,
+        response::{MsgResponse, PagedResponse},
     },
+    utils::datetime::{convert_to_date_time, today},
 };
 
 use super::util_service::{
@@ -23,16 +24,16 @@ use super::util_service::{
 pub async fn post_dream_service(
     new_dream: InputDreamDto,
     baby_id: i32,
-) -> Result<Response, ApiError> {
+) -> Result<MsgResponse, ApiError> {
     let dream: InsertableDream;
     if new_dream.from_date.is_some() {
         dream = create_new_dream_entry(new_dream, baby_id).await?;
         ingest_new_dream(dream)?;
-        Ok(Response::NewRecord)
+        Ok(MsgResponse::NewRecord)
     } else {
         dream = create_new_dream_entry(new_dream, baby_id).await?;
         update_last_dream(dream)?;
-        Ok(Response::UpdateRecord)
+        Ok(MsgResponse::UpdateRecord)
     }
 }
 
@@ -50,7 +51,7 @@ pub async fn patch_dream_service(
     dream: InputDreamDto,
     record: i32,
     baby_id: i32,
-) -> Result<Response, ApiError> {
+) -> Result<MsgResponse, ApiError> {
     let old_dream = find_dream_by_id(record)?;
     record_belongs_to_baby(old_dream.baby_id(), baby_id)?;
     let new_from_date = match dream.from_date {
@@ -70,7 +71,7 @@ pub async fn patch_dream_service(
         to_date: new_to_date,
     };
     patch_dream_record(record, update_dream)?;
-    Ok(Response::UpdateRecord)
+    Ok(MsgResponse::UpdateRecord)
 }
 
 pub async fn get_dreams_by_range_date(
@@ -82,8 +83,7 @@ pub async fn get_dreams_by_range_date(
     let current = pagination.page();
     let (dreams, total_pages) = dreams_paginated_from_db(baby_id, pagination, from_date, to_date)?;
     let dreams: Vec<DreamDto> = into_dreams_dto(dreams)?;
-    let pager = PageInfo::new(current, total_pages);
-    let response = PagedResponse::new(dreams, pager);
+    let response = PagedResponse::new(dreams, current, total_pages);
     Ok(response)
 }
 
@@ -104,11 +104,11 @@ fn into_dreams_dto(dreams: Vec<Dream>) -> Result<Vec<DreamDto>, ApiError> {
         .collect())
 }
 
-pub async fn delete_dream_service(record: i32, baby_id: i32) -> Result<Response, ApiError> {
+pub async fn delete_dream_service(record: i32, baby_id: i32) -> Result<MsgResponse, ApiError> {
     let old_dream = find_dream_by_id(record)?;
     record_belongs_to_baby(old_dream.baby_id(), baby_id)?;
     delete_dream_from_db(record)?;
-    Ok(Response::DeleteRecord)
+    Ok(MsgResponse::DeleteRecord)
 }
 
 pub async fn get_dreams_paginated_service(
@@ -118,7 +118,6 @@ pub async fn get_dreams_paginated_service(
     let current = pagination.page();
     let (dreams, total_pages) = get_all_dreams_from_baby(baby_id, pagination)?;
     let dreams: Vec<DreamDto> = into_dreams_dto(dreams)?;
-    let pager = PageInfo::new(current, total_pages);
-    let response = PagedResponse::new(dreams, pager);
+    let response = PagedResponse::new(dreams, current, total_pages);
     Ok(response)
 }
