@@ -1,20 +1,18 @@
 use axum::Json;
-use hyper::StatusCode;
+
 use serde::Serialize;
-use serde_json::{Value, json};
+use serde_json::{json, Value};
 
 use super::response::PageInfo;
 
-
 /// How info will be displayed in json format.
-pub(super) fn display_as<T>(data: T, pager: Option<PageInfo>, status_code: StatusCode) -> Json<Value>
+pub(super) fn display_as<T>(data: T, pager: Option<PageInfo>) -> Json<Value>
 where
     T: Serialize,
 {
-    let code = status_code.as_u16();
     let body = match pager {
-        Some(pages) => json!({"code": code, "data": data, "page_info": pages}),
-        None => json!({"code": code, "data": data}),
+        Some(pages) => json!({"data": data, "page_info": pages}),
+        None => json!({ "data": data }),
     };
     Json(body)
 }

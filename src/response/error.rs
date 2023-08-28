@@ -4,6 +4,7 @@ use axum::response::IntoResponse;
 use diesel::result::Error;
 use hyper::StatusCode;
 use redis::RedisError;
+use serde::Serialize;
 
 use super::response_helper::display_as;
 
@@ -35,7 +36,7 @@ impl ApiError {
                 StatusCode::BAD_REQUEST,
                 String::from("Incorrect username or password."),
             ),
-            ApiError::NoUser => (StatusCode::BAD_REQUEST, String::from("No user found.")),
+            ApiError::NoUser => (StatusCode::NOT_FOUND, String::from("No user found.")),
             ApiError::DuplicateUser => (
                 StatusCode::BAD_REQUEST,
                 String::from("User already exists."),
@@ -55,7 +56,7 @@ impl ApiError {
                 StatusCode::BAD_REQUEST,
                 String::from("Target date must be higher."),
             ),
-            ApiError::NoRecord => (StatusCode::BAD_REQUEST, String::from("No record found.")),
+            ApiError::NoRecord => (StatusCode::NOT_FOUND, String::from("No record found.")),
             ApiError::CastError(msg) => (StatusCode::BAD_REQUEST, format!("Casting error: {msg}")),
             // 50X Error
             ApiError::DBError(error) => (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()),
@@ -73,10 +74,20 @@ impl ApiError {
 impl IntoResponse for ApiError {
     fn into_response(self) -> axum::response::Response {
         let (status_code, msg) = self.get_error();
-        let body = display_as(msg, None, status_code);
+        let error = ErrorField {
+            status: status_code.as_u16(),
+            detail: &msg,
+        };
+        let body = display_as(error, None);
 
         (status_code, body).into_response()
     }
+}
+
+#[derive(Serialize)]
+struct ErrorField<'a> {
+    status: u16,
+    detail: &'a str
 }
 
 impl Display for ApiError {

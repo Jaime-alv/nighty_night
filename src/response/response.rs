@@ -43,10 +43,20 @@ impl MsgResponse {
 impl IntoResponse for MsgResponse {
     fn into_response(self) -> axum::response::Response {
         let (status_code, msg) = self.get_response();
-        let body = display_as(msg, None, status_code);
+        let message = Message {
+            status: status_code.as_u16(),
+            detail: &msg,
+        };
+        let body = display_as(message, None);
 
         (status_code, body).into_response()
     }
+}
+
+#[derive(Serialize)]
+struct Message<'a> {
+    status: u16,
+    detail: &'a str,
 }
 
 /// Return data with pagination info.
@@ -63,10 +73,7 @@ where
     T: Serialize,
 {
     pub fn new(data: T, current: i64, total_pages: i64) -> Self {
-        let pager = PageInfo {
-            current,
-            total_pages,
-        };
+        let pager = PageInfo::new(current, total_pages);
         Self { data, pager }
     }
 }
@@ -74,7 +81,30 @@ where
 #[derive(Serialize)]
 pub struct PageInfo {
     current: i64,
-    total_pages: i64,
+    first: i64,
+    prev: Option<i64>,
+    next: Option<i64>,
+    last: i64,
+}
+
+impl PageInfo {
+    pub fn new(current: i64, total_pages: i64) -> Self {
+        Self {
+            current,
+            first: 1,
+            prev: if current.gt(&1) {
+                Some(current - 1)
+            } else {
+                None
+            },
+            next: if current.lt(&total_pages) {
+                Some(current + 1)
+            } else {
+                None
+            },
+            last: total_pages,
+        }
+    }
 }
 
 impl<T> IntoResponse for PagedResponse<T>
@@ -83,7 +113,7 @@ where
 {
     fn into_response(self) -> axum::response::Response {
         let status_code = StatusCode::OK;
-        let body = display_as(self.data, Some(self.pager), status_code);
+        let body = display_as(self.data, Some(self.pager));
 
         (status_code, body).into_response()
     }
@@ -112,7 +142,7 @@ where
 {
     fn into_response(self) -> axum::response::Response {
         let status_code = StatusCode::OK;
-        let body = display_as(self.data, None, status_code);
+        let body = display_as(self.data, None);
 
         (status_code, body).into_response()
     }
