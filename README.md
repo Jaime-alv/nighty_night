@@ -31,6 +31,7 @@
     - [Weights: `/api/baby/:baby_id`](#weights-apibabybaby_id)
     - [Admin: `/api/admin`](#admin-apiadmin)
     - [Pagination](#pagination)
+  - [Response](#response)
   - [Docs](#docs)
   - [APP ROADMAP](#app-roadmap)
   - [License](#license)
@@ -382,7 +383,20 @@ Pagination is implemented by default in `get` requests for:
 6. `/api/baby/:baby_id/meals/summary`
 7. `/api/baby/:baby_id/weights`
 
-Response is like:
+## Response
+
+Response is in json format. It always has, at least, two (2) fields: `code` and `data`. It may contain an additional key `page_info` when appropriate.
+
+Simple response is like:
+
+```json
+{
+    "code": 201,
+    "data": "New user added: test_3."
+}
+```
+
+Response, with pagination, is like:
 
 ```json
 {
@@ -425,7 +439,7 @@ Proposed layout.
 - [X] User profile.
 - [X] Admin panel.
 - [X] Logout user.
-- [ ] Add co-parenting.
+- [X] Add co-parenting.
 - [X] Update fields.
 - [X] Delete entries.
 - [ ] Add entries by batch.
