@@ -57,7 +57,10 @@ pub async fn get_all_users_service(
 }
 
 pub async fn find_user_service(user: FindUserDto) -> Result<RecordResponse<UserDto>, ApiError> {
-    let user = load_user_by_username(&user.username)?;
+    let user = match load_user_by_username(&user.username) {
+        Ok(value) => value,
+        Err(_) => return Err(ApiError::NoRecord),
+    };
     let response = RecordResponse::new(user.into());
     Ok(response)
 }
