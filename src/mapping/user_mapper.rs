@@ -1,19 +1,41 @@
 use crate::{
-    data::user_dto::{NewUserDto, UserDto},
+    data::user_dto::{NewUserDto, UserAttributes, UserDto},
     model::user_model::{InsertableUser, User},
     security::security::hash_password,
     utils::datetime::now,
 };
 
+use super::data_type::DataType;
+
 impl From<User> for UserDto {
     fn from(user: User) -> Self {
-        UserDto::new(user.username(), user.email(), user.name(), user.surname())
+        let attr = UserAttributes {
+            username: user.username(),
+            email: user.email(),
+            name: user.name(),
+            surname: user.surname(),
+        };
+        UserDto {
+            id: user.id(),
+            r#type: DataType::User.get(),
+            attributes: attr,
+        }
     }
 }
 
 impl From<&User> for UserDto {
     fn from(user: &User) -> UserDto {
-        UserDto::new(user.username(), user.email(), user.name(), user.surname())
+        let attr = UserAttributes {
+            username: user.username(),
+            email: user.email(),
+            name: user.name(),
+            surname: user.surname(),
+        };
+        UserDto {
+            id: user.id(),
+            r#type: DataType::User.get(),
+            attributes: attr,
+        }
     }
 }
 

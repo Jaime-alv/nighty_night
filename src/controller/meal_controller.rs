@@ -27,15 +27,18 @@ use crate::{
 };
 
 pub(super) fn route_meal() -> Router {
-    Router::new()
-        .route(
-            "/:baby_id/meals",
-            get(get_meals)
-                .post(post_meal)
-                .patch(patch_meal)
-                .delete(delete_meal),
-        )
-        .route("/:baby_id/meals/summary", get(meal_summary))
+    Router::new().nest(
+        "/meals",
+        Router::new()
+            .route(
+                "/",
+                get(get_meals)
+                    .post(post_meal)
+                    .patch(patch_meal)
+                    .delete(delete_meal),
+            )
+            .route("/summary", get(meal_summary)),
+    )
 }
 
 async fn get_meals(

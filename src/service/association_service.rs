@@ -1,7 +1,7 @@
 use crate::{
     model::role_model::Rol,
     repository::association_repository::{add_baby_to_user, add_rol_to_user},
-    response::{error::ApiError, response::Response},
+    response::{error::ApiError, response::MsgResponse},
 };
 
 use super::user_service::find_user_by_username_service;
@@ -14,10 +14,10 @@ where
     Ok(())
 }
 
-pub async fn add_baby_to_user_service(baby_id: i32, username: &str) -> Result<Response, ApiError> {
+pub async fn add_baby_to_user_service(baby_id: i32, username: &str) -> Result<MsgResponse, ApiError> {
     let user = find_user_by_username_service(username).await?;
     match add_baby_to_user(user.id(), baby_id) {
-        Ok(_) => Ok(Response::UpdateRecord),
+        Ok(_) => Ok(MsgResponse::UpdateRecord),
         Err(error) => Err(ApiError::DBError(error)),
     }
 }

@@ -18,28 +18,19 @@ impl Mandatory for NewUserDto {
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Serialize)]
 pub struct UserDto {
-    username: String,
-    email: Option<String>,
-    name: Option<String>,
-    surname: Option<String>,
+    pub id: i32,
+    pub r#type: &'static str,
+    pub attributes: UserAttributes,
 }
 
-impl UserDto {
-    pub fn new(
-        username: String,
-        email: Option<String>,
-        name: Option<String>,
-        surname: Option<String>,
-    ) -> Self {
-        Self {
-            username,
-            email,
-            name,
-            surname,
-        }
-    }
+#[derive(Serialize)]
+pub struct UserAttributes {
+    pub username: String,
+    pub email: Option<String>,
+    pub name: Option<String>,
+    pub surname: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]

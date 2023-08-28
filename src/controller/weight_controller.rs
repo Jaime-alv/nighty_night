@@ -25,7 +25,7 @@ use crate::{
 
 pub(super) fn route_weight() -> Router {
     Router::new().route(
-        "/:baby_id/weights",
+        "/weights",
         get(get_weights)
             .post(post_weight)
             .patch(patch_weight)

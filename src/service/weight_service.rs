@@ -10,11 +10,7 @@ use crate::{
         delete_weight_from_db, find_weight_by_id, get_all_weights_from_baby, ingest_weight,
         patch_weight_record, weights_paginated_from_db,
     },
-    response::{
-        data_response::{PageInfo, PagedResponse},
-        error::ApiError,
-        response::Response,
-    },
+    response::{error::ApiError, response::MsgResponse, response::PagedResponse},
     utils::datetime::{convert_to_date, today},
 };
 
@@ -23,14 +19,14 @@ use super::util_service::{record_belongs_to_baby, records_is_not_empty};
 pub async fn post_weight_service(
     new_measure: InputWeightDto,
     baby_id: i32,
-) -> Result<Response, ApiError> {
+) -> Result<MsgResponse, ApiError> {
     let date = match new_measure.date {
         Some(day) => convert_to_date(&day)?,
         None => today(),
     };
     let measure = InsertableWeight::new(baby_id, date, new_measure.value.unwrap_or_default());
     ingest_weight(measure)?;
-    Ok(Response::NewRecord)
+    Ok(MsgResponse::NewRecord)
 }
 
 pub async fn get_weights_service(
@@ -40,8 +36,7 @@ pub async fn get_weights_service(
     let current = pagination.page();
     let (measures, total_pages) = get_all_weights_from_baby(baby_id, pagination)?;
     let measures = into_weight_dto(measures)?;
-    let pager = PageInfo::new(current, total_pages);
-    let response = PagedResponse::new(measures, pager);
+    let response = PagedResponse::new(measures, current, total_pages);
     Ok(response)
 }
 
@@ -54,8 +49,7 @@ pub async fn get_weight_range_service(
     let current = pagination.page();
     let (measures, total_pages) = weights_paginated_from_db(baby_id, from, to, pagination)?;
     let measures = into_weight_dto(measures)?;
-    let pager = PageInfo::new(current, total_pages);
-    let response = PagedResponse::new(measures, pager);
+    let response = PagedResponse::new(measures, current, total_pages);
     Ok(response)
 }
 
@@ -73,7 +67,7 @@ pub async fn patch_weight_service(
     measure: InputWeightDto,
     record: i32,
     baby_id: i32,
-) -> Result<Response, ApiError> {
+) -> Result<MsgResponse, ApiError> {
     let old_record = find_weight_by_id(record)?;
     record_belongs_to_baby(old_record.baby_id(), baby_id)?;
     let new_date = match measure.date {
@@ -89,7 +83,7 @@ pub async fn patch_weight_service(
         value: new_measure,
     };
     patch_weight_record(record, new_weight)?;
-    Ok(Response::UpdateRecord)
+    Ok(MsgResponse::UpdateRecord)
 }
 
 fn into_weight_dto(measures: Vec<Weight>) -> Result<Vec<WeightDto>, ApiError> {
@@ -99,9 +93,9 @@ fn into_weight_dto(measures: Vec<Weight>) -> Result<Vec<WeightDto>, ApiError> {
         .collect())
 }
 
-pub async fn delete_weight_service(record: i32, baby_id: i32) -> Result<Response, ApiError> {
+pub async fn delete_weight_service(record: i32, baby_id: i32) -> Result<MsgResponse, ApiError> {
     let delete_record = find_weight_by_id(record)?;
     record_belongs_to_baby(delete_record.baby_id(), baby_id)?;
     delete_weight_from_db(record)?;
-    Ok(Response::DeleteRecord)
+    Ok(MsgResponse::DeleteRecord)
 }

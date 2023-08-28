@@ -7,7 +7,7 @@ use crate::{
 };
 
 pub fn not_found() -> ApiError {
-    ApiError::NotFound
+    ApiError::PageNotFound
 }
 
 pub fn uncover_date(date: Option<String>) -> Result<Option<NaiveDateTime>, ApiError> {

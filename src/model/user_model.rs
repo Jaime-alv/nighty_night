@@ -1,6 +1,5 @@
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
-use serde::Serialize;
 
 use crate::{schema::users, security::security::verify_password};
 
@@ -112,5 +111,3 @@ impl InsertableUser {
         }
     }
 }
-
-

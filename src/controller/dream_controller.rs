@@ -27,15 +27,18 @@ use crate::{
 };
 
 pub(super) fn route_dream() -> Router {
-    Router::new()
-        .route(
-            "/:baby_id/dreams",
-            get(get_dreams)
-                .post(post_dream)
-                .patch(patch_dream)
-                .delete(delete_dream),
-        )
-        .route("/:baby_id/dreams/summary", get(dream_summary))
+    Router::new().nest(
+        "/dreams",
+        Router::new()
+            .route(
+                "/",
+                get(get_dreams)
+                    .post(post_dream)
+                    .patch(patch_dream)
+                    .delete(delete_dream),
+            )
+            .route("/summary", get(dream_summary)),
+    )
 }
 
 async fn get_dreams(

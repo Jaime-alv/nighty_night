@@ -4,10 +4,7 @@ use crate::{
     data::{meal_dto::MealSummaryDto, query_dto::Pagination},
     model::{meals_model::Meal, summary_model::MealSummary},
     repository::meal_repository::{find_meals_by_date_range, obtain_first_and_last_meal_date},
-    response::{
-        data_response::{PageInfo, PagedResponse},
-        error::ApiError,
-    },
+    response::{error::ApiError, response::PagedResponse},
     utils::datetime::{iter_between_two_dates, today},
 };
 
@@ -23,8 +20,7 @@ pub async fn meal_summary_range_service(
     let total_pages = round_total_pages(from_date, to_date, pagination.per_page());
     let (start, stop) = paginate_over_dates(pagination, from_date, to_date);
     let summary = fetch_meal_summary_range(baby_id, start, stop).await?;
-    let pager = PageInfo::new(current, total_pages);
-    let response = PagedResponse::new(into_summary_dto(summary), pager);
+    let response = PagedResponse::new(into_summary_dto(summary), current, total_pages);
     Ok(response)
 }
 
@@ -77,7 +73,6 @@ pub async fn get_all_summary_records_paginated(
     let total_pages = round_total_pages(raw_start, raw_stop, pagination.per_page());
     let (start, stop) = paginate_over_dates(pagination, raw_start, raw_stop);
     let summary = fetch_meal_summary_range(baby_id, start, stop).await?;
-    let pager = PageInfo::new(current, total_pages);
-    let response = PagedResponse::new(into_summary_dto(summary), pager);
+    let response = PagedResponse::new(into_summary_dto(summary), current, total_pages);
     Ok(response)
 }

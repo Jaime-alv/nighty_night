@@ -10,7 +10,7 @@ use crate::{
         session_repository::{delete_user_session, get_user, set_user},
         user_repository::{find_babies_id, find_roles_id, load_user_by_id},
     },
-    response::{error::ApiError, response::Response},
+    response::{error::ApiError, response::MsgResponse},
 };
 
 pub async fn login_session<T>(
@@ -28,7 +28,7 @@ where
 pub async fn logout_session<T>(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     user_id: T,
-) -> Result<Response, ApiError>
+) -> Result<MsgResponse, ApiError>
 where
     i32: From<T>,
     i64: From<T>,
@@ -36,7 +36,7 @@ where
     let key = user_redis_key(user_id.into());
     auth.logout_user();
     match delete_user_session(&key).await {
-        Ok(_) => Ok(Response::LogoutUser),
+        Ok(_) => Ok(MsgResponse::LogoutUser),
         Err(e) => Err(ApiError::Redis(e)),
     }
 }

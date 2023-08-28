@@ -31,15 +31,19 @@ use super::{
 pub(crate) fn route_baby() -> Router {
     let routes: Router = Router::new()
         .route("/", get(get_babies_for_user).post(register_baby))
-        .route(
+        .nest(
             "/:baby_id",
-            get(find_baby_by_id).patch(patch_baby).delete(delete_baby),
-        )
-        .route("/:baby_id/share", post(share_ownership))
-        .route("/:baby_id/transfer", patch(transfer_owner))
-        .merge(route_meal())
-        .merge(route_dream())
-        .merge(route_weight());
+            Router::new()
+                .route(
+                    "/",
+                    get(find_baby_by_id).patch(patch_baby).delete(delete_baby),
+                )
+                .route("/share", post(share_ownership))
+                .route("/transfer", patch(transfer_owner))
+                .merge(route_meal())
+                .merge(route_dream())
+                .merge(route_weight()),
+        );
     Router::new().nest("/baby", routes)
 }
 

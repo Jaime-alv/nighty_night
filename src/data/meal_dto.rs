@@ -4,10 +4,8 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize)]
 pub struct MealDto {
     pub id: i32,
-    pub date: String,
-    pub time: String,
-    pub quantity: i16,
-    pub elapsed: String,
+    pub r#type: &'static str,
+    pub attributes: MealAttributes
 }
 
 #[derive(Deserialize)]
@@ -30,4 +28,12 @@ pub struct UpdateMeal {
     pub date: NaiveDateTime,
     pub quantity: Option<i16>,
     pub to_time: Option<NaiveDateTime>
+}
+
+#[derive(Serialize)]
+pub struct MealAttributes {
+    pub date: String,
+    pub time: String,
+    pub quantity: i16,
+    pub elapsed: String,
 }

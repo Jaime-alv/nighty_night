@@ -12,11 +12,8 @@ pub struct InputDreamDto {
 #[derive(Serialize)]
 pub struct DreamDto {
     pub id: i32,
-    pub from_date: String,
-    pub from_time: String,
-    pub to_date: String,
-    pub to_time: String,
-    pub elapsed: String
+    pub r#type: &'static str,
+    pub attributes: DreamAttributes    
 }
 
 
@@ -29,4 +26,13 @@ pub struct DreamSummaryDto {
 pub struct UpdateDream {
     pub from_date: NaiveDateTime,
     pub to_date: Option<NaiveDateTime>
+}
+
+#[derive(Serialize)]
+pub struct DreamAttributes {
+    pub from_date: String,
+    pub from_time: String,
+    pub to_date: String,
+    pub to_time: String,
+    pub elapsed: String
 }

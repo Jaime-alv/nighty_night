@@ -1,5 +1,3 @@
-use axum::Json;
-
 use crate::{
     data::{
         admin_dto::AdminBabyDto,
@@ -15,9 +13,8 @@ use crate::{
         },
     },
     response::{
-        data_response::{PageInfo, PagedResponse},
         error::ApiError,
-        response::Response,
+        response::{MsgResponse, PagedResponse, RecordResponse},
     },
     utils::datetime::{convert_to_date, today},
 };
@@ -30,7 +27,7 @@ use super::{
 pub async fn ingest_new_baby<T>(
     new_baby: InputBabyDto,
     current_user: T,
-) -> Result<Json<BabyDto>, ApiError>
+) -> Result<RecordResponse<BabyDto>, ApiError>
 where
     T: Into<i32>,
 {
@@ -44,12 +41,12 @@ where
     };
     let insert_baby = InsertableBaby::new(new_baby.name.unwrap(), birthdate, user);
     let baby = ingest_new_baby_in_db(insert_baby, user)?;
-    Ok(Json(baby.into()))
+    Ok(RecordResponse::new(baby.into()))
 }
 
-pub async fn find_baby_service(baby_id: i32) -> Result<Json<BabyDto>, ApiError> {
+pub async fn find_baby_service(baby_id: i32) -> Result<RecordResponse<BabyDto>, ApiError> {
     let baby = load_baby_by_id(baby_id)?;
-    Ok(Json(baby.into()))
+    Ok(RecordResponse::new(baby.into()))
 }
 
 pub async fn get_all_babies_service(
@@ -61,12 +58,14 @@ pub async fn get_all_babies_service(
         .into_iter()
         .map(|baby| baby.into())
         .collect();
-    let pager = PageInfo::new(current, total_pages);
-    let response = PagedResponse::new(babies, pager);
+    let response = PagedResponse::new(babies, current, total_pages);
     Ok(response)
 }
 
-pub async fn patch_baby_service(baby_id: i32, update: InputBabyDto) -> Result<Response, ApiError> {
+pub async fn patch_baby_service(
+    baby_id: i32,
+    update: InputBabyDto,
+) -> Result<MsgResponse, ApiError> {
     let old_record = load_baby_by_id(baby_id)?;
     let new_name = match update.name {
         Some(value) => value,
@@ -81,41 +80,42 @@ pub async fn patch_baby_service(baby_id: i32, update: InputBabyDto) -> Result<Re
         birthdate: new_birthdate,
     };
     patch_baby_record(baby_id, update_baby)?;
-    Ok(Response::UpdateRecord)
+    Ok(MsgResponse::UpdateRecord)
 }
 
 /*
 If baby belongs to current user, delete everything from said baby, if not, delete only the
 association between user and baby.
 */
-pub async fn delete_baby_service(baby_id: i32, user: i32) -> Result<Response, ApiError> {
+pub async fn delete_baby_service(baby_id: i32, user: i32) -> Result<MsgResponse, ApiError> {
     let baby = load_baby_by_id(baby_id)?;
     match baby.belongs_to().eq(&user) {
         true => delete_baby_from_db(baby_id)?,
         false => delete_baby_association(baby_id, user)?,
     };
-    Ok(Response::DeleteRecord)
+    Ok(MsgResponse::DeleteRecord)
 }
 
 pub async fn load_babies_for_current_user(
     user_id: i64,
     pagination: Pagination,
-) -> Result<Json<Vec<BabyDto>>, ApiError> {
+) -> Result<PagedResponse<Vec<BabyDto>>, ApiError> {
+    let current = pagination.page();
     let user = load_user_session(user_id).await?;
-    let (babies, _last_page) = get_all_babies_with_id(user.baby_id(), pagination)?;
-    Ok(Json(
-        records_is_not_empty(babies)?
-            .into_iter()
-            .map(|baby| baby.into())
-            .collect(),
-    ))
+    let (babies, total_pages) = get_all_babies_with_id(user.baby_id(), pagination)?;
+    let babies: Vec<BabyDto> = records_is_not_empty(babies)?
+        .into_iter()
+        .map(|baby| baby.into())
+        .collect();
+    let response = PagedResponse::new(babies, current, total_pages);
+    Ok(response)
 }
 
-pub async fn transfer_baby_service(baby_id: i32, username: &str) -> Result<Response, ApiError> {
+pub async fn transfer_baby_service(baby_id: i32, username: &str) -> Result<MsgResponse, ApiError> {
     let user = find_user_by_username_service(username).await?;
     add_baby_to_user(user.id(), baby_id)?;
     match transfer_baby_records(baby_id, user.id()) {
-        Ok(_) => Ok(Response::UpdateRecord),
+        Ok(_) => Ok(MsgResponse::UpdateRecord),
         Err(error) => Err(error.into()),
     }
 }

@@ -1,10 +1,12 @@
 use std::fmt::Display;
 
-use axum::{response::IntoResponse, Json};
+use axum::response::IntoResponse;
 use diesel::result::Error;
 use hyper::StatusCode;
 use redis::RedisError;
-use serde_json::json;
+use serde::Serialize;
+
+use super::response_helper::display_as;
 
 #[derive(Debug)]
 pub enum ApiError {
@@ -14,7 +16,7 @@ pub enum ApiError {
     DuplicateUser,
     NoUser,
     NoActiveUser,
-    NotFound,
+    PageNotFound,
     NoRecord,
     LoginRequired,
     DatesUnordered,
@@ -34,7 +36,7 @@ impl ApiError {
                 StatusCode::BAD_REQUEST,
                 String::from("Incorrect username or password."),
             ),
-            ApiError::NoUser => (StatusCode::BAD_REQUEST, String::from("No user found.")),
+            ApiError::NoUser => (StatusCode::NOT_FOUND, String::from("No user found.")),
             ApiError::DuplicateUser => (
                 StatusCode::BAD_REQUEST,
                 String::from("User already exists."),
@@ -45,7 +47,7 @@ impl ApiError {
                 StatusCode::UNAUTHORIZED,
                 String::from("User is not active."),
             ),
-            ApiError::NotFound => (
+            ApiError::PageNotFound => (
                 StatusCode::NOT_FOUND,
                 String::from("This is not the page you are looking for."),
             ),
@@ -54,7 +56,7 @@ impl ApiError {
                 StatusCode::BAD_REQUEST,
                 String::from("Target date must be higher."),
             ),
-            ApiError::NoRecord => (StatusCode::BAD_REQUEST, String::from("No record found.")),
+            ApiError::NoRecord => (StatusCode::NOT_FOUND, String::from("No record found.")),
             ApiError::CastError(msg) => (StatusCode::BAD_REQUEST, format!("Casting error: {msg}")),
             // 50X Error
             ApiError::DBError(error) => (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()),
@@ -72,11 +74,20 @@ impl ApiError {
 impl IntoResponse for ApiError {
     fn into_response(self) -> axum::response::Response {
         let (status_code, msg) = self.get_error();
-        let code = status_code.as_u16();
-        let body = Json(json!({ "code": code, "message": msg }));
+        let error = ErrorField {
+            status: status_code.as_u16(),
+            detail: &msg,
+        };
+        let body = display_as(error, None);
 
         (status_code, body).into_response()
     }
+}
+
+#[derive(Serialize)]
+struct ErrorField<'a> {
+    status: u16,
+    detail: &'a str
 }
 
 impl Display for ApiError {
