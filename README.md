@@ -385,14 +385,33 @@ Pagination is implemented by default in `get` requests for:
 
 ## Response
 
-Response is in json format. It always has, at least, two (2) fields: `code` and `data`. It may contain an additional key `page_info` when appropriate.
+Response is in json format. It always has `data` field. It may contain an additional key `page_info` when appropriate.
 
 Simple response is like:
 
 ```json
 {
-    "code": 201,
-    "data": "New user added: test_3."
+    "data": {
+      "status": 202,
+      "detail": "New user added: test_3."
+      }
+}
+```
+
+Objects contain info separated in two levels. Top level contains `id`, `attributes` and `type`
+
+```json
+{
+  "data": {
+        "attributes": {
+            "date": "2023-07-04",
+            "elapsed": "00:00",
+            "quantity": 145,
+            "time": "08:25"
+        },
+        "id": 169,
+        "type": "meal"
+    }
 }
 ```
 
@@ -400,18 +419,30 @@ Response, with pagination, is like:
 
 ```json
 {
-  "data": [
-    {
-      "added_on": "2023-08-01T12:31:21.198923",
-      "belongs_to": 2,
-      "id": 1,
-      "name": "BabyName"
+    "data": [
+        {
+            "attributes": {
+                "added_on": "2023-08-28T10:14:45.898688",
+                "belongs_to": 2,
+                "name": "BabyOne"
+            },
+            "id": 1,
+            "type": "Baby"
+        },
+        {
+            "attributes": {
+                "added_on": "2023-08-28T10:32:31.408920",
+                "belongs_to": 2,
+                "name": "BabyTwo"
+            },
+            "id": 2,
+            "type": "Baby"
+        }
+    ],
+    "page_info": {
+        "current": 1,
+        "total_pages": 1
     }
-  ],
-  "page_info": {
-    "current": 1,
-    "total_pages": 1
-  }
 }
 ```
 
