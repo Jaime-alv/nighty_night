@@ -1,18 +1,21 @@
-use axum::Json;
-use serde::Serialize;
-
 use crate::{
-    repository::admin_repository::{count_records, StatsDB},
-    response::error::ApiError,
+    data::role_dto::RoleDto,
+    repository::admin_repository::{count_records, select_roles_and_group_by_count, StatsDB},
+    response::{error::ApiError, response::RecordResponse},
 };
 
-#[derive(Serialize)]
-pub struct RecordStats {
-    table_name: &'static str,
-    records: i64,
+pub async fn show_stats_service() -> Result<RecordResponse<StatsDB<'static>>, ApiError> {
+    let count = count_records()?;
+    let response = RecordResponse::new(count);
+    Ok(response)
 }
 
-pub async fn show_stats_service() -> Result<Json<StatsDB<'static>>, ApiError> {
-    let count = count_records()?;
-    Ok(Json(count))
+pub async fn display_roles_service() -> Result<RecordResponse<Vec<RoleDto>>, ApiError> {
+    let grouped_data = select_roles_and_group_by_count()?;
+    let data = grouped_data
+        .into_iter()
+        .map(|item| item.into())
+        .collect::<Vec<RoleDto>>();
+    let response = RecordResponse::new(data);
+    Ok(response)
 }

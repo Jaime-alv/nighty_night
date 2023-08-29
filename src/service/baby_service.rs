@@ -20,7 +20,7 @@ use crate::{
 };
 
 use super::{
-    session_service::load_user_session, user_service::find_user_by_username_service,
+    session_service::load_user_session, user_service::find_user_id_from_username,
     util_service::records_is_not_empty,
 };
 
@@ -112,9 +112,9 @@ pub async fn load_babies_for_current_user(
 }
 
 pub async fn transfer_baby_service(baby_id: i32, username: &str) -> Result<MsgResponse, ApiError> {
-    let user = find_user_by_username_service(username).await?;
-    add_baby_to_user(user.id(), baby_id)?;
-    match transfer_baby_records(baby_id, user.id()) {
+    let user = find_user_id_from_username(username).await?;
+    add_baby_to_user(user, baby_id)?;
+    match transfer_baby_records(baby_id, user) {
         Ok(_) => Ok(MsgResponse::UpdateRecord),
         Err(error) => Err(error.into()),
     }

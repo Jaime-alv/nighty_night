@@ -48,3 +48,13 @@ pub fn delete_baby_association(baby: i32, user: i32) -> Result<usize, Error> {
     )
     .execute(conn)
 }
+
+pub fn delete_rol_to_user(user: i32, rol: i16) -> Result<usize, Error> {
+    let conn = &mut establish_connection();
+    diesel::delete(
+        users_roles::table
+            .filter(users_roles::user_id.eq(user))
+            .filter(users_roles::rol_id.eq(rol)),
+    )
+    .execute(conn)
+}
