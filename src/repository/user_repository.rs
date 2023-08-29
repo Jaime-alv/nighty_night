@@ -22,6 +22,11 @@ pub fn query_users(pagination: Pagination) -> Result<(Vec<User>, i64), Error> {
         .load_and_count_pages(conn)
 }
 
+/// Raw SQL:
+///
+/// ```sql
+/// SELECT * FROM users WHERE username = ${username};
+/// ```
 pub fn load_user_by_username<T: Into<String>>(username: T) -> Result<User, Error> {
     let conn = &mut establish_connection();
     users::table
@@ -126,4 +131,17 @@ pub fn delete_users_from_db_in_batch(older_than: NaiveDateTime) -> Result<usize,
             .filter(users::updated_at.le(older_than)),
     )
     .execute(conn)
+}
+
+/// Raw SQL:
+/// 
+/// ```sql
+/// SELECT id FROM users WHERE username = ${username};
+/// ```
+pub fn select_id_from_username(username: &str) -> Result<i32, Error> {
+    let conn = &mut establish_connection();
+    users::table
+        .filter(users::username.eq(username))
+        .select(users::id)
+        .first(conn)
 }

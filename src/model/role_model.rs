@@ -13,6 +13,10 @@ impl Role {
     pub fn id(&self) -> i16 {
         self.id
     }
+
+    pub fn name(&self) -> &str {
+        &self.name
+    }
 }
 
 

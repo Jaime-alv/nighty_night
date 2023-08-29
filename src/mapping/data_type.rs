@@ -4,6 +4,7 @@ pub(super) enum DataType {
     Dream,
     Meal,
     Weight,
+    Role
 }
 
 impl DataType {
@@ -14,6 +15,7 @@ impl DataType {
             DataType::Dream => "dream",
             DataType::Meal => "meal",
             DataType::Weight => "weight",
+            DataType::Role => "role",
         }
     }
 }

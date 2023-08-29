@@ -12,7 +12,7 @@ use crate::{
     repository::user_repository::{
         alter_active_status_for_user, create_user, delete_user_from_db,
         delete_users_from_db_in_batch, load_user_by_id, load_user_by_username, patch_user_record,
-        query_users,
+        query_users, select_id_from_username,
     },
     response::{
         error::ApiError,
@@ -91,6 +91,7 @@ pub async fn find_user_by_id_service(user_id: i32) -> Result<RecordResponse<User
     Ok(response)
 }
 
+/// Returns User object if user with username exits.
 pub async fn find_user_by_username_service(username: &str) -> Result<User, ApiError> {
     match load_user_by_username(username) {
         Ok(user) => Ok(user),
@@ -162,4 +163,13 @@ pub async fn delete_old_users_service() -> Result<MsgResponse, ApiError> {
     let older_than = now().checked_sub_days(Days::new(inactive_period)).unwrap();
     let rows = delete_users_from_db_in_batch(older_than)?;
     Ok(MsgResponse::DeleteXRecords(rows))
+}
+
+
+/// Return user id if user with username exits.
+pub async fn find_user_id_from_username(username: &str) -> Result<i32, ApiError> {
+    match select_id_from_username(username) {
+        Ok(id) => Ok(id),
+        Err(_) => Err(ApiError::NoUser),
+    }
 }

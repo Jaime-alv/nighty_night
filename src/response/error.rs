@@ -14,6 +14,7 @@ pub enum ApiError {
     IncorrectPassword,
     Forbidden,
     DuplicateUser,
+    /// No user found
     NoUser,
     NoActiveUser,
     PageNotFound,
