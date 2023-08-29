@@ -359,15 +359,18 @@ data:
 
 ### Admin: `/api/admin`
 
-| Route          | Method   | Function                           | Parameters     | Arguments |
-| -------------- | -------- | ---------------------------------- | -------------- | --------- |
-| /user          | `get`    | Get all users in db                |                |           |
-| /user          | `patch`  | Activate user by id                | entry: Integer |           |
-| /user          | `delete` | Delete all inactive users          |                |           |
-| /user?entry=X  | `delete` | Delete a user by id                | entry: Integer |           |
-| /baby          | `get`    | Get all babies in db               |                |           |
-| /baby/:baby_id | `get`    | Get baby info by id                | Path: i32      |           |
-| /stats         | `get`    | Get number of records & statistics |                |           |
+| Route          | Method   | Function                            | Parameters     | Arguments        |
+| -------------- | -------- | ----------------------------------- | -------------- | ---------------- |
+| /user          | `get`    | Get all users in db                 |                |                  |
+| /user          | `patch`  | Activate user by id                 | entry: Integer |                  |
+| /user          | `delete` | Delete all inactive users           |                |                  |
+| /user?entry=X  | `delete` | Delete a user by id                 | entry: Integer |                  |
+| /baby          | `get`    | Get all babies in db                |                |                  |
+| /baby/:baby_id | `get`    | Get baby info by id                 | Path: i32      |                  |
+| /stats         | `get`    | Get number of records & statistics  |                |                  |
+| /roles         | `get`    | Get roles and associated statistics |                |                  |
+| /roles         | `put`    | Add role to user                    | Body: Json     | {username, role} |
+| /roles         | `delete` | Delete role from user               | Body: Json     | {username, role} |
 
 ### Pagination
 
