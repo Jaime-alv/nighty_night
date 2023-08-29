@@ -3,6 +3,7 @@ const WEIGHT_LAST_DAYS_DEFAULT: u32 = 30;
 const DEFAULT_RECORDS_PER_PAGE: u32 = 100;
 const MAX_PAGINATION_THRESHOLD: u32 = 365;
 const DELETE_ACCOUNT: u32 = 180;
+const DEFAULT_ANONYMOUS_ID: u32 = 1;
 pub enum GlobalCte {
     /// How many days, by default, get from the db.
     LastDaysCte,
@@ -11,7 +12,8 @@ pub enum GlobalCte {
     /// Max records allowed in pagination.
     MaxPaginationThreshold,
     WeightLastDaysDefault,
-    DeleteAccount
+    DeleteAccount,
+    DefaultAnonymousID
 }
 
 impl GlobalCte {
@@ -22,6 +24,7 @@ impl GlobalCte {
             GlobalCte::WeightLastDaysDefault => WEIGHT_LAST_DAYS_DEFAULT,
             GlobalCte::MaxPaginationThreshold => MAX_PAGINATION_THRESHOLD,
             GlobalCte::DeleteAccount => DELETE_ACCOUNT,
+            GlobalCte::DefaultAnonymousID => DEFAULT_ANONYMOUS_ID,
         }
     }
 }
