@@ -2,7 +2,7 @@ use axum_session::{Key, SecurityMode, SessionConfig};
 use axum_session_auth::AuthConfig;
 use redis::{Client, RedisError};
 
-use crate::configuration::settings::Setting;
+use crate::configuration::{settings::Setting, constant::GlobalCte};
 
 pub async fn poll() -> Client {
     let address = Setting::RedisHost.get();
@@ -45,7 +45,8 @@ pub fn private_cookies_session() -> SessionConfig {
 }
 
 pub fn auth_config() -> AuthConfig<i64> {
-    AuthConfig::<i64>::default().with_anonymous_user_id(Some(1))
+    let id: i64 = GlobalCte::DefaultAnonymousID.get().into();
+    AuthConfig::<i64>::default().with_anonymous_user_id(Some(id))
 }
 
 #[cfg(test)]
