@@ -96,7 +96,7 @@ impl Authentication<CurrentUser, i64, redis::Client> for CurrentUser {
             Ok(u) => Ok(u),
             Err(_) => {
                 let current_user = read_user_from_db(user_id.try_into().unwrap()).await?;
-                save_user_session(&current_user).await?;
+                save_user_session(&current_user, None).await?;
                 Ok(current_user)
             }
         }

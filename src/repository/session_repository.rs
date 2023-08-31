@@ -1,12 +1,20 @@
 use redis::RedisError;
 
-use crate::{data::session_dto::CurrentUserDto, connection::connection_redis::poll};
+use crate::{connection::connection_redis::poll, data::session_dto::CurrentUserDto};
 
 pub async fn set_user(key: &str, user: CurrentUserDto, duration: usize) -> Result<(), RedisError> {
     let mut conn = poll().await.get_async_connection().await?;
     redis::pipe()
         .set(key, serde_json::to_string(&user)?)
         .expire(key, duration)
+        .query_async(&mut conn)
+        .await
+}
+
+pub async fn set_user_indefinitely(key: &str, user: CurrentUserDto) -> Result<(), RedisError> {
+    let mut conn = poll().await.get_async_connection().await?;
+    redis::pipe()
+        .set(key, serde_json::to_string(&user)?)
         .query_async(&mut conn)
         .await
 }

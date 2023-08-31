@@ -1,8 +1,16 @@
 use axum::response::IntoResponse;
 use tokio::signal;
-use tracing::{info, debug, error};
+use tracing::{debug, error, info};
 
-use crate::{service::util_service::not_found, configuration::settings::Setting, connection::{connection_redis::ping_redis, connection_psql::check_db_status}};
+use crate::{
+    configuration::{constant::GlobalCte, settings::Setting},
+    connection::{connection_psql::check_db_status, connection_redis::ping_redis},
+    response::error::ApiError,
+    service::{
+        session_service::{read_user_from_db, save_user_indefinitely},
+        util_service::not_found,
+    },
+};
 
 pub async fn shutdown_signal() {
     let ctrl_c = async {
@@ -57,4 +65,10 @@ pub async fn checking_status() -> Result<&'static str, &'static str> {
         true => Ok("All checks are OK."),
         false => Err("Something went wrong."),
     }
+}
+
+pub async fn set_anonymous_user() -> Result<(), ApiError> {
+    let anonymous_id: i32 = GlobalCte::DefaultAnonymousID.get().try_into().unwrap();
+    let user = read_user_from_db(anonymous_id).await?;
+    save_user_indefinitely(&user).await
 }
