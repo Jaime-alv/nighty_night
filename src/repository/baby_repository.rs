@@ -1,3 +1,4 @@
+use crate::connection::connection_psql::establish_connection;
 use diesel::prelude::*;
 use diesel::result::Error;
 
@@ -7,7 +8,7 @@ use crate::{
     schema::{babies, users_babies},
 };
 
-use super::{connection_psql::establish_connection, paginator::Paginate};
+use super::paginator::Paginate;
 
 pub fn ingest_new_baby_in_db<T>(new_baby: T, user: i32) -> Result<Baby, Error>
 where

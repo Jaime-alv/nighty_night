@@ -1,21 +1,7 @@
 use axum_session::{Key, SecurityMode, SessionConfig};
 use axum_session_auth::AuthConfig;
-use redis::{Client, RedisError};
 
-use crate::configuration::{settings::Setting, constant::GlobalCte};
-
-pub async fn poll() -> Client {
-    let address = Setting::RedisHost.get();
-    Client::open(address).expect("Can't connect to redis")
-}
-
-pub async fn ping_redis() -> Result<String, RedisError> {
-    let mut conn = match poll().await.get_connection(){
-        Ok(server) => server,
-        Err(error) => return Err(error)
-    };
-    redis::cmd("PING").query::<String>(&mut conn)
-}
+use super::constant::GlobalCte;
 
 /// This Defaults as normal Cookies.
 pub fn session_config() -> SessionConfig {
@@ -47,21 +33,4 @@ pub fn private_cookies_session() -> SessionConfig {
 pub fn auth_config() -> AuthConfig<i64> {
     let id: i64 = GlobalCte::DefaultAnonymousID.get().into();
     AuthConfig::<i64>::default().with_anonymous_user_id(Some(id))
-}
-
-#[cfg(test)]
-mod test_redis_connection {
-    use super::ping_redis;
-
-    use dotenvy::dotenv;
-
-    fn set_env() {
-        dotenv().ok();
-    }
-
-    #[tokio::test]
-    async fn test_ping() {
-        set_env();
-        assert_eq!(ping_redis().await.unwrap(), "PONG".to_string());
-    }
 }

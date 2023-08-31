@@ -1,10 +1,9 @@
+use crate::connection::connection_psql::establish_connection;
 use crate::schema::{babies, dreams, meals, roles, users, users_roles, weights};
 use diesel::dsl::count;
 use diesel::prelude::*;
 use diesel::result::Error;
 use serde::Serialize;
-
-use super::connection_psql::establish_connection;
 
 #[derive(Serialize)]
 pub struct StatsDB<'a> {

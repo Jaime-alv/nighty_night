@@ -30,6 +30,7 @@ mod security;
 mod service;
 mod utils;
 mod response;
+mod connection;
 
 #[tokio::main]
 async fn main() {

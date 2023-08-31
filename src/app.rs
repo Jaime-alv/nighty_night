@@ -8,11 +8,10 @@ use tower_http::trace::TraceLayer;
 use tracing::{error, info_span};
 
 use crate::{
-    configuration::settings::Setting,
+    configuration::{settings::Setting, app_settings::{session_config, private_cookies_session, auth_config}},
     controller::{self, admin_controller::route_admin},
     model::session_model::CurrentUser,
-    repository::connection_redis::{auth_config, poll, private_cookies_session, session_config},
-    utils::{app::error_404, logger::setup_logger},
+    utils::{app::error_404, logger::setup_logger}, connection::connection_redis::poll,
 };
 
 /// Create app object with routes and layers.

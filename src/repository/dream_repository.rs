@@ -8,7 +8,8 @@ use crate::{
     utils::datetime::now,
 };
 
-use super::{connection_psql::establish_connection, paginator::Paginate};
+use super::paginator::Paginate;
+use crate::connection::connection_psql::establish_connection;
 
 pub fn ingest_new_dream<T>(new_dream: T) -> Result<usize, Error>
 where

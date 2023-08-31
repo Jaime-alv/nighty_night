@@ -1,8 +1,6 @@
 use redis::RedisError;
 
-use crate::data::session_dto::CurrentUserDto;
-
-use super::connection_redis::poll;
+use crate::{data::session_dto::CurrentUserDto, connection::connection_redis::poll};
 
 pub async fn set_user(key: &str, user: CurrentUserDto, duration: usize) -> Result<(), RedisError> {
     let mut conn = poll().await.get_async_connection().await?;
