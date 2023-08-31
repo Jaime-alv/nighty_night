@@ -14,9 +14,7 @@
       - [CLI](#cli)
     - [Docker](#docker)
       - [Build docker image](#build-docker-image)
-      - [Run compose image](#run-compose-image)
-      - [Stop docker compose](#stop-docker-compose)
-      - [Delete docker compose](#delete-docker-compose)
+      - [Build docker compose](#build-docker-compose)
       - [.env file](#env-file)
       - [Docker flags](#docker-flags)
     - [Kubernetes](#kubernetes)
@@ -129,34 +127,52 @@ Test Endpoint => <http://127.0.0.0:3000/api/auth>
 
 ### Docker
 
+Compiling rust in docker is a really slow process. There is no way around it. Although, final image only weights around 110 Mb, reaching that point the first time can take up to 1000s.
+
+With `cargo chef` speed is a lot better for incremental builds. As long as there are no changes in `Cargo.toml`, dependencies are cached, thus speeding whole process.
+
 #### Build docker image
 
 ```bash
-docker build -t nighty_night:latest -f ./docker/Dockerfile .
+docker build -t nighty_night -f ./docker/Dockerfile .
 ```
 
-Optional:
+Optional, run container:
 
 ```bash
-docker run --env-file .env -d -p 3000:3000 --name rs nighty_night:latest
+docker run --env-file .env -d -p 3000:3000 --name rs nighty_night
 ```
 
-#### Run compose image
+#### Build docker compose
+
+Create network with app and databases; initialize containers:
 
 ```bash
 docker compose --env-file ./key/docker.env -f ./docker/compose.yaml up -d
 ```
 
-#### Stop docker compose
+Stop containers:
 
 ```bash
 docker compose -f ./docker/compose.yaml stop
 ```
 
-#### Delete docker compose
+Delete containers:
 
 ```bash
 docker compose -f ./docker/compose.yaml down
+```
+
+Delete dangling images and volumes:
+
+```bash
+docker image prune && docker volume prune
+```
+
+To remove all images which are not used by existing containers, use the `-a` flag:
+
+```bash
+docker image prune -a
 ```
 
 #### .env file
