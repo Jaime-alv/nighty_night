@@ -1,17 +1,22 @@
-FROM rust:1.70 as builder
-
-RUN USER=root cargo new --bin nighty_night
+FROM lukemathwalker/cargo-chef:latest-rust-1.70 AS chef
 WORKDIR /nighty_night
-COPY ./Cargo.toml ./Cargo.toml
+
+# STAGE 1 - generate a recipe file for dependencies
+FROM chef AS planner
+COPY . .
+RUN cargo chef prepare --recipe-path recipe.json
+
+# STAGE 2 - build source with cached dependencies
+FROM chef AS builder
+COPY --from=planner /nighty_night/recipe.json recipe.json
+
+# Build dependencies - this is the caching Docker layer!
+RUN cargo chef cook --release --recipe-path recipe.json
+# Build application
+COPY . .
 RUN cargo build --release
-RUN rm src/*.rs
 
-ADD . ./
-
-RUN rm ./target/release/deps/nighty_night*
-RUN cargo build --release
-
-
+# STAGE 4 - build docker image
 FROM debian:bullseye-slim
 ARG APP=/usr/src/app
 
