@@ -16,21 +16,24 @@ use app::create_app_route;
 use std::path::Path;
 use tracing::info;
 
-use crate::{configuration::settings::Setting, utils::app::{checking_status, shutdown_signal}};
+use crate::{
+    configuration::settings::Setting,
+    utils::app::{checking_status, set_anonymous_user, shutdown_signal},
+};
 
 mod app;
 mod configuration;
+mod connection;
 mod controller;
 mod data;
 mod mapping;
 mod model;
 mod repository;
+mod response;
 mod schema;
 mod security;
 mod service;
 mod utils;
-mod response;
-mod connection;
 
 #[tokio::main]
 async fn main() {
@@ -44,7 +47,12 @@ async fn main() {
     let app = create_app_route().await;
 
     match checking_status().await {
-        Ok(msg) => info!("{msg}"),
+        Ok(msg) => {
+            set_anonymous_user()
+                .await
+                .expect("Couldn't save anonymous user.");
+            info!("{msg}")
+        }
         Err(error) => {
             tracing::error!("{error}");
             panic!("Shutting down.")

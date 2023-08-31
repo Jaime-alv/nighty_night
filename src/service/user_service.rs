@@ -101,7 +101,7 @@ pub async fn find_user_by_username_service(username: &str) -> Result<User, ApiEr
 
 async fn cache_user_in_session(user: User) -> Result<(), ApiError> {
     let current_user = create_current_user(user).await?;
-    Ok(save_user_session(&current_user).await?)
+    Ok(save_user_session(&current_user, None).await?)
 }
 
 pub async fn patch_user_service(

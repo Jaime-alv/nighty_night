@@ -7,7 +7,7 @@ use crate::{
     mapping::rol_mapper::translate_roles,
     model::{role_model::Rol, session_model::CurrentUser, user_model::User},
     repository::{
-        session_repository::{delete_user_session, get_user, set_user},
+        session_repository::{delete_user_session, get_user, set_user, set_user_indefinitely},
         user_repository::{find_babies_id, find_roles_id, load_user_by_id},
     },
     response::{error::ApiError, response::MsgResponse},
@@ -41,13 +41,27 @@ where
     }
 }
 
-pub async fn save_user_session(user: &CurrentUser) -> Result<(), ApiError> {
+pub async fn save_user_session(
+    user: &CurrentUser,
+    duration: Option<usize>,
+) -> Result<(), ApiError> {
     let key = user_redis_key(user.id());
-    let duration = Setting::SessionDuration
-        .get()
-        .parse::<usize>()
-        .unwrap_or(600);
-    set_user(&key, (*user).clone().into(), duration).await?;
+    let session_duration = match duration {
+        Some(value) => value,
+        None => Setting::SessionDuration
+            .get()
+            .parse::<usize>()
+            .unwrap_or(600),
+    };
+    set_user(&key, (*user).clone().into(), session_duration).await?;
+    Ok(())
+}
+
+pub async fn save_user_indefinitely(
+    user: &CurrentUser,
+) -> Result<(), ApiError> {
+    let key = user_redis_key(user.id());
+    set_user_indefinitely(&key, (*user).clone().into()).await?;
     Ok(())
 }
 
@@ -57,7 +71,7 @@ pub async fn update_user_session(
     let user_id: i32 = auth.id.try_into().unwrap();
     clear_cache_current_user(&auth);
     let update_user = read_user_from_db(user_id).await?;
-    save_user_session(&update_user).await
+    save_user_session(&update_user, None).await
 }
 
 pub async fn load_user_session(id: i64) -> Result<CurrentUser, ApiError> {
