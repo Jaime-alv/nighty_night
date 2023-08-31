@@ -9,7 +9,8 @@ use chrono::NaiveDateTime;
 use diesel::prelude::*;
 use diesel::result::Error;
 
-use super::{connection_psql::establish_connection, paginator::Paginate};
+use super::paginator::Paginate;
+use crate::connection::connection_psql::establish_connection;
 
 ///
 /// Get all users from database.

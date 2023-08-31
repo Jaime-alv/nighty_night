@@ -7,7 +7,8 @@ use crate::{
     schema::weights,
 };
 
-use super::{connection_psql::establish_connection, paginator::Paginate};
+use super::paginator::Paginate;
+use crate::connection::connection_psql::establish_connection;
 
 pub fn ingest_weight<T>(new_measure: T) -> Result<usize, Error>
 where

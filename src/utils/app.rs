@@ -2,7 +2,7 @@ use axum::response::IntoResponse;
 use tokio::signal;
 use tracing::{info, debug, error};
 
-use crate::{service::util_service::not_found, repository::{connection_redis::ping_redis, connection_psql::check_db_status}, configuration::settings::Setting};
+use crate::{service::util_service::not_found, configuration::settings::Setting, connection::{connection_redis::ping_redis, connection_psql::check_db_status}};
 
 pub async fn shutdown_signal() {
     let ctrl_c = async {

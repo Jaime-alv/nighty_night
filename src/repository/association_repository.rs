@@ -1,3 +1,4 @@
+use crate::connection::connection_psql::establish_connection;
 use diesel::prelude::*;
 use diesel::result::Error;
 
@@ -5,8 +6,6 @@ use crate::schema::{
     users_babies::{self, baby_id},
     users_roles::{self, rol_id},
 };
-
-use super::connection_psql::establish_connection;
 
 pub fn add_rol_to_user(user: i32, rol: i16) -> Result<usize, Error> {
     let conn = &mut establish_connection();
