@@ -318,14 +318,14 @@ data:
 
 ### Baby: `/api/baby`
 
-| Route                             | Method   | Function                                     | Parameters                    | Arguments         |
-| --------------------------------- | -------- | -------------------------------------------- | ----------------------------- | ----------------- |
-| /                                 | `get`    | Get all babies for current user              |                               |                   |
-| /                                 | `post`   | Add new baby                                 | Body: Json                    | {name, birthdate} |
-| /:baby_id                         | `patch`  | Update baby info by id                       | Path: i32 \| Body: Json       | {name, birthdate} |
-| /:baby_id                         | `delete` | Delete baby and all records associated to it | Path: i32                     |                   |
-| /:baby_id/share?username=username | `post`   | Associate current baby to another username   | Path: i32 \| username: String |                   |
-| /:baby_id/transfer                | `patch`  | Transfer current baby to another username    | Path: i32 \| Body: Json       | {username}        |
+| Route                             | Method   | Function                                     | Parameters                     | Arguments         |
+| --------------------------------- | -------- | -------------------------------------------- | ------------------------------ | ----------------- |
+| /                                 | `get`    | Get all babies for current user              |                                |                   |
+| /                                 | `post`   | Add new baby                                 | Body: Json                     | {name, birthdate} |
+| /:baby_id                         | `patch`  | Update baby info by id                       | Path: Uuid \| Body: Json       | {name, birthdate} |
+| /:baby_id                         | `delete` | Delete baby and all records associated to it | Path: Uuid                     |                   |
+| /:baby_id/share?username=username | `post`   | Associate current baby to another username   | Path: Uuid \| username: String |                   |
+| /:baby_id/transfer                | `patch`  | Transfer current baby to another username    | Path: Uuid \| Body: Json       | {username}        |
 
 ### Meals: `/api/baby/:baby_id`
 
@@ -382,7 +382,7 @@ data:
 | /user          | `delete` | Delete all inactive users           |                |                  |
 | /user?entry=X  | `delete` | Delete a user by id                 | entry: Integer |                  |
 | /baby          | `get`    | Get all babies in db                |                |                  |
-| /baby/:baby_id | `get`    | Get baby info by id                 | Path: i32      |                  |
+| /baby/:baby_id | `get`    | Get baby info by id                 | Path: Uuid     |                  |
 | /stats         | `get`    | Get number of records & statistics  |                |                  |
 | /roles         | `get`    | Get roles and associated statistics |                |                  |
 | /roles         | `put`    | Add role to user                    | Body: Json     | {username, role} |
