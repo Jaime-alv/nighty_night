@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 #[derive(Serialize, Deserialize)]
 pub struct CurrentUserDto {
@@ -7,7 +8,7 @@ pub struct CurrentUserDto {
     pub username: String,
     pub roles: Vec<u8>,
     pub active: bool,
-    pub baby_id: Vec<i32>
+    pub baby_id: Vec<Uuid>
 }
 
 impl CurrentUserDto {
@@ -17,7 +18,7 @@ impl CurrentUserDto {
         username: String,
         roles: Vec<u8>,
         active: bool,
-        baby_id: Vec<i32>
+        baby_id: Vec<Uuid>
     ) -> Self {
         Self {
             id,

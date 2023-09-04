@@ -9,7 +9,7 @@ use crate::{
         association_repository::{add_baby_to_user, delete_baby_association},
         baby_repository::{
             delete_baby_from_db, get_all_babies_with_id, ingest_new_baby_in_db, load_baby_by_id,
-            patch_baby_record, query_babies, transfer_baby_records,
+            patch_baby_record, query_babies, transfer_baby_records, get_all_babies_by_unique_id,
         },
     },
     response::{
@@ -102,7 +102,7 @@ pub async fn load_babies_for_current_user(
 ) -> Result<PagedResponse<Vec<BabyDto>>, ApiError> {
     let current = pagination.page();
     let user = load_user_session(user_id).await?;
-    let (babies, total_pages) = get_all_babies_with_id(user.baby_id(), pagination)?;
+    let (babies, total_pages) = get_all_babies_by_unique_id(user.baby_id(), pagination)?;
     let babies: Vec<BabyDto> = records_is_not_empty(babies)?
         .into_iter()
         .map(|baby| baby.into())

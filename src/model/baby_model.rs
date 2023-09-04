@@ -1,5 +1,6 @@
 use chrono::{NaiveDate, NaiveDateTime};
 use diesel::{Identifiable, Insertable, Queryable, Selectable};
+use uuid::Uuid;
 
 use crate::{
     schema::babies,
@@ -10,6 +11,7 @@ use crate::{
 #[diesel(table_name = babies)]
 pub struct Baby {
     id: i32,
+    unique_id: Uuid,
     name: String,
     birthdate: NaiveDate,
     belongs_to: i32,
@@ -44,12 +46,17 @@ impl Baby {
     pub fn formatted_added_on(&self) -> String {
         format_date(self.added_on.date())
     }
+
+    pub fn unique_id(&self) -> Uuid {
+        self.unique_id
+    }
 }
 
 #[derive(Insertable)]
 #[diesel(table_name = babies)]
 pub struct InsertableBaby {
     name: String,
+    unique_id: Uuid,
     birthdate: NaiveDate,
     belongs_to: i32,
     added_on: NaiveDateTime,
@@ -59,6 +66,7 @@ impl InsertableBaby {
     pub fn new(name: String, birthdate: NaiveDate, user_id: i32) -> Self {
         Self {
             name,
+            unique_id: Uuid::new_v4(),
             birthdate,
             belongs_to: user_id,
             added_on: now(),

@@ -6,6 +6,7 @@ use axum::{
 };
 use axum_session::SessionRedisPool;
 use axum_session_auth::AuthSession;
+use uuid::Uuid;
 
 use crate::{
     data::{
@@ -20,7 +21,7 @@ use crate::{
             delete_baby_service, find_baby_service, ingest_new_baby, load_babies_for_current_user,
             patch_baby_service, transfer_baby_service,
         },
-        session_service::{authorize_and_has_baby, login_required, update_user_session},
+        session_service::{authorize_and_has_baby_unique_id, login_required, update_user_session},
     },
 };
 
@@ -63,28 +64,28 @@ async fn register_baby(
 }
 
 async fn find_baby_by_id(
-    Path(baby_id): Path<i32>,
+    Path(baby_unique_id): Path<Uuid>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
 ) -> impl IntoResponse {
-    authorize_and_has_baby(auth, baby_id)?;
+    let baby_id = authorize_and_has_baby_unique_id(auth, baby_unique_id)?;
     find_baby_service(baby_id).await
 }
 
 async fn patch_baby(
-    Path(baby_id): Path<i32>,
+    Path(baby_unique_id): Path<Uuid>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     Json(update): Json<InputBabyDto>,
 ) -> impl IntoResponse {
-    authorize_and_has_baby(auth, baby_id)?;
+    let baby_id = authorize_and_has_baby_unique_id(auth, baby_unique_id)?;
     patch_baby_service(baby_id, update).await
 }
 
 async fn delete_baby(
-    Path(baby_id): Path<i32>,
+    Path(baby_unique_id): Path<Uuid>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
 ) -> impl IntoResponse {
     let user_binding: i32 = auth.id.try_into().unwrap();
-    authorize_and_has_baby(auth.clone(), baby_id)?;
+    let baby_id = authorize_and_has_baby_unique_id(auth.clone(), baby_unique_id)?;
     let message = delete_baby_service(baby_id, user_binding).await;
     if message.is_ok() {
         update_user_session(auth).await?;
@@ -103,20 +104,21 @@ async fn get_babies_for_user(
 }
 
 async fn share_ownership(
-    Path(baby_id): Path<i32>,
+    Path(baby_unique_id): Path<Uuid>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     user: Query<Username>,
 ) -> impl IntoResponse {
-    authorize_and_has_baby(auth, baby_id)?;
+    let baby_id = authorize_and_has_baby_unique_id(auth, baby_unique_id)?;
     let username = user.username()?;
     add_baby_to_user_service(baby_id, &username).await
 }
 
 async fn transfer_owner(
-    Path(baby_id): Path<i32>,
+    Path(baby_unique_id): Path<Uuid>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
-    Json(username): Json<FindUserDto>,
+    user: Query<Username>,
 ) -> impl IntoResponse {
-    authorize_and_has_baby(auth, baby_id)?;
-    transfer_baby_service(baby_id, &username.username).await
+    let baby_id = authorize_and_has_baby_unique_id(auth, baby_unique_id)?;
+    let username = user.username()?;
+    transfer_baby_service(baby_id, &username).await
 }

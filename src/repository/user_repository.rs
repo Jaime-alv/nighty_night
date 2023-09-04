@@ -3,11 +3,12 @@ use std::collections::HashSet;
 use crate::{
     data::{query_dto::Pagination, user_dto::UpdateUser},
     model::user_model::{InsertableUser, User},
-    schema::{users, users_babies, users_roles},
+    schema::{babies, users, users_babies, users_roles},
 };
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
 use diesel::result::Error;
+use uuid::Uuid;
 
 use super::paginator::Paginate;
 use crate::connection::connection_psql::establish_connection;
@@ -135,7 +136,7 @@ pub fn delete_users_from_db_in_batch(older_than: NaiveDateTime) -> Result<usize,
 }
 
 /// Raw SQL:
-/// 
+///
 /// ```sql
 /// SELECT id FROM users WHERE username = ${username};
 /// ```
@@ -145,4 +146,22 @@ pub fn select_id_from_username(username: &str) -> Result<i32, Error> {
         .filter(users::username.eq(username))
         .select(users::id)
         .first(conn)
+}
+
+pub fn find_babies_unique_id(user: i32) -> Result<HashSet<Uuid>, Error> {
+    let mut babies: HashSet<Uuid> = HashSet::new();
+    let conn = &mut establish_connection();
+    let babies_id: Vec<i32> = users_babies::table
+        .filter(users_babies::user_id.eq(user))
+        .select(users_babies::baby_id)
+        .load::<i32>(conn)?;
+    babies::table
+        .filter(babies::id.eq_any(babies_id))
+        .select(babies::unique_id)
+        .load::<Uuid>(conn)?
+        .into_iter()
+        .for_each(|id| {
+            babies.insert(id);
+        });
+    Ok(babies)
 }

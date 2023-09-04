@@ -126,7 +126,7 @@ impl Username {
     pub fn username(&self) -> Result<String, ApiError> {
         match self.username.to_owned() {
             Some(value) => Ok(value),
-            None => Err(ApiError::EmptyBody),
+            None => Err(ApiError::NoUser),
         }
     }
 }

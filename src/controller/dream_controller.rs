@@ -6,6 +6,7 @@ use axum::{
 };
 use axum_session::SessionRedisPool;
 use axum_session_auth::AuthSession;
+use uuid::Uuid;
 
 use crate::{
     data::{
@@ -22,7 +23,7 @@ use crate::{
             dream_summary_last_days_service, dream_summary_range_service,
             get_all_summary_records_paginated,
         },
-        session_service::authorize_and_has_baby,
+        session_service::authorize_and_has_baby_unique_id,
     },
 };
 
@@ -42,7 +43,7 @@ pub(super) fn route_dream() -> Router {
 }
 
 async fn get_dreams(
-    Path(baby_id): Path<i32>,
+    Path(baby_unique_id): Path<Uuid>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     all_records: Option<Query<AllRecords>>,
     date: Option<Query<DateDto>>,
@@ -50,7 +51,7 @@ async fn get_dreams(
     range: Option<Query<DateRangeDto>>,
     last_days: Option<Query<LastDaysDto>>,
 ) -> impl IntoResponse {
-    authorize_and_has_baby(auth, baby_id)?;
+    let baby_id = authorize_and_has_baby_unique_id(auth, baby_unique_id)?;
     let pagination = page.unwrap_or_default().0;
     if all_records.is_some() && all_records.unwrap().all() {
         get_dreams_paginated_service(baby_id, pagination).await
@@ -67,36 +68,36 @@ async fn get_dreams(
 }
 
 async fn post_dream(
-    Path(baby_id): Path<i32>,
+    Path(baby_unique_id): Path<Uuid>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     Json(new_dream): Json<InputDreamDto>,
 ) -> impl IntoResponse {
-    authorize_and_has_baby(auth, baby_id)?;
+    let baby_id = authorize_and_has_baby_unique_id(auth, baby_unique_id)?;
     post_dream_service(new_dream, baby_id).await
 }
 
 async fn patch_dream(
-    Path(baby_id): Path<i32>,
+    Path(baby_unique_id): Path<Uuid>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     record_id: Query<IdDto>,
     Json(dream): Json<InputDreamDto>,
 ) -> impl IntoResponse {
-    authorize_and_has_baby(auth, baby_id)?;
+    let baby_id = authorize_and_has_baby_unique_id(auth, baby_unique_id)?;
     patch_dream_service(dream, record_id.id(), baby_id).await
 }
 
 async fn delete_dream(
-    Path(baby_id): Path<i32>,
+    Path(baby_unique_id): Path<Uuid>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     record_id: Query<IdDto>,
 ) -> impl IntoResponse {
-    authorize_and_has_baby(auth, baby_id)?;
+    let baby_id = authorize_and_has_baby_unique_id(auth, baby_unique_id)?;
     delete_dream_service(record_id.id(), baby_id).await
 }
 
 /// Obtain summary records, if there are no parameters, it will try to get last 7 days.
 async fn dream_summary(
-    Path(baby_id): Path<i32>,
+    Path(baby_unique_id): Path<Uuid>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     all_records: Option<Query<AllRecords>>,
     page: Option<Query<Pagination>>,
@@ -104,7 +105,7 @@ async fn dream_summary(
     range: Option<Query<DateRangeDto>>,
     last_days: Option<Query<LastDaysDto>>,
 ) -> impl IntoResponse {
-    authorize_and_has_baby(auth, baby_id)?;
+    let baby_id = authorize_and_has_baby_unique_id(auth, baby_unique_id)?;
     let pagination = page.unwrap_or_default().0;
     if all_records.is_some() && all_records.unwrap().all() {
         get_all_summary_records_paginated(baby_id, pagination).await

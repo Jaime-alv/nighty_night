@@ -6,6 +6,7 @@ use axum::{
 };
 use axum_session::SessionRedisPool;
 use axum_session_auth::AuthSession;
+use uuid::Uuid;
 
 use crate::{
     data::{
@@ -22,7 +23,7 @@ use crate::{
             get_all_summary_records_paginated, meal_summary_last_days_service,
             meal_summary_range_service,
         },
-        session_service::authorize_and_has_baby,
+        session_service::authorize_and_has_baby_unique_id,
     },
 };
 
@@ -42,7 +43,7 @@ pub(super) fn route_meal() -> Router {
 }
 
 async fn get_meals(
-    Path(baby_id): Path<i32>,
+    Path(baby_unique_id): Path<Uuid>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     all_records: Option<Query<AllRecords>>,
     date: Option<Query<DateDto>>,
@@ -50,7 +51,7 @@ async fn get_meals(
     range: Option<Query<DateRangeDto>>,
     last_days: Option<Query<LastDaysDto>>,
 ) -> impl IntoResponse {
-    authorize_and_has_baby(auth, baby_id)?;
+    let baby_id = authorize_and_has_baby_unique_id(auth, baby_unique_id)?;
     let pagination = page.unwrap_or_default().0;
     if all_records.is_some() && all_records.unwrap().all() {
         get_all_meals_paginated_service(baby_id, pagination).await
@@ -67,36 +68,36 @@ async fn get_meals(
 }
 
 async fn post_meal(
-    Path(baby_id): Path<i32>,
+    Path(baby_unique_id): Path<Uuid>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     Json(new_meal): Json<InputMealDto>,
 ) -> impl IntoResponse {
-    authorize_and_has_baby(auth, baby_id)?;
+    let baby_id = authorize_and_has_baby_unique_id(auth, baby_unique_id)?;
     post_meal_service(new_meal, baby_id).await
 }
 
 async fn patch_meal(
-    Path(baby_id): Path<i32>,
+    Path(baby_unique_id): Path<Uuid>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     record_id: Query<IdDto>,
     Json(meal): Json<InputMealDto>,
 ) -> impl IntoResponse {
-    authorize_and_has_baby(auth, baby_id)?;
+    let baby_id = authorize_and_has_baby_unique_id(auth, baby_unique_id)?;
     patch_meal_service(meal, record_id.id(), baby_id).await
 }
 
 async fn delete_meal(
-    Path(baby_id): Path<i32>,
+    Path(baby_unique_id): Path<Uuid>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     record_id: Query<IdDto>,
 ) -> impl IntoResponse {
-    authorize_and_has_baby(auth, baby_id)?;
+    let baby_id = authorize_and_has_baby_unique_id(auth, baby_unique_id)?;
     delete_meal_service(record_id.id(), baby_id).await
 }
 
 /// Obtain summary records, if there are no parameters, it will try to get last 7 days.
 async fn meal_summary(
-    Path(baby_id): Path<i32>,
+    Path(baby_unique_id): Path<Uuid>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     page: Option<Query<Pagination>>,
     all_records: Option<Query<AllRecords>>,
@@ -104,7 +105,7 @@ async fn meal_summary(
     range: Option<Query<DateRangeDto>>,
     last_days: Option<Query<LastDaysDto>>,
 ) -> impl IntoResponse {
-    authorize_and_has_baby(auth, baby_id)?;
+    let baby_id = authorize_and_has_baby_unique_id(auth, baby_unique_id)?;
     let pagination = page.unwrap_or_default().0;
     if all_records.is_some() && all_records.unwrap().all() {
         get_all_summary_records_paginated(baby_id, pagination).await

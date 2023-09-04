@@ -3,6 +3,7 @@
 diesel::table! {
     babies (id) {
         id -> Int4,
+        unique_id -> Uuid,
         name -> Varchar,
         birthdate -> Date,
         belongs_to -> Int4,

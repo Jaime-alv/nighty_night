@@ -25,6 +25,7 @@ CREATE TABLE
 CREATE TABLE
     IF NOT EXISTS babies (
         "id" INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+        "unique_id" uuid not NULL,
         "name" VARCHAR(64) not NULL,
         "birthdate" DATE not NULL,
         "belongs_to" INTEGER not NULL,

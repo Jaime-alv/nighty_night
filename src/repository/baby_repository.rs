@@ -1,6 +1,7 @@
 use crate::connection::connection_psql::establish_connection;
 use diesel::prelude::*;
 use diesel::result::Error;
+use uuid::Uuid;
 
 use crate::{
     data::{baby_dto::UpdateBaby, query_dto::Pagination},
@@ -80,4 +81,24 @@ pub fn transfer_baby_records(baby: i32, new_user: i32) -> Result<usize, Error> {
     diesel::update(babies::table.find(baby))
         .set(babies::belongs_to.eq(new_user))
         .execute(conn)
+}
+
+pub fn get_all_babies_by_unique_id(
+    babies: Vec<Uuid>,
+    pagination: Pagination,
+) -> Result<(Vec<Baby>, i64), Error> {
+    let conn = &mut establish_connection();
+    babies::table
+        .filter(babies::unique_id.eq_any(babies))
+        .paginate(pagination.page())
+        .per_page(pagination.per_page())
+        .load_and_count_pages(conn)
+}
+
+pub fn get_baby_id_from_unique_id(unique_id: Uuid) -> Result<i32, Error> {
+    let conn = &mut establish_connection();
+    babies::table
+        .filter(babies::unique_id.eq(unique_id))
+        .select(babies::id)
+        .first(conn)
 }

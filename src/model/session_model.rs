@@ -1,5 +1,6 @@
 use axum::async_trait;
 use axum_session_auth::Authentication;
+use uuid::Uuid;
 
 use crate::service::session_service::{load_user_session, read_user_from_db, save_user_session};
 
@@ -12,7 +13,7 @@ pub struct CurrentUser {
     username: String,
     roles: Vec<Rol>,
     active: bool,
-    baby_id: Vec<i32>,
+    baby_unique_id: Vec<Uuid>,
 }
 
 impl CurrentUser {
@@ -22,7 +23,7 @@ impl CurrentUser {
         username: String,
         roles: Vec<Rol>,
         active: bool,
-        baby_id: Vec<i32>,
+        baby_id: Vec<Uuid>,
     ) -> Self {
         Self {
             id,
@@ -30,7 +31,7 @@ impl CurrentUser {
             username,
             roles,
             active,
-            baby_id,
+            baby_unique_id: baby_id,
         }
     }
 
@@ -54,8 +55,8 @@ impl CurrentUser {
         self.active
     }
 
-    pub fn baby_id(&self) -> Vec<i32> {
-        self.baby_id.to_owned()
+    pub fn baby_id(&self) -> Vec<Uuid> {
+        self.baby_unique_id.to_owned()
     }
 
     pub fn _roles(&self) -> Vec<Rol> {
@@ -81,7 +82,7 @@ impl Default for CurrentUser {
             username: "GUEST".to_string(),
             roles: anonymous,
             active: true,
-            baby_id: vec![],
+            baby_unique_id: vec![],
         }
     }
 }

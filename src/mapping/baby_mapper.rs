@@ -8,6 +8,7 @@ use super::data_type::DataType;
 impl From<Baby> for BabyDto {
     fn from(baby: Baby) -> Self {
         let attr = BabyAttributes {
+            unique_id: baby.unique_id(),
             name: baby.name(),
             birthdate: baby.formatted_birthdate(),
         };

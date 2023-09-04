@@ -1,5 +1,6 @@
 use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 #[derive(Deserialize)]
 pub struct InputBabyDto {
@@ -21,6 +22,7 @@ pub struct UpdateBaby {
 
 #[derive(Serialize)]
 pub struct BabyAttributes {
+    pub unique_id: Uuid,
     pub name: String,
     pub birthdate: String,
 }

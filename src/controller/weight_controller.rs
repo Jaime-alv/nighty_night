@@ -6,6 +6,7 @@ use axum::{
 };
 use axum_session::SessionRedisPool;
 use axum_session_auth::AuthSession;
+use uuid::Uuid;
 
 use crate::{
     configuration::constant::GlobalCte,
@@ -15,7 +16,7 @@ use crate::{
     },
     model::session_model::CurrentUser,
     service::{
-        session_service::authorize_and_has_baby,
+        session_service::authorize_and_has_baby_unique_id,
         weight_service::{
             delete_weight_service, filter_weights_by_last_days, get_weight_range_service,
             get_weights_service, patch_weight_service, post_weight_service,
@@ -34,7 +35,7 @@ pub(super) fn route_weight() -> Router {
 }
 
 async fn get_weights(
-    Path(baby_id): Path<i32>,
+    Path(baby_unique_id): Path<Uuid>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     all_records: Option<Query<AllRecords>>,
     date: Option<Query<DateDto>>,
@@ -42,7 +43,7 @@ async fn get_weights(
     range: Option<Query<DateRangeDto>>,
     last_days: Option<Query<LastDaysDto>>,
 ) -> impl IntoResponse {
-    authorize_and_has_baby(auth, baby_id)?;
+    let baby_id = authorize_and_has_baby_unique_id(auth, baby_unique_id)?;
     let pagination = page.unwrap_or_default().0;
     if all_records.is_some() && all_records.unwrap().all() {
         get_weights_service(baby_id, pagination).await
@@ -63,29 +64,29 @@ async fn get_weights(
 }
 
 async fn post_weight(
-    Path(baby_id): Path<i32>,
+    Path(baby_unique_id): Path<Uuid>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     Json(new_measure): Json<InputWeightDto>,
 ) -> impl IntoResponse {
-    authorize_and_has_baby(auth, baby_id)?;
+    let baby_id = authorize_and_has_baby_unique_id(auth, baby_unique_id)?;
     post_weight_service(new_measure, baby_id).await
 }
 
 async fn patch_weight(
-    Path(baby_id): Path<i32>,
+    Path(baby_unique_id): Path<Uuid>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     record: Query<IdDto>,
     Json(measure): Json<InputWeightDto>,
 ) -> impl IntoResponse {
-    authorize_and_has_baby(auth, baby_id)?;
+    let baby_id = authorize_and_has_baby_unique_id(auth, baby_unique_id)?;
     patch_weight_service(measure, record.id(), baby_id).await
 }
 
 async fn delete_weight(
-    Path(baby_id): Path<i32>,
+    Path(baby_unique_id): Path<Uuid>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     record_id: Query<IdDto>,
 ) -> impl IntoResponse {
-    authorize_and_has_baby(auth, baby_id)?;
+    let baby_id = authorize_and_has_baby_unique_id(auth, baby_unique_id)?;
     delete_weight_service(record_id.id(), baby_id).await
 }
