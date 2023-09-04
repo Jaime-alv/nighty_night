@@ -8,8 +8,9 @@ use crate::{
     mapping::rol_mapper::translate_roles,
     model::{role_model::Rol, session_model::CurrentUser, user_model::User},
     repository::{
+        baby_repository::get_baby_id_from_unique_id,
         session_repository::{delete_user_session, get_user, set_user, set_user_indefinitely},
-        user_repository::{find_babies_id, find_roles_id, load_user_by_id, find_babies_unique_id}, baby_repository::get_baby_id_from_unique_id,
+        user_repository::{find_babies_unique_id, find_roles_id, load_user_by_id},
     },
     response::{error::ApiError, response::MsgResponse},
 };
@@ -58,9 +59,7 @@ pub async fn save_user_session(
     Ok(())
 }
 
-pub async fn save_user_indefinitely(
-    user: &CurrentUser,
-) -> Result<(), ApiError> {
+pub async fn save_user_indefinitely(user: &CurrentUser) -> Result<(), ApiError> {
     let key = user_redis_key(user.id());
     set_user_indefinitely(&key, (*user).clone().into()).await?;
     Ok(())
@@ -92,7 +91,9 @@ pub async fn read_user_from_db(user: i32) -> Result<CurrentUser, ApiError> {
 
 pub async fn create_current_user(current_user: User) -> Result<CurrentUser, ApiError> {
     let roles = find_roles_id(current_user.id())?;
-    let babies = find_babies_unique_id(current_user.id())?.into_iter().collect();
+    let babies = find_babies_unique_id(current_user.id())?
+        .into_iter()
+        .collect();
     let translate_roles: Vec<Rol> = translate_roles(&roles.into_iter().collect::<Vec<u8>>());
 
     let user_session = CurrentUser::new(
@@ -129,7 +130,7 @@ fn has_baby(
 }
 
 /// Check if user is authenticated and baby has a relationship with user.
-pub fn authorize_and_has_baby(
+pub fn authorize_and_has_baby_unique_id(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     baby_unique_id: Uuid,
 ) -> Result<i32, ApiError> {
@@ -138,20 +139,6 @@ pub fn authorize_and_has_baby(
     } else if has_baby(auth, baby_unique_id) {
         let id = get_baby_id_from_unique_id(baby_unique_id)?;
         Ok(id)
-    } else {
-        Err(ApiError::Forbidden)
-    }
-}
-
-/// Check if user is authenticated and baby has a relationship with user.
-pub fn authorize_and_has_baby_unique_id(
-    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
-    baby_unique_id: Uuid,
-) -> Result<i32, ApiError> {
-    if auth.is_anonymous() {
-        return Err(ApiError::LoginRequired);
-    } else if true {
-        Ok(1)
     } else {
         Err(ApiError::Forbidden)
     }

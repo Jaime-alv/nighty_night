@@ -8,8 +8,8 @@ use crate::{
     repository::{
         association_repository::{add_baby_to_user, delete_baby_association},
         baby_repository::{
-            delete_baby_from_db, get_all_babies_with_id, ingest_new_baby_in_db, load_baby_by_id,
-            patch_baby_record, query_babies, transfer_baby_records, get_all_babies_by_unique_id,
+            delete_baby_from_db, get_all_babies_by_unique_id, ingest_new_baby_in_db,
+            load_baby_by_id, patch_baby_record, query_babies, transfer_baby_records,
         },
     },
     response::{

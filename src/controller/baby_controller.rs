@@ -12,7 +12,6 @@ use crate::{
     data::{
         baby_dto::InputBabyDto,
         query_dto::{Pagination, Username},
-        user_dto::FindUserDto,
     },
     model::session_model::CurrentUser,
     service::{

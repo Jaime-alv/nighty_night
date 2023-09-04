@@ -64,17 +64,17 @@ pub fn delete_baby_from_db(baby: i32) -> Result<usize, Error> {
     diesel::delete(babies::table.find(baby)).execute(conn)
 }
 
-pub fn get_all_babies_with_id(
-    babies: Vec<i32>,
-    pagination: Pagination,
-) -> Result<(Vec<Baby>, i64), Error> {
-    let conn = &mut establish_connection();
-    babies::table
-        .filter(babies::id.eq_any(babies))
-        .paginate(pagination.page())
-        .per_page(pagination.per_page())
-        .load_and_count_pages(conn)
-}
+// pub fn get_all_babies_with_id(
+//     babies: Vec<i32>,
+//     pagination: Pagination,
+// ) -> Result<(Vec<Baby>, i64), Error> {
+//     let conn = &mut establish_connection();
+//     babies::table
+//         .filter(babies::id.eq_any(babies))
+//         .paginate(pagination.page())
+//         .per_page(pagination.per_page())
+//         .load_and_count_pages(conn)
+// }
 
 pub fn transfer_baby_records(baby: i32, new_user: i32) -> Result<usize, Error> {
     let conn = &mut establish_connection();

@@ -91,14 +91,6 @@ pub async fn find_user_by_id_service(user_id: i32) -> Result<RecordResponse<User
     Ok(response)
 }
 
-/// Returns User object if user with username exits.
-pub async fn find_user_by_username_service(username: &str) -> Result<User, ApiError> {
-    match load_user_by_username(username) {
-        Ok(user) => Ok(user),
-        Err(_) => Err(ApiError::NoUser),
-    }
-}
-
 async fn cache_user_in_session(user: User) -> Result<(), ApiError> {
     let current_user = create_current_user(user).await?;
     Ok(save_user_session(&current_user, None).await?)
@@ -164,7 +156,6 @@ pub async fn delete_old_users_service() -> Result<MsgResponse, ApiError> {
     let rows = delete_users_from_db_in_batch(older_than)?;
     Ok(MsgResponse::DeleteXRecords(rows))
 }
-
 
 /// Return user id if user with username exits.
 pub async fn find_user_id_from_username(username: &str) -> Result<i32, ApiError> {
