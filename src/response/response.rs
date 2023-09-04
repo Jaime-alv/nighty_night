@@ -46,6 +46,7 @@ impl IntoResponse for MsgResponse {
         let message = Message {
             status: status_code.as_u16(),
             detail: &msg,
+            r#type: "message",
         };
         let body = display_as(message, None);
 
@@ -56,6 +57,7 @@ impl IntoResponse for MsgResponse {
 #[derive(Serialize)]
 struct Message<'a> {
     status: u16,
+    r#type: &'a str,
     detail: &'a str,
 }
 

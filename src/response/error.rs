@@ -78,6 +78,7 @@ impl IntoResponse for ApiError {
         let error = ErrorField {
             status: status_code.as_u16(),
             detail: &msg,
+            r#type: "error",
         };
         let body = display_as(error, None);
 
@@ -88,7 +89,8 @@ impl IntoResponse for ApiError {
 #[derive(Serialize)]
 struct ErrorField<'a> {
     status: u16,
-    detail: &'a str
+    detail: &'a str,
+    r#type: &'a str
 }
 
 impl Display for ApiError {
