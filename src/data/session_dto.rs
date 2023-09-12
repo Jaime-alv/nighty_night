@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
+
+use crate::model::session_model::BabyInfo;
 
 #[derive(Serialize, Deserialize)]
 pub struct CurrentUserDto {
@@ -8,7 +9,7 @@ pub struct CurrentUserDto {
     pub username: String,
     pub roles: Vec<u8>,
     pub active: bool,
-    pub baby_id: Vec<Uuid>
+    pub baby_id: Vec<BabyInfo>,
 }
 
 impl CurrentUserDto {
@@ -18,7 +19,7 @@ impl CurrentUserDto {
         username: String,
         roles: Vec<u8>,
         active: bool,
-        baby_id: Vec<Uuid>
+        baby_id: Vec<BabyInfo>,
     ) -> Self {
         Self {
             id,
@@ -26,7 +27,15 @@ impl CurrentUserDto {
             username,
             roles,
             active,
-            baby_id
+            baby_id,
         }
     }
+}
+
+#[derive(Serialize)]
+pub struct SessionUserDto {
+    pub id: i64,
+    pub username: String,
+    pub roles: Vec<String>,
+    pub baby_info: Vec<BabyInfo>,
 }

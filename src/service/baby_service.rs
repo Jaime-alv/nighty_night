@@ -1,3 +1,5 @@
+use uuid::Uuid;
+
 use crate::{
     data::{
         admin_dto::AdminBabyDto,
@@ -102,7 +104,7 @@ pub async fn load_babies_for_current_user(
 ) -> Result<PagedResponse<Vec<BabyDto>>, ApiError> {
     let current = pagination.page();
     let user = load_user_session(user_id).await?;
-    let (babies, total_pages) = get_all_babies_by_unique_id(user.baby_id(), pagination)?;
+    let (babies, total_pages) = get_all_babies_by_unique_id(user.baby_unique_id(), pagination)?;
     let babies: Vec<BabyDto> = records_is_not_empty(babies)?
         .into_iter()
         .map(|baby| baby.into())

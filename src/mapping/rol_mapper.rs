@@ -67,6 +67,16 @@ impl From<GroupedRole> for RoleDto {
     }
 }
 
+impl From<Rol> for String {
+    fn from(value: Rol) -> Self {
+        match value {
+            Rol::Anonymous => "anonymous".to_string(),
+            Rol::User => "user".to_string(),
+            Rol::Admin => "admin".to_string(),
+        }
+    }
+}
+
 impl From<String> for Rol {
     fn from(value: String) -> Self {
         match value.to_lowercase().as_str() {

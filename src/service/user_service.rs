@@ -5,6 +5,7 @@ use crate::{
     data::{
         admin_dto::AdminUserDto,
         query_dto::Pagination,
+        session_dto::SessionUserDto,
         traits::Mandatory,
         user_dto::{FindUserDto, LoginDto, NewUserDto, UpdateUser, UpdateUserDto, UserDto},
     },
@@ -29,7 +30,9 @@ use super::{
     util_service::records_is_not_empty,
 };
 
-pub async fn create_user_service(new_user: NewUserDto) -> Result<(MsgResponse, i32), ApiError> {
+pub async fn create_user_service(
+    new_user: NewUserDto,
+) -> Result<(RecordResponse<SessionUserDto>, i32), ApiError> {
     if validate_fields(&new_user.data()) {
         return Err(ApiError::EmptyBody);
     }
@@ -37,10 +40,9 @@ pub async fn create_user_service(new_user: NewUserDto) -> Result<(MsgResponse, i
         return Err(ApiError::Generic400Error("Password too short.".into()));
     }
     let user = create_user(new_user, Rol::User.into())?;
-    let username = user.username();
     let id_binding = user.id();
-    cache_user_in_session(user).await?;
-    Ok((MsgResponse::NewUser(username), id_binding))
+    let new_user = cache_user_in_session(user).await?;
+    Ok((RecordResponse::new(new_user), id_binding))
 }
 
 pub async fn get_all_users_service(
@@ -65,7 +67,9 @@ pub async fn find_user_service(user: FindUserDto) -> Result<RecordResponse<UserD
     Ok(response)
 }
 
-pub async fn login_service(login: LoginDto) -> Result<(MsgResponse, i32), ApiError> {
+pub async fn login_service(
+    login: LoginDto,
+) -> Result<(RecordResponse<SessionUserDto>, i32), ApiError> {
     if validate_fields(&login.data()) {
         return Err(ApiError::EmptyBody);
     }
@@ -77,10 +81,9 @@ pub async fn login_service(login: LoginDto) -> Result<(MsgResponse, i32), ApiErr
         return Err(ApiError::NoActiveUser);
     }
     if current_user.is_password_match(&login.password) {
-        let username = current_user.username();
         let binding_id = current_user.id();
-        cache_user_in_session(current_user).await?;
-        return Ok((MsgResponse::UserLogIn(username), binding_id));
+        let login_user: SessionUserDto = cache_user_in_session(current_user).await?;
+        return Ok((RecordResponse::new(login_user), binding_id));
     }
     Err(ApiError::IncorrectPassword)
 }
@@ -91,9 +94,11 @@ pub async fn find_user_by_id_service(user_id: i32) -> Result<RecordResponse<User
     Ok(response)
 }
 
-async fn cache_user_in_session(user: User) -> Result<(), ApiError> {
+async fn cache_user_in_session(user: User) -> Result<SessionUserDto, ApiError> {
     let current_user = create_current_user(user).await?;
-    Ok(save_user_session(&current_user, None).await?)
+    save_user_session(&current_user, None).await?;
+    let user_dto: SessionUserDto = current_user.into();
+    Ok(user_dto)
 }
 
 pub async fn patch_user_service(

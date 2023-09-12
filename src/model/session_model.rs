@@ -1,5 +1,6 @@
 use axum::async_trait;
 use axum_session_auth::Authentication;
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::service::session_service::{load_user_session, read_user_from_db, save_user_session};
@@ -13,7 +14,13 @@ pub struct CurrentUser {
     username: String,
     roles: Vec<Rol>,
     active: bool,
-    baby_unique_id: Vec<Uuid>,
+    baby_info: Vec<BabyInfo>,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct BabyInfo {
+    pub name: String,
+    pub unique_id: Uuid,
 }
 
 impl CurrentUser {
@@ -23,7 +30,7 @@ impl CurrentUser {
         username: String,
         roles: Vec<Rol>,
         active: bool,
-        baby_id: Vec<Uuid>,
+        baby_unique_id: Vec<BabyInfo>,
     ) -> Self {
         Self {
             id,
@@ -31,7 +38,7 @@ impl CurrentUser {
             username,
             roles,
             active,
-            baby_unique_id: baby_id,
+            baby_info: baby_unique_id,
         }
     }
 
@@ -55,11 +62,21 @@ impl CurrentUser {
         self.active
     }
 
-    pub fn baby_id(&self) -> Vec<Uuid> {
-        self.baby_unique_id.to_owned()
+    /// Get all baby info with name and uuid
+    pub fn baby_info(&self) -> Vec<BabyInfo> {
+        self.baby_info.to_owned()
     }
 
-    pub fn _roles(&self) -> Vec<Rol> {
+    /// Get all Unique id for current user babies
+    pub fn baby_unique_id(&self) -> Vec<Uuid> {
+        self.baby_info
+            .to_owned()
+            .into_iter()
+            .map(|baby| baby.unique_id)
+            .collect()
+    }
+
+    pub fn roles(&self) -> Vec<Rol> {
         self.roles.to_owned()
     }
 
@@ -82,7 +99,7 @@ impl Default for CurrentUser {
             username: "GUEST".to_string(),
             roles: anonymous,
             active: true,
-            baby_unique_id: vec![],
+            baby_info: vec![],
         }
     }
 }

@@ -1,4 +1,7 @@
-use crate::{data::session_dto::CurrentUserDto, model::session_model::CurrentUser};
+use crate::{
+    data::session_dto::{CurrentUserDto, SessionUserDto},
+    model::session_model::CurrentUser,
+};
 
 use super::rol_mapper::translate_roles;
 
@@ -10,7 +13,7 @@ impl From<CurrentUser> for CurrentUserDto {
             user.username(),
             user.roles_id(),
             user.active(),
-            user.baby_id(),
+            user.baby_info(),
         )
     }
 }
@@ -25,5 +28,16 @@ impl From<CurrentUserDto> for CurrentUser {
             user.active,
             user.baby_id,
         )
+    }
+}
+
+impl From<CurrentUser> for SessionUserDto {
+    fn from(user: CurrentUser) -> Self {
+        SessionUserDto {
+            id: user.id(),
+            username: user.username(),
+            roles: user.roles().into_iter().map(|rol| rol.into()).collect(),
+            baby_info: user.baby_info(),
+        }
     }
 }
