@@ -97,7 +97,7 @@ impl PageInfo {
             } else {
                 None
             },
-            last: total_pages,
+            last: if total_pages.ge(&1) { total_pages } else { 1 },
         }
     }
 }
