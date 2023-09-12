@@ -17,7 +17,6 @@ pub enum ApiError {
     NoUser,
     NoActiveUser,
     PageNotFound,
-    NoRecord,
     LoginRequired,
     DatesUnordered,
     CastError(String),
@@ -56,7 +55,6 @@ impl ApiError {
                 StatusCode::BAD_REQUEST,
                 String::from("Target date must be higher."),
             ),
-            ApiError::NoRecord => (StatusCode::NOT_FOUND, String::from("No record found.")),
             ApiError::CastError(msg) => (StatusCode::BAD_REQUEST, format!("Casting error: {msg}")),
             // 50X Error
             ApiError::DBError(error) => (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()),

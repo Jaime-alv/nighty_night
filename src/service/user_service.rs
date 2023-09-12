@@ -35,7 +35,10 @@ pub async fn create_user_service(
     if valid_password(&new_user.password) {
         return Err(ApiError::Generic400Error("Password too short.".into()));
     }
-    let user = create_user(new_user, Rol::User.into())?;
+    let user = match create_user(new_user, Rol::User.into()) {
+        Ok(user) => user,
+        Err(_) => return Err(ApiError::DuplicateUser),
+    };
     let id_binding = user.id();
     let new_user = cache_user_in_session(user).await?;
     Ok((RecordResponse::new(new_user), id_binding))
@@ -54,7 +57,7 @@ pub async fn get_all_users_service(
 pub async fn find_user_service(user: FindUserDto) -> Result<RecordResponse<UserDto>, ApiError> {
     let user = match load_user_by_username(&user.username) {
         Ok(value) => value,
-        Err(_) => return Err(ApiError::NoRecord),
+        Err(_) => return Err(ApiError::NoUser),
     };
     let response = RecordResponse::new(user.into());
     Ok(response)
