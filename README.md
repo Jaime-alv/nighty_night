@@ -30,6 +30,9 @@
     - [Admin: `/api/admin`](#admin-apiadmin)
     - [Pagination](#pagination)
   - [Response](#response)
+    - [Message response](#message-response)
+    - [Data Response](#data-response)
+    - [Error response](#error-response)
   - [Docs](#docs)
   - [APP ROADMAP](#app-roadmap)
   - [License](#license)
@@ -406,16 +409,21 @@ Pagination is implemented by default in `get` requests for:
 
 Response is in json format. It always has `data` field. It may contain an additional key `page_info` when appropriate.
 
+### Message response
+
 Simple response is like:
 
 ```json
 {
-    "data": {
-      "status": 202,
-      "detail": "New user added: test_3."
+    "message": {
+      "status": 201,
+      "title": "Created",
+      "detail": "New record added."
       }
 }
 ```
+
+### Data Response
 
 Objects contain info separated in two levels. Top level contains `id`, `attributes` and `type`
 
@@ -462,6 +470,20 @@ Response, with pagination, is like:
         "current": 1,
         "total_pages": 1
     }
+}
+```
+
+### Error response
+
+Error message:
+
+```json
+{
+    "errors": {
+      "status": 404,
+      "title": "Not found",
+      "detail": "No user found."
+      }
 }
 ```
 
