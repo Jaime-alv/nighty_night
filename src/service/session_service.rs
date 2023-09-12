@@ -10,7 +10,7 @@ use crate::{
     repository::{
         baby_repository::get_baby_id_from_unique_id,
         session_repository::{delete_user_session, get_user, set_user, set_user_indefinitely},
-        user_repository::{find_babies_unique_id, find_roles_id, load_user_by_id},
+        user_repository::{find_babies_unique_id_and_name, find_roles_id, load_user_by_id},
     },
     response::{error::ApiError, response::MsgResponse},
 };
@@ -91,9 +91,7 @@ pub async fn read_user_from_db(user: i32) -> Result<CurrentUser, ApiError> {
 
 pub async fn create_current_user(current_user: User) -> Result<CurrentUser, ApiError> {
     let roles = find_roles_id(current_user.id())?;
-    let babies = find_babies_unique_id(current_user.id())?
-        .into_iter()
-        .collect();
+    let babies = find_babies_unique_id_and_name(current_user.id())?;
     let translate_roles: Vec<Rol> = translate_roles(&roles.into_iter().collect::<Vec<u8>>());
 
     let user_session = CurrentUser::new(
@@ -121,11 +119,12 @@ pub fn current_user_is_admin(
     }
 }
 
+/// Check if user contains a baby with uuid.
 fn has_baby(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     baby_id: Uuid,
 ) -> bool {
-    let babies = auth.current_user.unwrap().baby_id();
+    let babies: Vec<Uuid> = auth.current_user.unwrap().baby_unique_id();
     babies.contains(&baby_id)
 }
 

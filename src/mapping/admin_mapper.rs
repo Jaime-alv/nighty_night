@@ -1,38 +1,31 @@
 use crate::{
-    data::admin_dto::{AdminBabyDto, AdminBabyDtoAttributes, AdminUserDto, AdminUserDtoAttributes},
+    data::{
+        admin_dto::{AdminBabyData, AdminUserData},
+        common_structure::{BasicDataStruct, DataType},
+    },
     model::{baby_model::Baby, user_model::User},
 };
 
-use super::data_type::DataType;
-
-impl From<User> for AdminUserDto {
+impl From<User> for BasicDataStruct<AdminUserData> {
     fn from(user: User) -> Self {
-        let attr = AdminUserDtoAttributes {
+        let attributes = AdminUserData {
             username: user.username(),
             email: user.email(),
             active: user.active(),
             created_at: user.created_at(),
             updated_at: user.updated_at(),
         };
-        AdminUserDto {
-            id: user.id(),
-            r#type: DataType::User.get(),
-            attributes: attr,
-        }
+        BasicDataStruct::new(user.id(), DataType::User, attributes)
     }
 }
 
-impl From<Baby> for AdminBabyDto {
+impl From<Baby> for BasicDataStruct<AdminBabyData> {
     fn from(baby: Baby) -> Self {
-        let attr = AdminBabyDtoAttributes {
+        let attributes = AdminBabyData {
             name: baby.name(),
             belongs_to: baby.belongs_to(),
             added_on: baby.added_on(),
         };
-        AdminBabyDto {
-            id: baby.id(),
-            r#type: DataType::Baby.get(),
-            attributes: attr,
-        }
+        BasicDataStruct::new(baby.id(), DataType::Baby, attributes)
     }
 }

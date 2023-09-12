@@ -19,19 +19,13 @@ impl Mandatory for NewUserDto {
 }
 
 #[derive(Serialize)]
-pub struct UserDto {
-    pub id: i32,
-    pub r#type: &'static str,
-    pub attributes: UserAttributes,
-}
-
-#[derive(Serialize)]
-pub struct UserAttributes {
+pub struct UserData {
     pub username: String,
     pub email: Option<String>,
     pub name: Option<String>,
     pub surname: Option<String>,
 }
+
 
 #[derive(Debug, Deserialize)]
 pub struct FindUserDto {

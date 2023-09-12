@@ -3,10 +3,10 @@ use chrono::Days;
 use crate::{
     configuration::constant::GlobalCte,
     data::{
-        admin_dto::AdminUserDto,
+        common_structure::{AdminUserDto, SessionDto, UserDto},
         query_dto::Pagination,
         traits::Mandatory,
-        user_dto::{FindUserDto, LoginDto, NewUserDto, UpdateUser, UpdateUserDto, UserDto},
+        user_dto::{FindUserDto, LoginDto, NewUserDto, UpdateUser, UpdateUserDto},
     },
     model::{role_model::Rol, user_model::User},
     repository::user_repository::{
@@ -24,23 +24,24 @@ use crate::{
     },
 };
 
-use super::{
-    session_service::{create_current_user, save_user_session},
-    util_service::records_is_not_empty,
-};
+use super::session_service::{create_current_user, save_user_session};
 
-pub async fn create_user_service(new_user: NewUserDto) -> Result<(MsgResponse, i32), ApiError> {
+pub async fn create_user_service(
+    new_user: NewUserDto,
+) -> Result<(RecordResponse<SessionDto>, i32), ApiError> {
     if validate_fields(&new_user.data()) {
         return Err(ApiError::EmptyBody);
     }
     if valid_password(&new_user.password) {
         return Err(ApiError::Generic400Error("Password too short.".into()));
     }
-    let user = create_user(new_user, Rol::User.into())?;
-    let username = user.username();
+    let user = match create_user(new_user, Rol::User.into()) {
+        Ok(user) => user,
+        Err(_) => return Err(ApiError::DuplicateUser),
+    };
     let id_binding = user.id();
-    cache_user_in_session(user).await?;
-    Ok((MsgResponse::NewUser(username), id_binding))
+    let new_user = cache_user_in_session(user).await?;
+    Ok((RecordResponse::new(new_user), id_binding))
 }
 
 pub async fn get_all_users_service(
@@ -48,10 +49,7 @@ pub async fn get_all_users_service(
 ) -> Result<PagedResponse<Vec<AdminUserDto>>, ApiError> {
     let current = pagination.page();
     let (users, total_pages) = query_users(pagination)?;
-    let users: Vec<AdminUserDto> = records_is_not_empty(users)?
-        .into_iter()
-        .map(|user| user.into())
-        .collect();
+    let users: Vec<AdminUserDto> = users.into_iter().map(|user| user.into()).collect();
     let response = PagedResponse::new(users, current, total_pages);
     Ok(response)
 }
@@ -59,13 +57,13 @@ pub async fn get_all_users_service(
 pub async fn find_user_service(user: FindUserDto) -> Result<RecordResponse<UserDto>, ApiError> {
     let user = match load_user_by_username(&user.username) {
         Ok(value) => value,
-        Err(_) => return Err(ApiError::NoRecord),
+        Err(_) => return Err(ApiError::NoUser),
     };
     let response = RecordResponse::new(user.into());
     Ok(response)
 }
 
-pub async fn login_service(login: LoginDto) -> Result<(MsgResponse, i32), ApiError> {
+pub async fn login_service(login: LoginDto) -> Result<(RecordResponse<SessionDto>, i32), ApiError> {
     if validate_fields(&login.data()) {
         return Err(ApiError::EmptyBody);
     }
@@ -77,10 +75,10 @@ pub async fn login_service(login: LoginDto) -> Result<(MsgResponse, i32), ApiErr
         return Err(ApiError::NoActiveUser);
     }
     if current_user.is_password_match(&login.password) {
-        let username = current_user.username();
         let binding_id = current_user.id();
-        cache_user_in_session(current_user).await?;
-        return Ok((MsgResponse::UserLogIn(username), binding_id));
+        let login_user: SessionDto = cache_user_in_session(current_user).await?;
+        let dto = RecordResponse::new(login_user);
+        return Ok((dto, binding_id));
     }
     Err(ApiError::IncorrectPassword)
 }
@@ -91,9 +89,11 @@ pub async fn find_user_by_id_service(user_id: i32) -> Result<RecordResponse<User
     Ok(response)
 }
 
-async fn cache_user_in_session(user: User) -> Result<(), ApiError> {
+async fn cache_user_in_session(user: User) -> Result<SessionDto, ApiError> {
     let current_user = create_current_user(user).await?;
-    Ok(save_user_session(&current_user, None).await?)
+    save_user_session(&current_user, None).await?;
+    let user_dto: SessionDto = current_user.into();
+    Ok(user_dto)
 }
 
 pub async fn patch_user_service(

@@ -34,7 +34,7 @@ impl DreamSummary {
         format_date(self.date)
     }
 
-    pub fn summary(&self) -> Duration {
+    pub fn _summary(&self) -> Duration {
         self.summary
     }
 

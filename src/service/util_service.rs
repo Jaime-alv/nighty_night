@@ -37,14 +37,6 @@ pub fn record_belongs_to_baby(record_baby: i32, baby_id: i32) -> Result<(), ApiE
     }
 }
 
-pub fn records_is_not_empty<T>(records: Vec<T>) -> Result<Vec<T>, ApiError> {
-    if records.is_empty() {
-        Err(ApiError::NoRecord)
-    } else {
-        Ok(records)
-    }
-}
-
 pub fn paginate_over_dates(
     pagination: Pagination,
     from: NaiveDate,
@@ -73,11 +65,26 @@ mod test_service {
 
     #[test]
     fn test_pagination_dates() {
-        let page_1 = Pagination::new(1, Some(10));
-        let page_2 = Pagination::new(2, Some(10));
-        let page_3 = Pagination::new(3, Some(10));
-        let page_4 = Pagination::new(4, Some(10));
-        let page_5 = Pagination::new(5, Some(10));
+        let page_1 = Pagination {
+            page: 1,
+            per_page: Some(10),
+        };
+        let page_2 = Pagination {
+            page: 2,
+            per_page: Some(10),
+        };
+        let page_3 = Pagination {
+            page: 3,
+            per_page: Some(10),
+        };
+        let page_4 = Pagination {
+            page: 4,
+            per_page: Some(10),
+        };
+        let page_5 = Pagination {
+            page: 5,
+            per_page: Some(10),
+        };
         let from = NaiveDate::from_ymd_opt(2023, 06, 01).unwrap();
         let to = NaiveDate::from_ymd_opt(2023, 07, 05).unwrap();
         assert_eq!(

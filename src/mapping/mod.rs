@@ -8,4 +8,3 @@ pub mod summary_mapper;
 pub mod error_mapper;
 pub mod session_mapper;
 pub mod admin_mapper;
-pub mod data_type;

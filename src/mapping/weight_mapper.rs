@@ -1,20 +1,17 @@
 use crate::{
-    data::weight_dto::{WeightAttributes, WeightDto},
+    data::{
+        common_structure::{BasicDataStruct, DataType},
+        weight_dto::WeightData,
+    },
     model::weight_model::Weight,
 };
 
-use super::data_type::DataType;
-
-impl From<Weight> for WeightDto {
+impl From<Weight> for BasicDataStruct<WeightData> {
     fn from(value: Weight) -> Self {
-        let attr = WeightAttributes {
+        let attributes = WeightData {
             date: value.formatted_date(),
             value: value.value(),
         };
-        WeightDto {
-            id: value.id(),
-            r#type: DataType::Weight.get(),
-            attributes: attr,
-        }
+        BasicDataStruct::new(value.id(), DataType::Weight, attributes)
     }
 }

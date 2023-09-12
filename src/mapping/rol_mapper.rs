@@ -1,10 +1,11 @@
 use crate::{
-    data::role_dto::{RoleAttributes, RoleDto},
+    data::{
+        common_structure::{BasicDataStruct, DataType},
+        role_dto::RoleData,
+    },
     model::role_model::{Rol, Role},
     repository::admin_repository::GroupedRole,
 };
-
-use super::data_type::DataType;
 
 pub fn translate_roles(roles: &[u8]) -> Vec<Rol> {
     roles.into_iter().map(|id| (*id).into()).collect()
@@ -52,17 +53,22 @@ impl From<Rol> for u8 {
     }
 }
 
-impl From<GroupedRole> for RoleDto {
+impl From<GroupedRole> for BasicDataStruct<RoleData> {
     fn from(value: GroupedRole) -> Self {
-        let attributes = RoleAttributes {
+        let attributes = RoleData {
             name: value.name,
             count: value.count,
         };
+        BasicDataStruct::new(value.id.into(), DataType::Role, attributes)
+    }
+}
 
-        RoleDto {
-            id: value.id,
-            r#type: DataType::Role.get(),
-            attributes,
+impl From<Rol> for String {
+    fn from(value: Rol) -> Self {
+        match value {
+            Rol::Anonymous => "anonymous".to_string(),
+            Rol::User => "user".to_string(),
+            Rol::Admin => "admin".to_string(),
         }
     }
 }

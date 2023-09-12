@@ -1,5 +1,5 @@
 use crate::{
-    data::role_dto::RoleDto,
+    data::common_structure::RoleDto,
     repository::admin_repository::{count_records, select_roles_and_group_by_count, StatsDB},
     response::{error::ApiError, response::RecordResponse},
 };

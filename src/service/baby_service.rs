@@ -1,7 +1,7 @@
 use crate::{
     data::{
-        admin_dto::AdminBabyDto,
-        baby_dto::{BabyDto, InputBabyDto, UpdateBaby},
+        baby_dto::{InputBabyDto, UpdateBaby},
+        common_structure::{AdminBabyDto, BabyDto},
         query_dto::Pagination,
     },
     model::baby_model::InsertableBaby,
@@ -19,10 +19,7 @@ use crate::{
     utils::datetime::{convert_to_date, today},
 };
 
-use super::{
-    session_service::load_user_session, user_service::find_user_id_from_username,
-    util_service::records_is_not_empty,
-};
+use super::{session_service::load_user_session, user_service::find_user_id_from_username};
 
 pub async fn ingest_new_baby<T>(
     new_baby: InputBabyDto,
@@ -40,7 +37,7 @@ where
         None => today(),
     };
     let insert_baby = InsertableBaby::new(new_baby.name.unwrap(), birthdate, user);
-    let baby = ingest_new_baby_in_db(insert_baby, user)?;
+    let baby: BabyDto = ingest_new_baby_in_db(insert_baby, user)?.into();
     Ok(RecordResponse::new(baby.into()))
 }
 
@@ -54,10 +51,7 @@ pub async fn get_all_babies_service(
 ) -> Result<PagedResponse<Vec<AdminBabyDto>>, ApiError> {
     let current = pagination.page();
     let (babies, total_pages) = query_babies(pagination)?;
-    let babies: Vec<AdminBabyDto> = records_is_not_empty(babies)?
-        .into_iter()
-        .map(|baby| baby.into())
-        .collect();
+    let babies: Vec<AdminBabyDto> = babies.into_iter().map(|baby| baby.into()).collect();
     let response = PagedResponse::new(babies, current, total_pages);
     Ok(response)
 }
@@ -102,11 +96,8 @@ pub async fn load_babies_for_current_user(
 ) -> Result<PagedResponse<Vec<BabyDto>>, ApiError> {
     let current = pagination.page();
     let user = load_user_session(user_id).await?;
-    let (babies, total_pages) = get_all_babies_by_unique_id(user.baby_id(), pagination)?;
-    let babies: Vec<BabyDto> = records_is_not_empty(babies)?
-        .into_iter()
-        .map(|baby| baby.into())
-        .collect();
+    let (babies, total_pages) = get_all_babies_by_unique_id(user.baby_unique_id(), pagination)?;
+    let babies: Vec<BabyDto> = babies.into_iter().map(|baby| baby.into()).collect();
     let response = PagedResponse::new(babies, current, total_pages);
     Ok(response)
 }

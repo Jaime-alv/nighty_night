@@ -2,8 +2,9 @@ use chrono::{Days, NaiveDate};
 
 use crate::{
     data::{
+        common_structure::WeightDto,
         query_dto::Pagination,
-        weight_dto::{InputWeightDto, UpdateWeight, WeightDto},
+        weight_dto::{InputWeightDto, UpdateWeight},
     },
     model::weight_model::{InsertableWeight, Weight},
     repository::weight_repository::{
@@ -14,7 +15,7 @@ use crate::{
     utils::datetime::{convert_to_date, today},
 };
 
-use super::util_service::{record_belongs_to_baby, records_is_not_empty};
+use super::util_service::record_belongs_to_baby;
 
 pub async fn post_weight_service(
     new_measure: InputWeightDto,
@@ -87,10 +88,7 @@ pub async fn patch_weight_service(
 }
 
 fn into_weight_dto(measures: Vec<Weight>) -> Result<Vec<WeightDto>, ApiError> {
-    Ok(records_is_not_empty(measures)?
-        .into_iter()
-        .map(|measure| measure.into())
-        .collect())
+    Ok(measures.into_iter().map(|measure| measure.into()).collect())
 }
 
 pub async fn delete_weight_service(record: i32, baby_id: i32) -> Result<MsgResponse, ApiError> {

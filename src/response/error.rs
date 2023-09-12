@@ -1,12 +1,11 @@
 use std::fmt::Display;
 
-use axum::response::IntoResponse;
+use axum::{response::IntoResponse, Json};
 use diesel::result::Error;
 use hyper::StatusCode;
 use redis::RedisError;
 use serde::Serialize;
-
-use super::response_helper::display_as;
+use serde_json::json;
 
 #[derive(Debug)]
 pub enum ApiError {
@@ -18,7 +17,6 @@ pub enum ApiError {
     NoUser,
     NoActiveUser,
     PageNotFound,
-    NoRecord,
     LoginRequired,
     DatesUnordered,
     CastError(String),
@@ -57,7 +55,6 @@ impl ApiError {
                 StatusCode::BAD_REQUEST,
                 String::from("Target date must be higher."),
             ),
-            ApiError::NoRecord => (StatusCode::NOT_FOUND, String::from("No record found.")),
             ApiError::CastError(msg) => (StatusCode::BAD_REQUEST, format!("Casting error: {msg}")),
             // 50X Error
             ApiError::DBError(error) => (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()),
@@ -76,11 +73,11 @@ impl IntoResponse for ApiError {
     fn into_response(self) -> axum::response::Response {
         let (status_code, msg) = self.get_error();
         let error = ErrorField {
-            status: status_code.as_u16(),
+            code: status_code.as_u16(),
             detail: &msg,
-            r#type: "error",
+            title: &status_code.canonical_reason().unwrap(),
         };
-        let body = display_as(error, None);
+        let body = Json(json!({"errors": error}));
 
         (status_code, body).into_response()
     }
@@ -88,9 +85,9 @@ impl IntoResponse for ApiError {
 
 #[derive(Serialize)]
 struct ErrorField<'a> {
-    status: u16,
+    code: u16,
+    title: &'a str,
     detail: &'a str,
-    r#type: &'a str
 }
 
 impl Display for ApiError {

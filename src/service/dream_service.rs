@@ -2,7 +2,8 @@ use chrono::{Days, NaiveDate};
 
 use crate::{
     data::{
-        dream_dto::{DreamDto, InputDreamDto, UpdateDream},
+        common_structure::DreamDto,
+        dream_dto::{InputDreamDto, UpdateDream},
         query_dto::Pagination,
     },
     model::dream_model::{Dream, InsertableDream},
@@ -17,9 +18,7 @@ use crate::{
     utils::datetime::{convert_to_date_time, today},
 };
 
-use super::util_service::{
-    date_time_are_in_order, record_belongs_to_baby, records_is_not_empty, uncover_date,
-};
+use super::util_service::{date_time_are_in_order, record_belongs_to_baby, uncover_date};
 
 pub async fn post_dream_service(
     new_dream: InputDreamDto,
@@ -98,7 +97,7 @@ pub async fn filter_dreams_by_last_days(
 }
 
 fn into_dreams_dto(dreams: Vec<Dream>) -> Result<Vec<DreamDto>, ApiError> {
-    Ok(records_is_not_empty(dreams)?
+    Ok(dreams
         .into_iter()
         .map(|dream| dream.into())
         .collect())

@@ -2,7 +2,8 @@ use chrono::{Days, NaiveDate};
 
 use crate::{
     data::{
-        meal_dto::{InputMealDto, MealDto, UpdateMeal},
+        common_structure::MealDto,
+        meal_dto::{InputMealDto, UpdateMeal},
         query_dto::Pagination,
     },
     model::meals_model::{InsertableMeal, Meal},
@@ -17,11 +18,12 @@ use crate::{
     utils::datetime::{convert_to_date_time, now, today},
 };
 
-use super::util_service::{
-    date_time_are_in_order, record_belongs_to_baby, records_is_not_empty, uncover_date,
-};
+use super::util_service::{date_time_are_in_order, record_belongs_to_baby, uncover_date};
 
-pub async fn post_meal_service(new_meal: InputMealDto, baby_id: i32) -> Result<MsgResponse, ApiError> {
+pub async fn post_meal_service(
+    new_meal: InputMealDto,
+    baby_id: i32,
+) -> Result<MsgResponse, ApiError> {
     let timestamp = uncover_date(new_meal.date)?;
     let timestamp_to_time = uncover_date(new_meal.to_time)?;
     let meal = InsertableMeal::new(
@@ -97,10 +99,7 @@ pub async fn filter_meals_by_last_days(
 }
 
 fn into_meals_dto(meals: Vec<Meal>) -> Result<Vec<MealDto>, ApiError> {
-    Ok(records_is_not_empty(meals)?
-        .into_iter()
-        .map(|dream| dream.into())
-        .collect())
+    Ok(meals.into_iter().map(|dream| dream.into()).collect())
 }
 
 pub async fn delete_meal_service(record: i32, baby_id: i32) -> Result<MsgResponse, ApiError> {

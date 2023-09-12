@@ -1,13 +1,6 @@
 use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize)]
-pub struct WeightDto {
-    pub id: i32,
-    pub r#type: &'static str,
-    pub attributes: WeightAttributes,
-}
-
 #[derive(Deserialize)]
 pub struct InputWeightDto {
     pub date: Option<String>,
@@ -20,7 +13,7 @@ pub struct UpdateWeight {
 }
 
 #[derive(Serialize)]
-pub struct WeightAttributes {
+pub struct WeightData {
     pub date: String,
     pub value: f32,
 }

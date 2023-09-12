@@ -1,12 +1,6 @@
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize)]
-pub struct MealDto {
-    pub id: i32,
-    pub r#type: &'static str,
-    pub attributes: MealAttributes
-}
 
 #[derive(Deserialize)]
 pub struct InputMealDto {
@@ -31,7 +25,7 @@ pub struct UpdateMeal {
 }
 
 #[derive(Serialize)]
-pub struct MealAttributes {
+pub struct MealData {
     pub date: String,
     pub time: String,
     pub quantity: i16,
