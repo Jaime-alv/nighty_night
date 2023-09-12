@@ -11,7 +11,7 @@ volumes:
     driver: local
 services:
   postgres:
-    image: postgres:latest
+    image: postgres:14.9
     ports:
       - '8080:5432'
     restart: unless-stopped
@@ -26,7 +26,7 @@ services:
     networks:
       - nighty_night_network
   redis:
-    image: 'redis:latest'
+    image: redis:7.2
     restart: unless-stopped
     ports:
       - '8081:6379'
@@ -35,7 +35,7 @@ services:
       - redis:/data
     networks:
       - nighty_night_network
-  nighty_night_app:
+  backend:
     image: 'nighty_night:latest'
     ports:
       - '3000:3000'
@@ -57,4 +57,3 @@ services:
     depends_on:
       - postgres
       - redis
-    restart: on-failure:3

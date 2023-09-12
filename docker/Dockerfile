@@ -16,7 +16,7 @@ RUN cargo chef cook --release --recipe-path recipe.json
 COPY . .
 RUN cargo build --release
 
-# STAGE 4 - build docker image
+# STAGE 3 - build docker image
 FROM debian:bullseye-slim
 ARG APP=/usr/src/app
 
