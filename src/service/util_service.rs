@@ -37,14 +37,6 @@ pub fn record_belongs_to_baby(record_baby: i32, baby_id: i32) -> Result<(), ApiE
     }
 }
 
-pub fn records_is_not_empty<T>(records: Vec<T>) -> Result<Vec<T>, ApiError> {
-    if records.is_empty() {
-        Err(ApiError::NoRecord)
-    } else {
-        Ok(records)
-    }
-}
-
 pub fn paginate_over_dates(
     pagination: Pagination,
     from: NaiveDate,

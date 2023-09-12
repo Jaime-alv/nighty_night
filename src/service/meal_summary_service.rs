@@ -8,7 +8,7 @@ use crate::{
     utils::datetime::{iter_between_two_dates, today},
 };
 
-use super::util_service::{paginate_over_dates, records_is_not_empty, round_total_pages};
+use super::util_service::{paginate_over_dates, round_total_pages};
 
 pub async fn meal_summary_range_service(
     baby_id: i32,
@@ -45,7 +45,7 @@ async fn fetch_meal_summary_range(
             summary_vec.push(summary)
         }
     }
-    records_is_not_empty(summary_vec)
+    Ok(summary_vec)
 }
 
 pub async fn meal_summary_last_days_service(

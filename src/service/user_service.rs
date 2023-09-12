@@ -24,10 +24,7 @@ use crate::{
     },
 };
 
-use super::{
-    session_service::{create_current_user, save_user_session},
-    util_service::records_is_not_empty,
-};
+use super::session_service::{create_current_user, save_user_session};
 
 pub async fn create_user_service(
     new_user: NewUserDto,
@@ -49,10 +46,7 @@ pub async fn get_all_users_service(
 ) -> Result<PagedResponse<Vec<AdminUserDto>>, ApiError> {
     let current = pagination.page();
     let (users, total_pages) = query_users(pagination)?;
-    let users: Vec<AdminUserDto> = records_is_not_empty(users)?
-        .into_iter()
-        .map(|user| user.into())
-        .collect();
+    let users: Vec<AdminUserDto> = users.into_iter().map(|user| user.into()).collect();
     let response = PagedResponse::new(users, current, total_pages);
     Ok(response)
 }

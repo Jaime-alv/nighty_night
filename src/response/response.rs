@@ -18,14 +18,14 @@ impl MsgResponse {
     fn get_response(&self) -> (StatusCode, String) {
         match self {
             MsgResponse::NewRecord => (StatusCode::CREATED, "New record added.".to_string()),
-            MsgResponse::UpdateRecord => (StatusCode::ACCEPTED, "Update record.".to_string()),
-            MsgResponse::DeleteRecord => (StatusCode::ACCEPTED, "Delete record.".to_string()),
+            MsgResponse::UpdateRecord => (StatusCode::NO_CONTENT, "Update record.".to_string()),
+            MsgResponse::DeleteRecord => (StatusCode::OK, "Delete record.".to_string()),
             MsgResponse::ActiveStatusUpdate => {
-                (StatusCode::ACCEPTED, "User status update.".to_string())
+                (StatusCode::NO_CONTENT, "User status update.".to_string())
             }
-            MsgResponse::LogoutUser => (StatusCode::ACCEPTED, "User logged out".to_string()),
+            MsgResponse::LogoutUser => (StatusCode::OK, "User logged out".to_string()),
             MsgResponse::DeleteXRecords(number) => {
-                (StatusCode::ACCEPTED, format!("{number} records deleted."))
+                (StatusCode::OK, format!("{number} records deleted."))
             }
         }
     }
