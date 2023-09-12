@@ -37,7 +37,6 @@ impl IntoResponse for MsgResponse {
         let message = Message {
             status: status_code.as_u16(),
             detail: &msg,
-            r#type: "message",
             title: status_code.canonical_reason().unwrap(),
         };
         let body = Json(json!({"message": message}));
@@ -50,7 +49,6 @@ impl IntoResponse for MsgResponse {
 struct Message<'a> {
     status: u16,
     title: &'a str,
-    r#type: &'a str,
     detail: &'a str,
 }
 
