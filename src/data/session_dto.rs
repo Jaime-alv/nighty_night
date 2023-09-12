@@ -39,3 +39,10 @@ pub struct SessionUserDto {
     pub roles: Vec<String>,
     pub baby_info: Vec<BabyInfo>,
 }
+
+#[derive(Serialize)]
+pub struct UserSessionData {
+    pub username: String,
+    pub roles: Vec<String>,
+    pub baby_info: Vec<BabyInfo>,
+}

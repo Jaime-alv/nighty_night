@@ -2,8 +2,9 @@ use chrono::{Days, NaiveDate};
 
 use crate::{
     data::{
+        common_structure::WeightDto,
         query_dto::Pagination,
-        weight_dto::{InputWeightDto, UpdateWeight, WeightDto},
+        weight_dto::{InputWeightDto, UpdateWeight},
     },
     model::weight_model::{InsertableWeight, Weight},
     repository::weight_repository::{

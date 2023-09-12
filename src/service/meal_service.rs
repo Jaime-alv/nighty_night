@@ -2,8 +2,8 @@ use chrono::{Days, NaiveDate};
 
 use crate::{
     data::{
-        meal_dto::{InputMealDto, MealDto, UpdateMeal},
-        query_dto::Pagination,
+        meal_dto::{InputMealDto, UpdateMeal},
+        query_dto::Pagination, common_structure::MealDto,
     },
     model::meals_model::{InsertableMeal, Meal},
     repository::meal_repository::{

@@ -133,8 +133,8 @@ impl Username {
 
 #[derive(Deserialize, Debug)]
 pub struct Pagination {
-    page: i32,
-    per_page: Option<i32>,
+    pub page: i32,
+    pub per_page: Option<i32>,
 }
 
 impl Default for Pagination {
@@ -147,10 +147,6 @@ impl Default for Pagination {
 }
 
 impl Pagination {
-    pub fn new(page: i32, per_page: Option<i32>) -> Self {
-        Self { page, per_page }
-    }
-
     pub fn page(&self) -> i64 {
         self.page.into()
     }

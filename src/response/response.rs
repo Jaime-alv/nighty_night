@@ -1,9 +1,8 @@
-use axum::response::IntoResponse;
+use axum::{response::IntoResponse, Json};
 
 use hyper::StatusCode;
 use serde::Serialize;
-
-use super::response_helper::display_as;
+use serde_json::json;
 
 /// Return a factory set message.
 pub enum MsgResponse {
@@ -11,8 +10,6 @@ pub enum MsgResponse {
     UpdateRecord,
     DeleteRecord,
     DeleteXRecords(usize),
-    UserLogIn(String),
-    NewUser(String),
     ActiveStatusUpdate,
     LogoutUser,
 }
@@ -23,12 +20,6 @@ impl MsgResponse {
             MsgResponse::NewRecord => (StatusCode::CREATED, "New record added.".to_string()),
             MsgResponse::UpdateRecord => (StatusCode::ACCEPTED, "Update record.".to_string()),
             MsgResponse::DeleteRecord => (StatusCode::ACCEPTED, "Delete record.".to_string()),
-            MsgResponse::UserLogIn(username) => {
-                (StatusCode::OK, format!("User logged in: {username}."))
-            }
-            MsgResponse::NewUser(username) => {
-                (StatusCode::CREATED, format!("New user added: {username}."))
-            }
             MsgResponse::ActiveStatusUpdate => {
                 (StatusCode::ACCEPTED, "User status update.".to_string())
             }
@@ -47,8 +38,9 @@ impl IntoResponse for MsgResponse {
             status: status_code.as_u16(),
             detail: &msg,
             r#type: "message",
+            title: status_code.canonical_reason().unwrap(),
         };
-        let body = display_as(message, None);
+        let body = Json(json!({"message": message}));
 
         (status_code, body).into_response()
     }
@@ -57,6 +49,7 @@ impl IntoResponse for MsgResponse {
 #[derive(Serialize)]
 struct Message<'a> {
     status: u16,
+    title: &'a str,
     r#type: &'a str,
     detail: &'a str,
 }
@@ -115,7 +108,7 @@ where
 {
     fn into_response(self) -> axum::response::Response {
         let status_code = StatusCode::OK;
-        let body = display_as(self.data, Some(self.pager));
+        let body = Json(json!({"data": self.data, "page_info": self.pager}));
 
         (status_code, body).into_response()
     }
@@ -144,7 +137,7 @@ where
 {
     fn into_response(self) -> axum::response::Response {
         let status_code = StatusCode::OK;
-        let body = display_as(self.data, None);
+        let body = Json(json!({ "data": self.data }));
 
         (status_code, body).into_response()
     }

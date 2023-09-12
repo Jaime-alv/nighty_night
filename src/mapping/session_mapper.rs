@@ -1,5 +1,8 @@
 use crate::{
-    data::session_dto::{CurrentUserDto, SessionUserDto},
+    data::{
+        common_structure::{BasicDataStruct, DataType},
+        session_dto::{CurrentUserDto, SessionUserDto, UserSessionData},
+    },
     model::session_model::CurrentUser,
 };
 
@@ -39,5 +42,16 @@ impl From<CurrentUser> for SessionUserDto {
             roles: user.roles().into_iter().map(|rol| rol.into()).collect(),
             baby_info: user.baby_info(),
         }
+    }
+}
+
+impl From<CurrentUser> for BasicDataStruct<UserSessionData> {
+    fn from(value: CurrentUser) -> Self {
+        let attributes = UserSessionData {
+            username: value.username(),
+            roles: value.roles().into_iter().map(|rol| rol.into()).collect(),
+            baby_info: value.baby_info(),
+        };
+        BasicDataStruct::new(value.id().try_into().unwrap(), DataType::User, attributes)
     }
 }

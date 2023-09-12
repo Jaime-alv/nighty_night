@@ -8,3 +8,4 @@ pub mod traits;
 pub(crate) mod user_dto;
 pub mod weight_dto;
 pub mod role_dto;
+pub mod common_structure;

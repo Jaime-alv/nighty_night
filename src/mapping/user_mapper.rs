@@ -1,41 +1,34 @@
 use crate::{
-    data::user_dto::{NewUserDto, UserAttributes, UserDto},
+    data::{
+        common_structure::{BasicDataStruct, DataType},
+        user_dto::{NewUserDto, UserData},
+    },
     model::user_model::{InsertableUser, User},
     security::security::hash_password,
     utils::datetime::now,
 };
 
-use super::data_type::DataType;
-
-impl From<User> for UserDto {
+impl From<User> for BasicDataStruct<UserData> {
     fn from(user: User) -> Self {
-        let attr = UserAttributes {
+        let attributes = UserData {
             username: user.username(),
             email: user.email(),
             name: user.name(),
             surname: user.surname(),
         };
-        UserDto {
-            id: user.id(),
-            r#type: DataType::User.get(),
-            attributes: attr,
-        }
+        BasicDataStruct::new(user.id(), DataType::User, attributes)
     }
 }
 
-impl From<&User> for UserDto {
-    fn from(user: &User) -> UserDto {
-        let attr = UserAttributes {
+impl From<&User> for BasicDataStruct<UserData> {
+    fn from(user: &User) -> BasicDataStruct<UserData> {
+        let attributes = UserData {
             username: user.username(),
             email: user.email(),
             name: user.name(),
             surname: user.surname(),
         };
-        UserDto {
-            id: user.id(),
-            r#type: DataType::User.get(),
-            attributes: attr,
-        }
+        BasicDataStruct::new(user.id(), DataType::User, attributes)
     }
 }
 

@@ -10,14 +10,6 @@ pub struct InputDreamDto {
 }
 
 #[derive(Serialize)]
-pub struct DreamDto {
-    pub id: i32,
-    pub r#type: &'static str,
-    pub attributes: DreamAttributes    
-}
-
-
-#[derive(Serialize)]
 pub struct DreamSummaryDto {
     pub date: String,
     pub summary: String
@@ -29,7 +21,7 @@ pub struct UpdateDream {
 }
 
 #[derive(Serialize)]
-pub struct DreamAttributes {
+pub struct DreamData {
     pub from_date: String,
     pub from_time: String,
     pub to_date: String,

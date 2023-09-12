@@ -10,9 +10,7 @@ use crate::{
     repository::{
         baby_repository::get_baby_id_from_unique_id,
         session_repository::{delete_user_session, get_user, set_user, set_user_indefinitely},
-        user_repository::{
-            find_babies_unique_id, find_babies_unique_id_and_name, find_roles_id, load_user_by_id,
-        },
+        user_repository::{find_babies_unique_id_and_name, find_roles_id, load_user_by_id},
     },
     response::{error::ApiError, response::MsgResponse},
 };
@@ -120,7 +118,6 @@ pub fn current_user_is_admin(
         false => Err(ApiError::Forbidden),
     }
 }
-
 
 /// Check if user contains a baby with uuid.
 fn has_baby(

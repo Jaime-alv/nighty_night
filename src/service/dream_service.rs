@@ -2,8 +2,8 @@ use chrono::{Days, NaiveDate};
 
 use crate::{
     data::{
-        dream_dto::{DreamDto, InputDreamDto, UpdateDream},
-        query_dto::Pagination,
+        dream_dto::{InputDreamDto, UpdateDream},
+        query_dto::Pagination, common_structure::DreamDto,
     },
     model::dream_model::{Dream, InsertableDream},
     repository::dream_repository::{

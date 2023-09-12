@@ -1,21 +1,18 @@
 use crate::{
-    data::baby_dto::{BabyAttributes, BabyDto},
+    data::{
+        baby_dto::BabyData,
+        common_structure::{BasicDataStruct, DataType},
+    },
     model::baby_model::Baby,
 };
 
-use super::data_type::DataType;
-
-impl From<Baby> for BabyDto {
+impl From<Baby> for BasicDataStruct<BabyData> {
     fn from(baby: Baby) -> Self {
-        let attr = BabyAttributes {
+        let attributes = BabyData {
             unique_id: baby.unique_id(),
             name: baby.name(),
             birthdate: baby.formatted_birthdate(),
         };
-        BabyDto {
-            id: baby.id(),
-            r#type: DataType::Baby.get(),
-            attributes: attr,
-        }
+        BasicDataStruct::new(baby.id(), DataType::Baby, attributes)
     }
 }

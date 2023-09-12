@@ -137,7 +137,7 @@ pub fn select_id_from_username(username: &str) -> Result<i32, Error> {
         .first(conn)
 }
 
-pub fn find_babies_unique_id(user: i32) -> Result<HashSet<Uuid>, Error> {
+pub fn _find_babies_unique_id(user: i32) -> Result<HashSet<Uuid>, Error> {
     let mut babies: HashSet<Uuid> = HashSet::new();
     let conn = &mut establish_connection();
     let babies_id: Vec<i32> = users_babies::table

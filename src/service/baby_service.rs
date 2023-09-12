@@ -1,9 +1,7 @@
-use uuid::Uuid;
-
 use crate::{
     data::{
-        admin_dto::AdminBabyDto,
-        baby_dto::{BabyDto, InputBabyDto, UpdateBaby},
+        baby_dto::{InputBabyDto, UpdateBaby},
+        common_structure::{AdminBabyDto, BabyDto},
         query_dto::Pagination,
     },
     model::baby_model::InsertableBaby,
@@ -42,7 +40,7 @@ where
         None => today(),
     };
     let insert_baby = InsertableBaby::new(new_baby.name.unwrap(), birthdate, user);
-    let baby = ingest_new_baby_in_db(insert_baby, user)?;
+    let baby: BabyDto = ingest_new_baby_in_db(insert_baby, user)?.into();
     Ok(RecordResponse::new(baby.into()))
 }
 

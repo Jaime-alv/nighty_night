@@ -3,11 +3,10 @@ use chrono::Days;
 use crate::{
     configuration::constant::GlobalCte,
     data::{
-        admin_dto::AdminUserDto,
+        common_structure::{AdminUserDto, SessionDto, UserDto},
         query_dto::Pagination,
-        session_dto::SessionUserDto,
         traits::Mandatory,
-        user_dto::{FindUserDto, LoginDto, NewUserDto, UpdateUser, UpdateUserDto, UserDto},
+        user_dto::{FindUserDto, LoginDto, NewUserDto, UpdateUser, UpdateUserDto},
     },
     model::{role_model::Rol, user_model::User},
     repository::user_repository::{
@@ -32,7 +31,7 @@ use super::{
 
 pub async fn create_user_service(
     new_user: NewUserDto,
-) -> Result<(RecordResponse<SessionUserDto>, i32), ApiError> {
+) -> Result<(RecordResponse<SessionDto>, i32), ApiError> {
     if validate_fields(&new_user.data()) {
         return Err(ApiError::EmptyBody);
     }
@@ -67,9 +66,7 @@ pub async fn find_user_service(user: FindUserDto) -> Result<RecordResponse<UserD
     Ok(response)
 }
 
-pub async fn login_service(
-    login: LoginDto,
-) -> Result<(RecordResponse<SessionUserDto>, i32), ApiError> {
+pub async fn login_service(login: LoginDto) -> Result<(RecordResponse<SessionDto>, i32), ApiError> {
     if validate_fields(&login.data()) {
         return Err(ApiError::EmptyBody);
     }
@@ -82,8 +79,9 @@ pub async fn login_service(
     }
     if current_user.is_password_match(&login.password) {
         let binding_id = current_user.id();
-        let login_user: SessionUserDto = cache_user_in_session(current_user).await?;
-        return Ok((RecordResponse::new(login_user), binding_id));
+        let login_user: SessionDto = cache_user_in_session(current_user).await?;
+        let dto = RecordResponse::new(login_user);
+        return Ok((dto, binding_id));
     }
     Err(ApiError::IncorrectPassword)
 }
@@ -94,10 +92,10 @@ pub async fn find_user_by_id_service(user_id: i32) -> Result<RecordResponse<User
     Ok(response)
 }
 
-async fn cache_user_in_session(user: User) -> Result<SessionUserDto, ApiError> {
+async fn cache_user_in_session(user: User) -> Result<SessionDto, ApiError> {
     let current_user = create_current_user(user).await?;
     save_user_session(&current_user, None).await?;
-    let user_dto: SessionUserDto = current_user.into();
+    let user_dto: SessionDto = current_user.into();
     Ok(user_dto)
 }
 
