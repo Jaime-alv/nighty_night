@@ -148,14 +148,14 @@ impl Default for Pagination {
 
 impl Pagination {
     pub fn page(&self) -> i64 {
-        self.page.into()
+        self.page.abs().into()
     }
 
     pub fn per_page(&self) -> i64 {
         let threshold: i64 = GlobalCte::MaxPaginationThreshold.get().try_into().unwrap();
         match self.per_page {
             Some(quantity) => {
-                let bind: i64 = quantity.into();
+                let bind: i64 = quantity.abs().into();
                 if bind.gt(&threshold) {
                     threshold
                 } else {
