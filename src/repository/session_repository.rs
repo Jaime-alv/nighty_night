@@ -28,6 +28,12 @@ pub async fn delete_user_session(key: &str) -> Result<(), RedisError> {
     let mut conn = poll().await.get_async_connection().await?;
     redis::cmd("DEL").arg(key).query_async(&mut conn).await
 }
+
+pub async fn user_exists(key: &str) -> Result<bool, RedisError> {
+    let mut conn = poll().await.get_async_connection().await?;
+    redis::cmd("EXISTS").arg(key).query_async(&mut conn).await
+}
+
 #[cfg(test)]
 mod redis_test {
     use dotenvy::dotenv;

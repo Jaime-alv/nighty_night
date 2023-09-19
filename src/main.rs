@@ -44,20 +44,19 @@ async fn main() {
         }
     };
 
+    match checking_status().await {
+        Ok(_) => (),
+        Err(error) => panic!("{error}"),
+    };
+
+    match set_anonymous_user().await {
+        Ok(_) => (),
+        Err(error) => panic!("{error}"),
+    };
+
     let app = create_app_route().await;
 
-    match checking_status().await {
-        Ok(msg) => {
-            set_anonymous_user()
-                .await
-                .expect("Couldn't save anonymous user.");
-            info!("{msg}")
-        }
-        Err(error) => {
-            tracing::error!("{error}");
-            panic!("Shutting down.")
-        }
-    }
+    info!("Branch mode: {}", Setting::Branch.get());
 
     let host = Setting::Host.get();
     // run it with hyper on localhost:3000

@@ -9,7 +9,9 @@ use crate::{
     model::{role_model::Rol, session_model::CurrentUser, user_model::User},
     repository::{
         baby_repository::get_baby_id_from_unique_id,
-        session_repository::{delete_user_session, get_user, set_user, set_user_indefinitely},
+        session_repository::{
+            delete_user_session, get_user, set_user, set_user_indefinitely, user_exists,
+        },
         user_repository::{find_babies_unique_id_and_name, find_roles_id, load_user_by_id},
     },
     response::{error::ApiError, response::MsgResponse},
@@ -107,6 +109,15 @@ pub async fn create_current_user(current_user: User) -> Result<CurrentUser, ApiE
 
 fn user_redis_key(id: i64) -> String {
     format!("user_{}", id)
+}
+
+pub async fn user_exists_in_session<T>(id: T) -> Result<bool, ApiError>
+where
+    T: Into<i64>,
+{
+    let user_key: String = user_redis_key(id.into());
+    let result = user_exists(&user_key).await?;
+    Ok(result)
 }
 
 /// Check if user has admin privileges
