@@ -64,7 +64,7 @@ pub async fn post_find_user_service(
     Ok(response)
 }
 
-pub async fn login_service(login: LoginDto) -> Result<(RecordResponse<SessionDto>, i32), ApiError> {
+pub async fn post_session_user_service(login: LoginDto) -> Result<(RecordResponse<SessionDto>, i32), ApiError> {
     if validate_fields(&login.data()) {
         return Err(ApiError::EmptyBody);
     }
@@ -165,4 +165,8 @@ pub async fn find_user_id_from_username(username: &str) -> Result<i32, ApiError>
         Ok(id) => Ok(id),
         Err(_) => Err(ApiError::NoUser),
     }
+}
+
+pub fn delete_session_user_service() -> Result<MsgResponse, ApiError> {
+    Ok(MsgResponse::LogoutUser)
 }

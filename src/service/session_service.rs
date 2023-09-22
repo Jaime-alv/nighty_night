@@ -4,17 +4,20 @@ use uuid::Uuid;
 
 use crate::{
     configuration::settings::Setting,
-    data::session_dto::CurrentUserDto,
+    data::{session_dto::CurrentUserDto, common_structure::SessionDto},
     mapping::rol_mapper::translate_roles,
     model::{role_model::Rol, session_model::CurrentUser, user_model::User},
     repository::{
         baby_repository::select_baby_from_unique_id,
         session_repository::{
-            delete_user_session, select_user_session, insert_user_session, insert_user_session_indefinitely, select_user_session_exists,
+            delete_user_session, insert_user_session, insert_user_session_indefinitely,
+            select_user_session, select_user_session_exists,
         },
-        user_repository::{select_babies_for_user_id, select_roles_id_from_user, select_user_by_id},
+        user_repository::{
+            select_babies_for_user_id, select_roles_id_from_user, select_user_by_id,
+        },
     },
-    response::{error::ApiError, response::MsgResponse},
+    response::{error::ApiError, response::RecordResponse},
 };
 
 pub async fn login_session<T>(
@@ -29,20 +32,18 @@ where
     Ok(())
 }
 
-pub async fn get_logout_user_service<T>(
+pub async fn logout_user_session<T>(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     user_id: T,
-) -> Result<MsgResponse, ApiError>
+) -> Result<(), ApiError>
 where
     i32: From<T>,
     i64: From<T>,
 {
     let key = user_redis_key(user_id.into());
     auth.logout_user();
-    match delete_user_session(&key).await {
-        Ok(_) => Ok(MsgResponse::LogoutUser),
-        Err(e) => Err(ApiError::Redis(e)),
-    }
+    let redis_session = delete_user_session(&key).await?;
+    Ok(redis_session)
 }
 
 pub async fn save_user_session(
@@ -168,4 +169,13 @@ pub fn clear_cache_current_user(
     auth: &AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
 ) -> () {
     auth.cache_clear_user(auth.id)
+}
+
+pub fn get_current_user_service(
+    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
+) -> RecordResponse<SessionDto> {
+    auth.cache_clear_user(auth.id);
+    let current_user = auth.current_user.unwrap();
+    let response = RecordResponse::new(current_user.into());
+    response
 }
