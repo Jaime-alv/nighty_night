@@ -317,8 +317,8 @@ data:
 | /         | `get`    | Endpoint test         |            |                                            |
 | /register | `post`   | Create a new user     | Body: Json | {username, password, email, name, surname} |
 | /user     | `post`   | find user by username | Body: Json | {username}                                 |
-| /login    | `post`   | login user            | Body: Json | {username, password}                       |
-| /logout   | `get`    | logout user           |            |                                            |
+| /session  | `post`   | login user            | Body: Json | {username, password}                       |
+| /session  | `delete` | logout user           |            |                                            |
 | /profile  | `get`    | Get user profile      |            |                                            |
 | /profile  | `patch`  | Update user profile   | Body: Json | {name, surname, email, }                   |
 | /profile  | `delete` | Deactivate user       |            |                                            |
