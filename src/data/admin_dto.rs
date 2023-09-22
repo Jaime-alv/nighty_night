@@ -6,6 +6,7 @@ pub struct AdminUserData {
     pub username: String,
     pub email: Option<String>,
     pub active: bool,
+    pub roles: Vec<String>,
     pub created_at: NaiveDateTime,
     pub updated_at: Option<NaiveDateTime>,
 }
