@@ -34,6 +34,10 @@
     - [Data Response](#data-response)
     - [Error response](#error-response)
   - [Docs](#docs)
+    - [Naming conventions](#naming-conventions)
+      - [Controller](#controller)
+      - [Service](#service)
+      - [Repository](#repository)
   - [APP ROADMAP](#app-roadmap)
   - [License](#license)
 
@@ -496,6 +500,37 @@ Error message:
 [Redis](https://redis.io/)
 
 [PostgreSQL](https://www.postgresql.org/)
+
+### Naming conventions
+
+#### Controller
+
+Start with http request method
+
+- get
+- post
+- put
+- patch
+- delete
+
+#### Service
+
+If the function comes from the controller, should follow the pattern:
+
+`<http-request><controller-function-name><service>`
+
+`get_user` >> `get_user_service`
+
+`post_new_baby` >> `post_new_baby_service`
+
+#### Repository
+
+Start with SQL action
+
+- select
+- insert
+- delete
+- update
 
 ## APP ROADMAP
 
