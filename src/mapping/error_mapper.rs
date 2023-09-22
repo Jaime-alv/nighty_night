@@ -13,9 +13,14 @@ impl From<chrono::ParseError> for ApiError {
 
 impl From<Error> for ApiError {
     fn from(value: Error) -> Self {
-        let error = ApiError::DBError(value);
-        tracing::error!("{error}");
-        error
+        match value.to_string().as_str() {
+            "Record not found" => ApiError::NoRecordFound,
+            _ => {
+                let error = ApiError::DBError(value);
+                tracing::error!("{error}");
+                error
+            }
+        }
     }
 }
 
@@ -41,6 +46,12 @@ impl From<ParseIntError> for ApiError {
 
 impl From<TryFromIntError> for ApiError {
     fn from(value: TryFromIntError) -> Self {
+        ApiError::CastError(value.to_string())
+    }
+}
+
+impl From<uuid::Error> for ApiError {
+    fn from(value: uuid::Error) -> Self {
         ApiError::CastError(value.to_string())
     }
 }

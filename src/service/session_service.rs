@@ -142,12 +142,13 @@ fn has_baby(
 /// Check if user is authenticated and baby has a relationship with user.
 pub fn check_user_permissions(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
-    baby_unique_id: Uuid,
+    baby_unique_id: &str,
 ) -> Result<i32, ApiError> {
+    let unique_id = Uuid::parse_str(baby_unique_id)?;
     if auth.is_anonymous() {
         return Err(ApiError::LoginRequired);
-    } else if has_baby(auth, baby_unique_id) {
-        let id = select_baby_from_unique_id(baby_unique_id)?;
+    } else if has_baby(auth, unique_id) {
+        let id = select_baby_from_unique_id(unique_id)?;
         Ok(id)
     } else {
         Err(ApiError::Forbidden)

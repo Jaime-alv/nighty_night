@@ -1,9 +1,4 @@
-use axum::{
-    extract::{Path, Query},
-    response::IntoResponse,
-    routing::get,
-    Json, Router,
-};
+use axum::{extract::Query, response::IntoResponse, routing::get, Json, Router};
 use axum_session::SessionRedisPool;
 use axum_session_auth::AuthSession;
 
@@ -16,7 +11,7 @@ use crate::{
     service::{
         admin_service::{get_roles_service, get_stats_of_tables_service},
         association_service::{add_rol_to_user_service, delete_rol_to_user_service},
-        baby_service::{get_baby_by_id_service, get_all_babies_service},
+        baby_service::{get_all_babies_service, get_baby_by_id_service},
         session_service::current_user_is_admin,
         user_service::{
             delete_active_user_service, delete_old_users_service, delete_user_service,
@@ -31,18 +26,18 @@ pub(crate) fn route_admin() -> Router {
             "/baby",
             Router::new()
                 .route("/", get(get_all_babies))
-                .route("/:baby_id", get(get_baby_by_id)),
+                .route("/baby_id", get(get_baby_by_id)),
         )
         .route(
             "/user",
-            get(get_all_users).delete(delete_user).patch(patch_activate_user),
+            get(get_all_users)
+                .delete(delete_user)
+                .patch(patch_activate_user),
         )
         .route("/stats", get(get_stats_of_tables))
         .route(
             "/roles",
-            get(get_roles)
-                .put(put_user_role)
-                .delete(delete_user_role),
+            get(get_roles).put(put_user_role).delete(delete_user_role),
         );
     Router::new().nest("/admin", routes)
 }
@@ -86,11 +81,11 @@ async fn patch_activate_user(
 }
 
 async fn get_baby_by_id(
-    Path(baby_id): Path<i32>,
+    baby_id: Query<IdDto>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
 ) -> impl IntoResponse {
     current_user_is_admin(auth)?;
-    get_baby_by_id_service(baby_id).await
+    get_baby_by_id_service(baby_id.id()).await
 }
 
 async fn get_stats_of_tables(
