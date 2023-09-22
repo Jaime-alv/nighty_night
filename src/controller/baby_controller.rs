@@ -6,7 +6,6 @@ use axum::{
 };
 use axum_session::SessionRedisPool;
 use axum_session_auth::AuthSession;
-use uuid::Uuid;
 
 use crate::{
     data::{
@@ -17,8 +16,8 @@ use crate::{
     service::{
         association_service::post_share_baby_with_user_service,
         baby_service::{
-            delete_baby_service, get_baby_by_id_service, post_new_baby_service, get_babies_for_user_service,
-            patch_baby_service, transfer_baby_service,
+            delete_baby_service, get_babies_for_user_service, get_baby_by_id_service,
+            patch_baby_service, post_new_baby_service, transfer_baby_service,
         },
         session_service::{check_user_permissions, login_required, update_user_session},
     },
@@ -36,7 +35,7 @@ pub(crate) fn route_baby() -> Router {
             Router::new()
                 .route(
                     "/",
-                    get(get_baby_by_id).patch(patch_baby).delete(delete_baby),
+                    get(get_baby_by_unique_id).patch(patch_baby).delete(delete_baby),
                 )
                 .route("/share", post(post_share_baby_with_user))
                 .route("/transfer", patch(patch_transfer_owner))
@@ -62,29 +61,29 @@ async fn post_new_baby(
     }
 }
 
-async fn get_baby_by_id(
-    Path(baby_unique_id): Path<Uuid>,
+async fn get_baby_by_unique_id(
+    Path(baby_unique_id): Path<String>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
 ) -> impl IntoResponse {
-    let baby_id = check_user_permissions(auth, baby_unique_id)?;
+    let baby_id = check_user_permissions(auth, &baby_unique_id)?;
     get_baby_by_id_service(baby_id).await
 }
 
 async fn patch_baby(
-    Path(baby_unique_id): Path<Uuid>,
+    Path(baby_unique_id): Path<String>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     Json(update): Json<InputBabyDto>,
 ) -> impl IntoResponse {
-    let baby_id = check_user_permissions(auth, baby_unique_id)?;
+    let baby_id = check_user_permissions(auth, &baby_unique_id)?;
     patch_baby_service(baby_id, update).await
 }
 
 async fn delete_baby(
-    Path(baby_unique_id): Path<Uuid>,
+    Path(baby_unique_id): Path<String>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
 ) -> impl IntoResponse {
     let user_binding: i32 = auth.id.try_into().unwrap();
-    let baby_id = check_user_permissions(auth.clone(), baby_unique_id)?;
+    let baby_id = check_user_permissions(auth.clone(), &baby_unique_id)?;
     let message = delete_baby_service(baby_id, user_binding).await;
     if message.is_ok() {
         update_user_session(auth).await?;
@@ -103,21 +102,21 @@ async fn get_babies_for_user(
 }
 
 async fn post_share_baby_with_user(
-    Path(baby_unique_id): Path<Uuid>,
+    Path(baby_unique_id): Path<String>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     user: Query<Username>,
 ) -> impl IntoResponse {
-    let baby_id = check_user_permissions(auth, baby_unique_id)?;
+    let baby_id = check_user_permissions(auth, &baby_unique_id)?;
     let username = user.username()?;
     post_share_baby_with_user_service(baby_id, &username).await
 }
 
 async fn patch_transfer_owner(
-    Path(baby_unique_id): Path<Uuid>,
+    Path(baby_unique_id): Path<String>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     user: Query<Username>,
 ) -> impl IntoResponse {
-    let baby_id = check_user_permissions(auth, baby_unique_id)?;
+    let baby_id = check_user_permissions(auth, &baby_unique_id)?;
     let username = user.username()?;
     transfer_baby_service(baby_id, &username).await
 }

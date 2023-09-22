@@ -15,6 +15,7 @@ pub enum ApiError {
     DuplicateUser,
     /// No user found
     NoUser,
+    NoRecordFound,
     NoActiveUser,
     PageNotFound,
     LoginRequired,
@@ -36,6 +37,7 @@ impl ApiError {
                 String::from("Incorrect username or password."),
             ),
             ApiError::NoUser => (StatusCode::NOT_FOUND, String::from("No user found.")),
+            ApiError::NoRecordFound => (StatusCode::NOT_FOUND, String::from("No record found.")),
             ApiError::DuplicateUser => (
                 StatusCode::BAD_REQUEST,
                 String::from("User already exists."),
