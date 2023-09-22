@@ -10,9 +10,8 @@ use crate::{
     },
     model::{role_model::Rol, user_model::User},
     repository::user_repository::{
-        update_active_for_user, insert_new_user, delete_user,
-        delete_all_users, select_user_by_id, select_user_by_username, update_user,
-        select_all_users, select_id_from_username,
+        delete_all_users, delete_user, insert_new_user, select_all_users, select_id_from_username,
+        select_user_by_id, select_user_by_username, update_active_for_user, update_user,
     },
     response::{
         error::ApiError,
@@ -54,7 +53,9 @@ pub async fn get_all_users_service(
     Ok(response)
 }
 
-pub async fn post_find_user_service(user: FindUserDto) -> Result<RecordResponse<UserDto>, ApiError> {
+pub async fn post_find_user_service(
+    user: FindUserDto,
+) -> Result<RecordResponse<UserDto>, ApiError> {
     let user = match select_user_by_username(&user.username) {
         Ok(value) => value,
         Err(_) => return Err(ApiError::NoUser),
@@ -99,7 +100,7 @@ async fn cache_user_in_session(user: User) -> Result<SessionDto, ApiError> {
 pub async fn patch_user_service(
     user_id: i32,
     profile: UpdateUserDto,
-) -> Result<MsgResponse, ApiError> {
+) -> Result<RecordResponse<UserDto>, ApiError> {
     let old_profile = select_user_by_id(user_id)?;
     let new_name = match profile.name {
         Some(value) => Some(value),
@@ -121,8 +122,9 @@ pub async fn patch_user_service(
         email: new_email,
         update_at: update_time,
     };
-    update_user(user_id, update_profile)?;
-    Ok(MsgResponse::UpdateRecord)
+    let updated_user = update_user(user_id, update_profile)?;
+    let response = RecordResponse::new(updated_user.into());
+    Ok(response)
 }
 
 pub async fn delete_active_user_service(

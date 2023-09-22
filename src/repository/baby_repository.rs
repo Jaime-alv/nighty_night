@@ -49,14 +49,14 @@ pub fn select_babies(pagination: Pagination) -> Result<(Vec<Baby>, i64), Error> 
         .load_and_count_pages(conn)
 }
 
-pub fn update_baby(baby: i32, update: UpdateBaby) -> Result<usize, Error> {
+pub fn update_baby(baby: i32, update: UpdateBaby) -> Result<Baby, Error> {
     let conn = &mut establish_connection();
     diesel::update(babies::table.find(baby))
         .set((
             babies::name.eq(update.name),
             babies::birthdate.eq(update.birthdate),
         ))
-        .execute(conn)
+        .get_result(conn)
 }
 
 pub fn delete_baby_from_db(baby: i32) -> Result<usize, Error> {
