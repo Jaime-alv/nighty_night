@@ -76,10 +76,6 @@ impl CurrentUser {
             .collect()
     }
 
-    pub fn roles(&self) -> Vec<Rol> {
-        self.roles.to_owned()
-    }
-
     pub fn roles_id(&self) -> Vec<u8> {
         self.roles
             .to_owned()

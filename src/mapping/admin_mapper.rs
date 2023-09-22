@@ -14,6 +14,7 @@ impl From<User> for BasicDataStruct<AdminUserData> {
             active: user.active(),
             created_at: user.created_at(),
             updated_at: user.updated_at(),
+            roles: user.roles(),
         };
         BasicDataStruct::new(user.id(), DataType::User, attributes)
     }

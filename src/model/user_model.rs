@@ -1,7 +1,10 @@
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
 
-use crate::{schema::users, security::security::verify_password};
+use crate::{
+    repository::user_repository::select_roles_id_from_user, schema::users,
+    security::security::verify_password,
+};
 
 #[derive(Queryable, Selectable, Identifiable)]
 #[diesel(table_name = users)]
@@ -76,6 +79,19 @@ impl User {
 
     pub fn active(&self) -> bool {
         self.active
+    }
+
+    pub fn roles(&self) -> Vec<String> {
+        let roles = select_roles_id_from_user(self.id).unwrap();
+        roles
+            .into_iter()
+            .map(|rol| match rol {
+                0 => "admin".to_string(),
+                1 => "user".to_string(),
+                2 => "anonymous".to_string(),
+                _ => "undefined".to_string(),
+            })
+            .collect()
     }
 }
 
