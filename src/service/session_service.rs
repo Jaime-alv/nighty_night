@@ -8,11 +8,11 @@ use crate::{
     mapping::rol_mapper::translate_roles,
     model::{role_model::Rol, session_model::CurrentUser, user_model::User},
     repository::{
-        baby_repository::get_baby_id_from_unique_id,
+        baby_repository::select_baby_from_unique_id,
         session_repository::{
-            delete_user_session, get_user, set_user, set_user_indefinitely, user_exists,
+            delete_user_session, select_user_session, insert_user_session, insert_user_session_indefinitely, select_user_session_exists,
         },
-        user_repository::{find_babies_unique_id_and_name, find_roles_id, load_user_by_id},
+        user_repository::{select_babies_for_user_id, select_roles_id_from_user, select_user_by_id},
     },
     response::{error::ApiError, response::MsgResponse},
 };
@@ -29,7 +29,7 @@ where
     Ok(())
 }
 
-pub async fn logout_session<T>(
+pub async fn get_logout_user_service<T>(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     user_id: T,
 ) -> Result<MsgResponse, ApiError>
@@ -57,13 +57,13 @@ pub async fn save_user_session(
             .parse::<usize>()
             .unwrap_or(600),
     };
-    set_user(&key, (*user).clone().into(), session_duration).await?;
+    insert_user_session(&key, (*user).clone().into(), session_duration).await?;
     Ok(())
 }
 
 pub async fn save_user_indefinitely(user: &CurrentUser) -> Result<(), ApiError> {
     let key = user_redis_key(user.id());
-    set_user_indefinitely(&key, (*user).clone().into()).await?;
+    insert_user_session_indefinitely(&key, (*user).clone().into()).await?;
     Ok(())
 }
 
@@ -78,7 +78,7 @@ pub async fn update_user_session(
 
 pub async fn load_user_session(id: i64) -> Result<CurrentUser, ApiError> {
     let key = user_redis_key(id);
-    let string_user = get_user(&key).await?;
+    let string_user = select_user_session(&key).await?;
     let user: CurrentUserDto = match serde_json::from_str(&string_user) {
         Ok(user) => user,
         Err(err) => return Err(ApiError::Redis(err.into())),
@@ -87,13 +87,13 @@ pub async fn load_user_session(id: i64) -> Result<CurrentUser, ApiError> {
 }
 
 pub async fn read_user_from_db(user: i32) -> Result<CurrentUser, ApiError> {
-    let current_user = load_user_by_id(user)?;
+    let current_user = select_user_by_id(user)?;
     create_current_user(current_user).await
 }
 
 pub async fn create_current_user(current_user: User) -> Result<CurrentUser, ApiError> {
-    let roles = find_roles_id(current_user.id())?;
-    let babies = find_babies_unique_id_and_name(current_user.id())?;
+    let roles = select_roles_id_from_user(current_user.id())?;
+    let babies = select_babies_for_user_id(current_user.id())?;
     let translate_roles: Vec<Rol> = translate_roles(&roles.into_iter().collect::<Vec<u8>>());
 
     let user_session = CurrentUser::new(
@@ -116,7 +116,7 @@ where
     T: Into<i64>,
 {
     let user_key: String = user_redis_key(id.into());
-    let result = user_exists(&user_key).await?;
+    let result = select_user_session_exists(&user_key).await?;
     Ok(result)
 }
 
@@ -140,14 +140,14 @@ fn has_baby(
 }
 
 /// Check if user is authenticated and baby has a relationship with user.
-pub fn authorize_and_has_baby_unique_id(
+pub fn check_user_permissions(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     baby_unique_id: Uuid,
 ) -> Result<i32, ApiError> {
     if auth.is_anonymous() {
         return Err(ApiError::LoginRequired);
     } else if has_baby(auth, baby_unique_id) {
-        let id = get_baby_id_from_unique_id(baby_unique_id)?;
+        let id = select_baby_from_unique_id(baby_unique_id)?;
         Ok(id)
     } else {
         Err(ApiError::Forbidden)

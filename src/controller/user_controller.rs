@@ -2,10 +2,10 @@ use crate::{
     data::user_dto::{FindUserDto, LoginDto, NewUserDto, UpdateUserDto},
     model::session_model::CurrentUser,
     service::{
-        session_service::{login_required, login_session, logout_session},
+        session_service::{login_required, login_session, get_logout_user_service},
         user_service::{
-            alter_active_user_service, create_user_service, find_user_by_id_service,
-            find_user_service, login_service, patch_user_service,
+            delete_active_user_service, post_new_user_service, get_user_by_id_service,
+            post_find_user_service, login_service, patch_user_service,
         },
     },
 };
@@ -19,25 +19,25 @@ use axum_session_auth::AuthSession;
 
 pub(crate) fn route_user() -> Router {
     let routes = Router::new()
-        .route("/", get(test_welcome))
-        .route("/register", post(register_new_user))
-        .route("/user", post(find_user))
-        .route("/login", post(login_user))
-        .route("/logout", get(logout_user))
+        .route("/", get(get_test_welcome))
+        .route("/register", post(post_new_user))
+        .route("/user", post(post_find_user))
+        .route("/login", post(post_login_user))
+        .route("/logout", get(get_logout_user))
         .route(
             "/profile",
-            get(get_profile)
-                .patch(update_profile)
-                .delete(deactivate_user),
+            get(get_user_by_id)
+                .patch(patch_user)
+                .delete(delete_user),
         );
     Router::new().nest("/auth", routes)
 }
 
-async fn register_new_user(
+async fn post_new_user(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     Json(new_user): Json<NewUserDto>,
 ) -> impl IntoResponse {
-    match create_user_service(new_user).await {
+    match post_new_user_service(new_user).await {
         Ok((response, id)) => {
             login_session(auth, id).await?;
             Ok(response)
@@ -46,11 +46,11 @@ async fn register_new_user(
     }
 }
 
-async fn find_user(Json(data): Json<FindUserDto>) -> impl IntoResponse {
-    find_user_service(data).await
+async fn post_find_user(Json(data): Json<FindUserDto>) -> impl IntoResponse {
+    post_find_user_service(data).await
 }
 
-async fn login_user(
+async fn post_login_user(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     Json(login): Json<LoginDto>,
 ) -> impl IntoResponse {
@@ -63,15 +63,15 @@ async fn login_user(
     }
 }
 
-async fn logout_user(
+async fn get_logout_user(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
 ) -> impl IntoResponse {
     let binding_id: i32 = auth.id.try_into().unwrap();
     login_required(auth.clone())?;
-    logout_session(auth, binding_id).await
+    get_logout_user_service(auth, binding_id).await
 }
 
-async fn test_welcome(
+async fn get_test_welcome(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
 ) -> String {
     auth.cache_clear_user(auth.id);
@@ -82,15 +82,15 @@ async fn test_welcome(
     )
 }
 
-async fn get_profile(
+async fn get_user_by_id(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
 ) -> impl IntoResponse {
     let binding_id: i32 = auth.id.try_into().unwrap();
     login_required(auth)?;
-    find_user_by_id_service(binding_id).await
+    get_user_by_id_service(binding_id).await
 }
 
-async fn update_profile(
+async fn patch_user(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     Json(profile): Json<UpdateUserDto>,
 ) -> impl IntoResponse {
@@ -99,10 +99,10 @@ async fn update_profile(
     patch_user_service(binding_id, profile).await
 }
 
-async fn deactivate_user(
+async fn delete_user(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
 ) -> impl IntoResponse {
     let binding_id: i32 = auth.id.try_into().unwrap();
     login_required(auth)?;
-    alter_active_user_service(binding_id, false).await
+    delete_active_user_service(binding_id, false).await
 }

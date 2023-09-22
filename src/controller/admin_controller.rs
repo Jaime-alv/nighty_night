@@ -14,12 +14,12 @@ use crate::{
     },
     model::session_model::CurrentUser,
     service::{
-        admin_service::{display_roles_service, show_stats_service},
+        admin_service::{get_roles_service, get_stats_of_tables_service},
         association_service::{add_rol_to_user_service, delete_rol_to_user_service},
-        baby_service::{find_baby_service, get_all_babies_service},
+        baby_service::{get_baby_by_id_service, get_all_babies_service},
         session_service::current_user_is_admin,
         user_service::{
-            alter_active_user_service, delete_old_users_service, delete_user_service,
+            delete_active_user_service, delete_old_users_service, delete_user_service,
             get_all_users_service,
         },
     },
@@ -31,17 +31,17 @@ pub(crate) fn route_admin() -> Router {
             "/baby",
             Router::new()
                 .route("/", get(get_all_babies))
-                .route("/:baby_id", get(find_baby_by_id)),
+                .route("/:baby_id", get(get_baby_by_id)),
         )
         .route(
             "/user",
-            get(get_all_users).delete(delete_user).patch(activate_user),
+            get(get_all_users).delete(delete_user).patch(patch_activate_user),
         )
-        .route("/stats", get(show_records_stats))
+        .route("/stats", get(get_stats_of_tables))
         .route(
             "/roles",
-            get(display_roles)
-                .put(update_user_role)
+            get(get_roles)
+                .put(put_user_role)
                 .delete(delete_user_role),
         );
     Router::new().nest("/admin", routes)
@@ -77,37 +77,37 @@ async fn delete_user(
     }
 }
 
-async fn activate_user(
+async fn patch_activate_user(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     user_id: Query<IdDto>,
 ) -> impl IntoResponse {
     current_user_is_admin(auth)?;
-    alter_active_user_service(user_id.id(), true).await
+    delete_active_user_service(user_id.id(), true).await
 }
 
-async fn find_baby_by_id(
+async fn get_baby_by_id(
     Path(baby_id): Path<i32>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
 ) -> impl IntoResponse {
     current_user_is_admin(auth)?;
-    find_baby_service(baby_id).await
+    get_baby_by_id_service(baby_id).await
 }
 
-async fn show_records_stats(
+async fn get_stats_of_tables(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
 ) -> impl IntoResponse {
     current_user_is_admin(auth)?;
-    show_stats_service().await
+    get_stats_of_tables_service().await
 }
 
-async fn display_roles(
+async fn get_roles(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
 ) -> impl IntoResponse {
     current_user_is_admin(auth)?;
-    display_roles_service().await
+    get_roles_service().await
 }
 
-async fn update_user_role(
+async fn put_user_role(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     Json(user_role): Json<UpdateRole>,
 ) -> impl IntoResponse {

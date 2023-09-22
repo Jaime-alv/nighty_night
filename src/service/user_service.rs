@@ -10,9 +10,9 @@ use crate::{
     },
     model::{role_model::Rol, user_model::User},
     repository::user_repository::{
-        alter_active_status_for_user, create_user, delete_user_from_db,
-        delete_users_from_db_in_batch, load_user_by_id, load_user_by_username, patch_user_record,
-        query_users, select_id_from_username,
+        update_active_for_user, insert_new_user, delete_user,
+        delete_all_users, select_user_by_id, select_user_by_username, update_user,
+        select_all_users, select_id_from_username,
     },
     response::{
         error::ApiError,
@@ -26,7 +26,7 @@ use crate::{
 
 use super::session_service::{create_current_user, save_user_session};
 
-pub async fn create_user_service(
+pub async fn post_new_user_service(
     new_user: NewUserDto,
 ) -> Result<(RecordResponse<SessionDto>, i32), ApiError> {
     if validate_fields(&new_user.data()) {
@@ -35,7 +35,7 @@ pub async fn create_user_service(
     if valid_password(&new_user.password) {
         return Err(ApiError::Generic400Error("Password too short.".into()));
     }
-    let user = match create_user(new_user, Rol::User.into()) {
+    let user = match insert_new_user(new_user, Rol::User.into()) {
         Ok(user) => user,
         Err(_) => return Err(ApiError::DuplicateUser),
     };
@@ -48,14 +48,14 @@ pub async fn get_all_users_service(
     pagination: Pagination,
 ) -> Result<PagedResponse<Vec<AdminUserDto>>, ApiError> {
     let current = pagination.page();
-    let (users, total_pages) = query_users(pagination)?;
+    let (users, total_pages) = select_all_users(pagination)?;
     let users: Vec<AdminUserDto> = users.into_iter().map(|user| user.into()).collect();
     let response = PagedResponse::new(users, current, total_pages);
     Ok(response)
 }
 
-pub async fn find_user_service(user: FindUserDto) -> Result<RecordResponse<UserDto>, ApiError> {
-    let user = match load_user_by_username(&user.username) {
+pub async fn post_find_user_service(user: FindUserDto) -> Result<RecordResponse<UserDto>, ApiError> {
+    let user = match select_user_by_username(&user.username) {
         Ok(value) => value,
         Err(_) => return Err(ApiError::NoUser),
     };
@@ -67,7 +67,7 @@ pub async fn login_service(login: LoginDto) -> Result<(RecordResponse<SessionDto
     if validate_fields(&login.data()) {
         return Err(ApiError::EmptyBody);
     }
-    let current_user = match load_user_by_username(&login.username) {
+    let current_user = match select_user_by_username(&login.username) {
         Ok(u) => u,
         Err(_) => return Err(ApiError::IncorrectPassword),
     };
@@ -83,8 +83,8 @@ pub async fn login_service(login: LoginDto) -> Result<(RecordResponse<SessionDto
     Err(ApiError::IncorrectPassword)
 }
 
-pub async fn find_user_by_id_service(user_id: i32) -> Result<RecordResponse<UserDto>, ApiError> {
-    let user = load_user_by_id(user_id)?;
+pub async fn get_user_by_id_service(user_id: i32) -> Result<RecordResponse<UserDto>, ApiError> {
+    let user = select_user_by_id(user_id)?;
     let response = RecordResponse::new(user.into());
     Ok(response)
 }
@@ -100,7 +100,7 @@ pub async fn patch_user_service(
     user_id: i32,
     profile: UpdateUserDto,
 ) -> Result<MsgResponse, ApiError> {
-    let old_profile = load_user_by_id(user_id)?;
+    let old_profile = select_user_by_id(user_id)?;
     let new_name = match profile.name {
         Some(value) => Some(value),
         None => old_profile.name(),
@@ -121,29 +121,29 @@ pub async fn patch_user_service(
         email: new_email,
         update_at: update_time,
     };
-    patch_user_record(user_id, update_profile)?;
+    update_user(user_id, update_profile)?;
     Ok(MsgResponse::UpdateRecord)
 }
 
-pub async fn alter_active_user_service(
+pub async fn delete_active_user_service(
     user_id: i32,
     active: bool,
 ) -> Result<MsgResponse, ApiError> {
     let time = now();
-    alter_active_status_for_user(user_id, active, time)?;
+    update_active_for_user(user_id, active, time)?;
     Ok(MsgResponse::ActiveStatusUpdate)
 }
 
 /// User must be active = false, last updated 180 days ago (as per DeleteAccount const)
 /// and user must not be current user.
 pub async fn delete_user_service(user_id: i32, current_user: i32) -> Result<MsgResponse, ApiError> {
-    let user = load_user_by_id(user_id)?;
+    let user = select_user_by_id(user_id)?;
     let inactive_period: i64 = GlobalCte::DeleteAccount.get().into();
     let inactive_time = (now() - user.updated_at().unwrap_or_default())
         .num_days()
         .ge(&inactive_period);
     if current_user.ne(&user_id) && inactive_time && !user.active() {
-        delete_user_from_db(user_id)?;
+        delete_user(user_id)?;
         Ok(MsgResponse::DeleteRecord)
     } else {
         Err(ApiError::Forbidden)
@@ -153,7 +153,7 @@ pub async fn delete_user_service(user_id: i32, current_user: i32) -> Result<MsgR
 pub async fn delete_old_users_service() -> Result<MsgResponse, ApiError> {
     let inactive_period: u64 = GlobalCte::DeleteAccount.get().into();
     let older_than = now().checked_sub_days(Days::new(inactive_period)).unwrap();
-    let rows = delete_users_from_db_in_batch(older_than)?;
+    let rows = delete_all_users(older_than)?;
     Ok(MsgResponse::DeleteXRecords(rows))
 }
 

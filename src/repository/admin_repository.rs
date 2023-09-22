@@ -20,7 +20,7 @@ pub struct TableDescription<'a> {
     value: i64,
 }
 
-pub fn count_records() -> Result<StatsDB<'static>, Error> {
+pub fn select_stats_from_tables() -> Result<StatsDB<'static>, Error> {
     let conn = &mut establish_connection();
     let users: i64 = users::table.select(users::id).count().get_result(conn)?;
     let babies: i64 = babies::table.select(babies::id).count().get_result(conn)?;
@@ -70,7 +70,7 @@ pub struct GroupedRole {
 /// INNER JOIN users_roles ON roles.id = users_roles.rol_id
 /// GROUP BY roles.id;
 /// ```
-pub fn select_roles_and_group_by_count() -> Result<Vec<GroupedRole>, Error> {
+pub fn select_roles() -> Result<Vec<GroupedRole>, Error> {
     let conn = &mut establish_connection();
     let data = roles::table
         .inner_join(users_roles::table.on(users_roles::rol_id.eq(roles::id)))

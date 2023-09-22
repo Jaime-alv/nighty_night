@@ -11,7 +11,7 @@ use crate::{
 use super::paginator::Paginate;
 use crate::connection::connection_psql::establish_connection;
 
-pub fn ingest_meal<T>(new_meal: T) -> Result<usize, Error>
+pub fn insert_new_meal<T>(new_meal: T) -> Result<usize, Error>
 where
     T: Into<InsertableMeal>,
 {
@@ -21,7 +21,7 @@ where
         .execute(conn)
 }
 
-pub fn get_all_meals_from_baby(
+pub fn select_all_meals_from_baby(
     baby: i32,
     pagination: Pagination,
 ) -> Result<(Vec<Meal>, i64), Error> {
@@ -34,7 +34,7 @@ pub fn get_all_meals_from_baby(
         .load_and_count_pages(conn)
 }
 
-pub fn find_meals_by_date_range(
+pub fn select_meals_by_date_range(
     baby: i32,
     from_date: NaiveDate,
     to_date: NaiveDate,
@@ -50,12 +50,12 @@ pub fn find_meals_by_date_range(
         .load::<Meal>(conn)
 }
 
-pub fn find_meal_by_id(record: i32) -> Result<Meal, Error> {
+pub fn select_meal_by_id(record: i32) -> Result<Meal, Error> {
     let conn = &mut establish_connection();
     meals::table.find(record).first::<Meal>(conn)
 }
 
-pub fn patch_meal_record(record: i32, meal: UpdateMeal) -> Result<usize, Error> {
+pub fn update_meal(record: i32, meal: UpdateMeal) -> Result<usize, Error> {
     let conn = &mut establish_connection();
     diesel::update(meals::table.find(record))
         .set((
@@ -66,12 +66,12 @@ pub fn patch_meal_record(record: i32, meal: UpdateMeal) -> Result<usize, Error> 
         .execute(conn)
 }
 
-pub fn delete_meal_from_db(record: i32) -> Result<usize, Error> {
+pub fn delete_meal(record: i32) -> Result<usize, Error> {
     let conn = &mut establish_connection();
     diesel::delete(meals::table.find(record)).execute(conn)
 }
 
-pub fn meals_paginated_from_db(
+pub fn select_meals_with_pagination(
     baby_id: i32,
     from_date: NaiveDate,
     to_date: NaiveDate,
@@ -90,7 +90,7 @@ pub fn meals_paginated_from_db(
         .load_and_count_pages(conn)
 }
 
-pub fn obtain_first_and_last_meal_date(baby: i32) -> Result<(NaiveDate, NaiveDate), Error> {
+pub fn select_date_first_and_last_meal(baby: i32) -> Result<(NaiveDate, NaiveDate), Error> {
     let conn = &mut establish_connection();
     let start: NaiveDateTime = meals::table
         .filter(meals::baby_id.eq(baby))

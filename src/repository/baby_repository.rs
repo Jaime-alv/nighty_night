@@ -11,7 +11,7 @@ use crate::{
 
 use super::paginator::Paginate;
 
-pub fn ingest_new_baby_in_db<T>(new_baby: T, user: i32) -> Result<Baby, Error>
+pub fn insert_new_baby<T>(new_baby: T, user: i32) -> Result<Baby, Error>
 where
     T: Into<InsertableBaby>,
 {
@@ -35,12 +35,12 @@ where
     baby
 }
 
-pub fn load_baby_by_id(id: i32) -> Result<Baby, Error> {
+pub fn select_baby_by_id(id: i32) -> Result<Baby, Error> {
     let conn = &mut establish_connection();
     babies::table.find(id).first(conn)
 }
 
-pub fn query_babies(pagination: Pagination) -> Result<(Vec<Baby>, i64), Error> {
+pub fn select_babies(pagination: Pagination) -> Result<(Vec<Baby>, i64), Error> {
     let conn = &mut establish_connection();
     babies::table
         .select(babies::all_columns)
@@ -49,7 +49,7 @@ pub fn query_babies(pagination: Pagination) -> Result<(Vec<Baby>, i64), Error> {
         .load_and_count_pages(conn)
 }
 
-pub fn patch_baby_record(baby: i32, update: UpdateBaby) -> Result<usize, Error> {
+pub fn update_baby(baby: i32, update: UpdateBaby) -> Result<usize, Error> {
     let conn = &mut establish_connection();
     diesel::update(babies::table.find(baby))
         .set((
@@ -64,26 +64,15 @@ pub fn delete_baby_from_db(baby: i32) -> Result<usize, Error> {
     diesel::delete(babies::table.find(baby)).execute(conn)
 }
 
-// pub fn get_all_babies_with_id(
-//     babies: Vec<i32>,
-//     pagination: Pagination,
-// ) -> Result<(Vec<Baby>, i64), Error> {
-//     let conn = &mut establish_connection();
-//     babies::table
-//         .filter(babies::id.eq_any(babies))
-//         .paginate(pagination.page())
-//         .per_page(pagination.per_page())
-//         .load_and_count_pages(conn)
-// }
 
-pub fn transfer_baby_records(baby: i32, new_user: i32) -> Result<usize, Error> {
+pub fn update_baby_belongs_to(baby: i32, new_user: i32) -> Result<usize, Error> {
     let conn = &mut establish_connection();
     diesel::update(babies::table.find(baby))
         .set(babies::belongs_to.eq(new_user))
         .execute(conn)
 }
 
-pub fn get_all_babies_by_unique_id(
+pub fn select_all_babies_by_unique_id(
     babies: Vec<Uuid>,
     pagination: Pagination,
 ) -> Result<(Vec<Baby>, i64), Error> {
@@ -95,7 +84,7 @@ pub fn get_all_babies_by_unique_id(
         .load_and_count_pages(conn)
 }
 
-pub fn get_baby_id_from_unique_id(unique_id: Uuid) -> Result<i32, Error> {
+pub fn select_baby_from_unique_id(unique_id: Uuid) -> Result<i32, Error> {
     let conn = &mut establish_connection();
     babies::table
         .filter(babies::unique_id.eq(unique_id))

@@ -11,7 +11,7 @@ use crate::{
 use super::paginator::Paginate;
 use crate::connection::connection_psql::establish_connection;
 
-pub fn ingest_new_dream<T>(new_dream: T) -> Result<usize, Error>
+pub fn insert_new_dream<T>(new_dream: T) -> Result<usize, Error>
 where
     T: Into<InsertableDream>,
 {
@@ -21,7 +21,7 @@ where
         .execute(conn)
 }
 
-pub fn get_all_dreams_from_baby(
+pub fn select_all_dreams_from_baby(
     baby: i32,
     pagination: Pagination,
 ) -> Result<(Vec<Dream>, i64), Error> {
@@ -36,7 +36,7 @@ pub fn get_all_dreams_from_baby(
 
 /// Filter table dreams by baby_id, where to_date is null and order
 /// in descending to get the higher one.
-pub fn get_last_dream(baby: i32) -> Result<Dream, Error> {
+pub fn select_last_dream(baby: i32) -> Result<Dream, Error> {
     let conn = &mut establish_connection();
     dreams::table
         .filter(dreams::baby_id.eq(baby))
@@ -47,14 +47,14 @@ pub fn get_last_dream(baby: i32) -> Result<Dream, Error> {
 
 pub fn update_last_dream(dream: InsertableDream) -> Result<usize, Error> {
     let conn = &mut establish_connection();
-    let last_dream = get_last_dream(dream.baby_id());
+    let last_dream = select_last_dream(dream.baby_id());
     diesel::update(dreams::table.filter(dreams::id.eq(last_dream.unwrap().id())))
         .set(dreams::to_date.eq(dream.to_date()))
         .execute(conn)
 }
 
 /// Only need dates that have both fields, from_date and to_date, because we need to sum durations.
-pub fn find_dreams_summary(baby: i32, from: NaiveDate, to: NaiveDate) -> Result<Vec<Dream>, Error> {
+pub fn select_dreams_for_summary(baby: i32, from: NaiveDate, to: NaiveDate) -> Result<Vec<Dream>, Error> {
     let conn = &mut establish_connection();
     let from_timestamp = from.and_hms_opt(0, 0, 1).unwrap();
     let to_timestamp = to.and_hms_opt(23, 59, 59).unwrap();
@@ -65,12 +65,12 @@ pub fn find_dreams_summary(baby: i32, from: NaiveDate, to: NaiveDate) -> Result<
         .load::<Dream>(conn)
 }
 
-pub fn find_dream_by_id(id: i32) -> Result<Dream, Error> {
+pub fn select_dream_by_id(id: i32) -> Result<Dream, Error> {
     let conn = &mut establish_connection();
     dreams::table.find(id).first(conn)
 }
 
-pub fn patch_dream_record(record_id: i32, dream: UpdateDream) -> Result<usize, Error> {
+pub fn update_dream(record_id: i32, dream: UpdateDream) -> Result<usize, Error> {
     let conn = &mut establish_connection();
     diesel::update(dreams::table.find(record_id))
         .set((
@@ -80,12 +80,12 @@ pub fn patch_dream_record(record_id: i32, dream: UpdateDream) -> Result<usize, E
         .execute(conn)
 }
 
-pub fn delete_dream_from_db(record_id: i32) -> Result<usize, Error> {
+pub fn delete_dream(record_id: i32) -> Result<usize, Error> {
     let conn = &mut establish_connection();
     diesel::delete(dreams::table.find(record_id)).execute(conn)
 }
 
-pub fn dreams_paginated_from_db(
+pub fn select_dreams_with_pagination(
     baby_id: i32,
     pagination: Pagination,
     from: NaiveDate,
@@ -108,7 +108,7 @@ pub fn dreams_paginated_from_db(
 Get first Option<date> and last Option<date> for a baby id, if both records are null, default
 to today date.
  */
-pub fn obtain_first_and_last_dream_date(baby: i32) -> Result<(NaiveDate, NaiveDate), Error> {
+pub fn select_date_first_and_last_dream(baby: i32) -> Result<(NaiveDate, NaiveDate), Error> {
     let conn = &mut establish_connection();
     let start: Option<NaiveDateTime> = dreams::table
         .filter(dreams::baby_id.eq(baby))

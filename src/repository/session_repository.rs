@@ -2,7 +2,11 @@ use redis::RedisError;
 
 use crate::{connection::connection_redis::poll, data::session_dto::CurrentUserDto};
 
-pub async fn set_user(key: &str, user: CurrentUserDto, duration: usize) -> Result<(), RedisError> {
+pub async fn insert_user_session(
+    key: &str,
+    user: CurrentUserDto,
+    duration: usize,
+) -> Result<(), RedisError> {
     let mut conn = poll().await.get_async_connection().await?;
     redis::pipe()
         .set(key, serde_json::to_string(&user)?)
@@ -11,7 +15,10 @@ pub async fn set_user(key: &str, user: CurrentUserDto, duration: usize) -> Resul
         .await
 }
 
-pub async fn set_user_indefinitely(key: &str, user: CurrentUserDto) -> Result<(), RedisError> {
+pub async fn insert_user_session_indefinitely(
+    key: &str,
+    user: CurrentUserDto,
+) -> Result<(), RedisError> {
     let mut conn = poll().await.get_async_connection().await?;
     redis::pipe()
         .set(key, serde_json::to_string(&user)?)
@@ -19,7 +26,7 @@ pub async fn set_user_indefinitely(key: &str, user: CurrentUserDto) -> Result<()
         .await
 }
 
-pub async fn get_user(key: &str) -> Result<String, RedisError> {
+pub async fn select_user_session(key: &str) -> Result<String, RedisError> {
     let mut conn = poll().await.get_async_connection().await?;
     redis::cmd("GET").arg(key).query_async(&mut conn).await
 }
@@ -29,7 +36,7 @@ pub async fn delete_user_session(key: &str) -> Result<(), RedisError> {
     redis::cmd("DEL").arg(key).query_async(&mut conn).await
 }
 
-pub async fn user_exists(key: &str) -> Result<bool, RedisError> {
+pub async fn select_user_session_exists(key: &str) -> Result<bool, RedisError> {
     let mut conn = poll().await.get_async_connection().await?;
     redis::cmd("EXISTS").arg(key).query_async(&mut conn).await
 }
@@ -38,7 +45,7 @@ pub async fn user_exists(key: &str) -> Result<bool, RedisError> {
 mod redis_test {
     use dotenvy::dotenv;
 
-    use crate::repository::session_repository::get_user;
+    use crate::repository::session_repository::select_user_session;
 
     fn set_env() {
         dotenv().ok();
@@ -47,6 +54,6 @@ mod redis_test {
     #[tokio::test]
     async fn test_connection() {
         set_env();
-        assert_eq!(get_user("user_1").await.unwrap(), "{\"id\":1,\"anonymous\":true,\"username\":\"guest\",\"roles\":[2],\"active\":true,\"baby_id\":[]}".to_string())
+        assert_eq!(select_user_session("user_1").await.unwrap(), "{\"id\":1,\"anonymous\":true,\"username\":\"guest\",\"roles\":[2],\"active\":true,\"baby_id\":[]}".to_string())
     }
 }

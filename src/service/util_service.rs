@@ -10,7 +10,7 @@ pub fn not_found() -> ApiError {
     ApiError::PageNotFound
 }
 
-pub fn uncover_date(date: Option<String>) -> Result<Option<NaiveDateTime>, ApiError> {
+pub fn cast_to_date_from(date: Option<String>) -> Result<Option<NaiveDateTime>, ApiError> {
     match date {
         Some(d) => match convert_to_date_time(&d) {
             Ok(date) => Ok(Some(date)),
@@ -20,7 +20,7 @@ pub fn uncover_date(date: Option<String>) -> Result<Option<NaiveDateTime>, ApiEr
     }
 }
 
-pub fn date_time_are_in_order(from: NaiveDateTime, to: NaiveDateTime) -> Result<(), ApiError> {
+pub fn are_date_time_in_order(from: NaiveDateTime, to: NaiveDateTime) -> Result<(), ApiError> {
     if date_time_is_lower_than_other_date(from, to) {
         Ok(())
     } else {
@@ -29,7 +29,7 @@ pub fn date_time_are_in_order(from: NaiveDateTime, to: NaiveDateTime) -> Result<
 }
 
 /// Checks if records' baby is the same as the one you want to perform the modification on.
-pub fn record_belongs_to_baby(record_baby: i32, baby_id: i32) -> Result<(), ApiError> {
+pub fn does_record_belongs_to_baby(record_baby: i32, baby_id: i32) -> Result<(), ApiError> {
     if record_baby.ne(&baby_id) {
         Err(ApiError::Forbidden)
     } else {

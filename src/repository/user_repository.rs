@@ -18,7 +18,7 @@ use crate::connection::connection_psql::establish_connection;
 
 ///
 /// Get all users from database.
-pub fn query_users(pagination: Pagination) -> Result<(Vec<User>, i64), Error> {
+pub fn select_all_users(pagination: Pagination) -> Result<(Vec<User>, i64), Error> {
     let conn = &mut establish_connection();
     users::table
         .select(users::all_columns)
@@ -32,19 +32,19 @@ pub fn query_users(pagination: Pagination) -> Result<(Vec<User>, i64), Error> {
 /// ```sql
 /// SELECT * FROM users WHERE username = ${username};
 /// ```
-pub fn load_user_by_username<T: Into<String>>(username: T) -> Result<User, Error> {
+pub fn select_user_by_username<T: Into<String>>(username: T) -> Result<User, Error> {
     let conn = &mut establish_connection();
     users::table
         .filter(users::username.eq(username.into()))
         .first(conn)
 }
 
-pub fn load_user_by_id(user_id: i32) -> Result<User, Error> {
+pub fn select_user_by_id(user_id: i32) -> Result<User, Error> {
     let conn = &mut establish_connection();
     users::table.find(user_id).first(conn)
 }
 
-pub fn create_user<T: Into<InsertableUser>>(new_user: T, rol: i16) -> Result<User, Error> {
+pub fn insert_new_user<T: Into<InsertableUser>>(new_user: T, rol: i16) -> Result<User, Error> {
     let conn = &mut establish_connection();
     // Create user entry in db.
     let user: Result<User, Error> = diesel::insert_into(users::table)
@@ -65,14 +65,8 @@ pub fn create_user<T: Into<InsertableUser>>(new_user: T, rol: i16) -> Result<Use
     user
 }
 
-pub fn _exists_username<T: Into<String>>(username: T) -> bool {
-    match load_user_by_username(username.into()) {
-        Ok(_) => true,
-        Err(_) => false,
-    }
-}
 
-pub fn find_roles_id(user_id: i32) -> Result<HashSet<u8>, Error> {
+pub fn select_roles_id_from_user(user_id: i32) -> Result<HashSet<u8>, Error> {
     let mut roles: HashSet<u8> = HashSet::new();
     let conn = &mut establish_connection();
     users_roles::table
@@ -86,7 +80,7 @@ pub fn find_roles_id(user_id: i32) -> Result<HashSet<u8>, Error> {
     Ok(roles)
 }
 
-pub fn patch_user_record(user_id: i32, profile: UpdateUser) -> Result<usize, Error> {
+pub fn update_user(user_id: i32, profile: UpdateUser) -> Result<usize, Error> {
     let conn = &mut establish_connection();
     diesel::update(users::table.find(user_id))
         .set((
@@ -98,7 +92,7 @@ pub fn patch_user_record(user_id: i32, profile: UpdateUser) -> Result<usize, Err
         .execute(conn)
 }
 
-pub fn alter_active_status_for_user(
+pub fn update_active_for_user(
     user: i32,
     active: bool,
     time: NaiveDateTime,
@@ -109,12 +103,12 @@ pub fn alter_active_status_for_user(
         .execute(conn)
 }
 
-pub fn delete_user_from_db(user: i32) -> Result<usize, Error> {
+pub fn delete_user(user: i32) -> Result<usize, Error> {
     let conn = &mut establish_connection();
     diesel::delete(users::table.find(user)).execute(conn)
 }
 
-pub fn delete_users_from_db_in_batch(older_than: NaiveDateTime) -> Result<usize, Error> {
+pub fn delete_all_users(older_than: NaiveDateTime) -> Result<usize, Error> {
     let conn = &mut establish_connection();
     diesel::delete(
         users::table
@@ -137,31 +131,13 @@ pub fn select_id_from_username(username: &str) -> Result<i32, Error> {
         .first(conn)
 }
 
-pub fn _find_babies_unique_id(user: i32) -> Result<HashSet<Uuid>, Error> {
-    let mut babies: HashSet<Uuid> = HashSet::new();
-    let conn = &mut establish_connection();
-    let babies_id: Vec<i32> = users_babies::table
-        .filter(users_babies::user_id.eq(user))
-        .select(users_babies::baby_id)
-        .load::<i32>(conn)?;
-    babies::table
-        .filter(babies::id.eq_any(babies_id))
-        .select(babies::unique_id)
-        .load::<Uuid>(conn)?
-        .into_iter()
-        .for_each(|id| {
-            babies.insert(id);
-        });
-    Ok(babies)
-}
-
 
 /// Raw SQL:
 /// 
 /// ```sql
 /// SELECT name, unique_id FROM babies WHERE id = babies_id
 /// ```
-pub fn find_babies_unique_id_and_name(user: i32) -> Result<Vec<BabyInfo>, Error> {
+pub fn select_babies_for_user_id(user: i32) -> Result<Vec<BabyInfo>, Error> {
     let conn = &mut establish_connection();
     let babies_id: Vec<i32> = users_babies::table
         .filter(users_babies::user_id.eq(user))

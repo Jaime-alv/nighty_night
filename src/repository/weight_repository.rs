@@ -10,7 +10,7 @@ use crate::{
 use super::paginator::Paginate;
 use crate::connection::connection_psql::establish_connection;
 
-pub fn ingest_weight<T>(new_measure: T) -> Result<usize, Error>
+pub fn insert_new_weight<T>(new_measure: T) -> Result<usize, Error>
 where
     T: Into<InsertableWeight>,
 {
@@ -20,7 +20,7 @@ where
         .execute(conn)
 }
 
-pub fn get_all_weights_from_baby(
+pub fn select_all_weights_from_baby(
     baby: i32,
     pagination: Pagination,
 ) -> Result<(Vec<Weight>, i64), Error> {
@@ -33,7 +33,7 @@ pub fn get_all_weights_from_baby(
         .load_and_count_pages(conn)
 }
 
-pub fn patch_weight_record(record: i32, measure: UpdateWeight) -> Result<usize, Error> {
+pub fn update_weight(record: i32, measure: UpdateWeight) -> Result<usize, Error> {
     let conn = &mut establish_connection();
     diesel::update(weights::table.find(record))
         .set((
@@ -43,17 +43,17 @@ pub fn patch_weight_record(record: i32, measure: UpdateWeight) -> Result<usize, 
         .execute(conn)
 }
 
-pub fn find_weight_by_id(id: i32) -> Result<Weight, Error> {
+pub fn select_weight_by_id(id: i32) -> Result<Weight, Error> {
     let conn = &mut establish_connection();
     weights::table.find(id).first(conn)
 }
 
-pub fn delete_weight_from_db(record: i32) -> Result<usize, Error> {
+pub fn delete_weight(record: i32) -> Result<usize, Error> {
     let conn = &mut establish_connection();
     diesel::delete(weights::table.find(record)).execute(conn)
 }
 
-pub fn weights_paginated_from_db(
+pub fn select_weights_with_pagination(
     baby_id: i32,
     from: NaiveDate,
     to: NaiveDate,

@@ -7,7 +7,7 @@ use crate::schema::{
     users_roles::{self, rol_id},
 };
 
-pub fn add_rol_to_user(user: i32, rol: i16) -> Result<usize, Error> {
+pub fn insert_rol_to_user(user: i32, rol: i16) -> Result<usize, Error> {
     let conn = &mut establish_connection();
     let records: i64 = users_roles::table
         .filter(users_roles::rol_id.eq(rol))
@@ -23,7 +23,7 @@ pub fn add_rol_to_user(user: i32, rol: i16) -> Result<usize, Error> {
 }
 
 /// Look if there is an already association, if there is, return 1, else create a new association.
-pub fn add_baby_to_user(user: i32, baby: i32) -> Result<usize, Error> {
+pub fn insert_baby_to_user(user: i32, baby: i32) -> Result<usize, Error> {
     let conn = &mut establish_connection();
     let records: i64 = users_babies::table
         .filter(users_babies::baby_id.eq(baby))
