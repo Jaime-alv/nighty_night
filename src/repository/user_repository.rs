@@ -65,7 +65,6 @@ pub fn insert_new_user<T: Into<InsertableUser>>(new_user: T, rol: i16) -> Result
     user
 }
 
-
 pub fn select_roles_id_from_user(user_id: i32) -> Result<HashSet<u8>, Error> {
     let mut roles: HashSet<u8> = HashSet::new();
     let conn = &mut establish_connection();
@@ -80,7 +79,7 @@ pub fn select_roles_id_from_user(user_id: i32) -> Result<HashSet<u8>, Error> {
     Ok(roles)
 }
 
-pub fn update_user(user_id: i32, profile: UpdateUser) -> Result<usize, Error> {
+pub fn update_user(user_id: i32, profile: UpdateUser) -> Result<User, Error> {
     let conn = &mut establish_connection();
     diesel::update(users::table.find(user_id))
         .set((
@@ -89,7 +88,7 @@ pub fn update_user(user_id: i32, profile: UpdateUser) -> Result<usize, Error> {
             users::email.eq(profile.email),
             users::updated_at.eq(profile.update_at),
         ))
-        .execute(conn)
+        .get_result(conn)
 }
 
 pub fn update_active_for_user(
@@ -131,9 +130,8 @@ pub fn select_id_from_username(username: &str) -> Result<i32, Error> {
         .first(conn)
 }
 
-
 /// Raw SQL:
-/// 
+///
 /// ```sql
 /// SELECT name, unique_id FROM babies WHERE id = babies_id
 /// ```

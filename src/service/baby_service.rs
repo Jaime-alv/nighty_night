@@ -6,10 +6,10 @@ use crate::{
     },
     model::baby_model::InsertableBaby,
     repository::{
-        association_repository::{insert_baby_to_user, delete_baby_association},
+        association_repository::{delete_baby_association, insert_baby_to_user},
         baby_repository::{
-            delete_baby_from_db, select_all_babies_by_unique_id, insert_new_baby,
-            select_baby_by_id, update_baby, select_babies, update_baby_belongs_to,
+            delete_baby_from_db, insert_new_baby, select_all_babies_by_unique_id, select_babies,
+            select_baby_by_id, update_baby, update_baby_belongs_to,
         },
     },
     response::{
@@ -59,7 +59,7 @@ pub async fn get_all_babies_service(
 pub async fn patch_baby_service(
     baby_id: i32,
     update: InputBabyDto,
-) -> Result<MsgResponse, ApiError> {
+) -> Result<RecordResponse<BabyDto>, ApiError> {
     let old_record = select_baby_by_id(baby_id)?;
     let new_name = match update.name {
         Some(value) => value,
@@ -73,8 +73,9 @@ pub async fn patch_baby_service(
         name: new_name,
         birthdate: new_birthdate,
     };
-    update_baby(baby_id, update_baby_info)?;
-    Ok(MsgResponse::UpdateRecord)
+    let updated_baby = update_baby(baby_id, update_baby_info)?;
+    let response = RecordResponse::new(updated_baby.into());
+    Ok(response)
 }
 
 /*
