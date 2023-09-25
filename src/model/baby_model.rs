@@ -3,11 +3,12 @@ use diesel::{Identifiable, Insertable, Queryable, Selectable};
 use uuid::Uuid;
 
 use crate::{
+    data::baby_dto::InputBabyDto,
     schema::babies,
-    utils::datetime::{format_date, now},
+    utils::datetime::{convert_to_date, format_date, now},
 };
 
-#[derive(Queryable, Selectable, Identifiable)]
+#[derive(Queryable, Selectable, Identifiable, Clone)]
 #[diesel(table_name = babies)]
 pub struct Baby {
     id: i32,
@@ -49,6 +50,22 @@ impl Baby {
 
     pub fn unique_id(&self) -> Uuid {
         self.unique_id
+    }
+
+    pub fn update_baby(&self, new_baby_info: InputBabyDto) -> Self {
+        let new_name = match new_baby_info.name {
+            Some(value) => value,
+            None => self.name(),
+        };
+        let new_birthdate = match new_baby_info.birthdate {
+            Some(day) => convert_to_date(&day).unwrap_or(self.birthdate()),
+            None => self.birthdate,
+        };
+        Self {
+            name: new_name,
+            birthdate: new_birthdate,
+            ..self.clone()
+        }
     }
 }
 

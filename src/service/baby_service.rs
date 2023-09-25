@@ -1,6 +1,6 @@
 use crate::{
     data::{
-        baby_dto::{InputBabyDto, UpdateBaby},
+        baby_dto::InputBabyDto,
         common_structure::{AdminBabyDto, BabyDto},
         query_dto::Pagination,
     },
@@ -60,20 +60,8 @@ pub async fn patch_baby_service(
     baby_id: i32,
     update: InputBabyDto,
 ) -> Result<RecordResponse<BabyDto>, ApiError> {
-    let old_record = select_baby_by_id(baby_id)?;
-    let new_name = match update.name {
-        Some(value) => value,
-        None => old_record.name(),
-    };
-    let new_birthdate = match update.birthdate {
-        Some(day) => convert_to_date(&day)?,
-        None => old_record.birthdate(),
-    };
-    let update_baby_info = UpdateBaby {
-        name: new_name,
-        birthdate: new_birthdate,
-    };
-    let updated_baby = update_baby(baby_id, update_baby_info)?;
+    let baby = select_baby_by_id(baby_id)?;
+    let updated_baby = update_baby(baby.update_baby(update))?;
     let response = RecordResponse::new(updated_baby.into());
     Ok(response)
 }

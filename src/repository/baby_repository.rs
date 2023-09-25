@@ -4,7 +4,7 @@ use diesel::result::Error;
 use uuid::Uuid;
 
 use crate::{
-    data::{baby_dto::UpdateBaby, query_dto::Pagination},
+    data::query_dto::Pagination,
     model::baby_model::{Baby, InsertableBaby},
     schema::{babies, users_babies},
 };
@@ -49,12 +49,12 @@ pub fn select_babies(pagination: Pagination) -> Result<(Vec<Baby>, i64), Error> 
         .load_and_count_pages(conn)
 }
 
-pub fn update_baby(baby: i32, update: UpdateBaby) -> Result<Baby, Error> {
+pub fn update_baby(update: Baby) -> Result<Baby, Error> {
     let conn = &mut establish_connection();
-    diesel::update(babies::table.find(baby))
+    diesel::update(babies::table.find(update.id()))
         .set((
-            babies::name.eq(update.name),
-            babies::birthdate.eq(update.birthdate),
+            babies::name.eq(update.name()),
+            babies::birthdate.eq(update.birthdate()),
         ))
         .get_result(conn)
 }
@@ -63,7 +63,6 @@ pub fn delete_baby_from_db(baby: i32) -> Result<usize, Error> {
     let conn = &mut establish_connection();
     diesel::delete(babies::table.find(baby)).execute(conn)
 }
-
 
 pub fn update_baby_belongs_to(baby: i32, new_user: i32) -> Result<usize, Error> {
     let conn = &mut establish_connection();

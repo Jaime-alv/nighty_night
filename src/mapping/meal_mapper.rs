@@ -10,7 +10,7 @@ impl From<Meal> for BasicDataStruct<MealData> {
     fn from(meal: Meal) -> Self {
         let attributes = MealData {
             date: meal.formatted_date(),
-            time: meal.formatted_time(),
+            start_time: meal.formatted_time(),
             quantity: meal.formatted_quantity(),
             elapsed: meal.formatted_elapsed(),
         };

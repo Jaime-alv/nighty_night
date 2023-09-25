@@ -1,15 +1,11 @@
 use chrono::{Days, NaiveDate};
 
 use crate::{
-    data::{
-        common_structure::WeightDto,
-        query_dto::Pagination,
-        weight_dto::{InputWeightDto, UpdateWeight},
-    },
+    data::{common_structure::WeightDto, query_dto::Pagination, weight_dto::InputWeightDto},
     model::weight_model::{InsertableWeight, Weight},
     repository::weight_repository::{
-        delete_weight, select_weight_by_id, select_all_weights_from_baby, insert_new_weight,
-        update_weight, select_weights_with_pagination,
+        delete_weight, insert_new_weight, select_all_weights_from_baby, select_weight_by_id,
+        select_weights_with_pagination, update_weight,
     },
     response::{error::ApiError, response::MsgResponse, response::PagedResponse},
     utils::datetime::{convert_to_date, today},
@@ -71,19 +67,7 @@ pub async fn patch_weight_service(
 ) -> Result<MsgResponse, ApiError> {
     let old_record = select_weight_by_id(record)?;
     does_record_belongs_to_baby(old_record.baby_id(), baby_id)?;
-    let new_date = match measure.date {
-        Some(value) => convert_to_date(&value)?,
-        None => old_record.date(),
-    };
-    let new_measure = match measure.value {
-        Some(value) => value,
-        None => old_record.value(),
-    };
-    let new_weight = UpdateWeight {
-        date: new_date,
-        value: new_measure,
-    };
-    update_weight(record, new_weight)?;
+    update_weight(old_record.update_weight(measure))?;
     Ok(MsgResponse::UpdateRecord)
 }
 

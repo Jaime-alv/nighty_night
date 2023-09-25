@@ -1,4 +1,3 @@
-use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 
 use super::traits::Mandatory;
@@ -26,7 +25,6 @@ pub struct UserData {
     pub surname: Option<String>,
 }
 
-
 #[derive(Debug, Deserialize)]
 pub struct FindUserDto {
     pub username: String,
@@ -49,12 +47,4 @@ pub struct UpdateUserDto {
     pub email: Option<String>,
     pub name: Option<String>,
     pub surname: Option<String>,
-}
-
-pub struct UpdateUser {
-    pub password: Option<String>,
-    pub name: Option<String>,
-    pub surname: Option<String>,
-    pub email: Option<String>,
-    pub update_at: Option<NaiveDateTime>,
 }

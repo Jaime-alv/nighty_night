@@ -6,7 +6,7 @@ use crate::{
         common_structure::{AdminUserDto, SessionDto, UserDto},
         query_dto::Pagination,
         traits::Mandatory,
-        user_dto::{FindUserDto, LoginDto, NewUserDto, UpdateUser, UpdateUserDto},
+        user_dto::{FindUserDto, LoginDto, NewUserDto, UpdateUserDto},
     },
     model::{role_model::Rol, user_model::User},
     repository::user_repository::{
@@ -64,7 +64,9 @@ pub async fn post_find_user_service(
     Ok(response)
 }
 
-pub async fn post_session_user_service(login: LoginDto) -> Result<(RecordResponse<SessionDto>, i32), ApiError> {
+pub async fn post_session_user_service(
+    login: LoginDto,
+) -> Result<(RecordResponse<SessionDto>, i32), ApiError> {
     if validate_fields(&login.data()) {
         return Err(ApiError::EmptyBody);
     }
@@ -101,28 +103,8 @@ pub async fn patch_user_service(
     user_id: i32,
     profile: UpdateUserDto,
 ) -> Result<RecordResponse<UserDto>, ApiError> {
-    let old_profile = select_user_by_id(user_id)?;
-    let new_name = match profile.name {
-        Some(value) => Some(value),
-        None => old_profile.name(),
-    };
-    let new_surname = match profile.surname {
-        Some(value) => Some(value),
-        None => old_profile.surname(),
-    };
-    let new_email = match profile.email {
-        Some(value) => Some(value),
-        None => old_profile.email(),
-    };
-    let update_time = Some(now());
-    let update_profile = UpdateUser {
-        password: None,
-        name: new_name,
-        surname: new_surname,
-        email: new_email,
-        update_at: update_time,
-    };
-    let updated_user = update_user(user_id, update_profile)?;
+    let user = select_user_by_id(user_id)?;
+    let updated_user = update_user(user.update_profile(profile))?;
     let response = RecordResponse::new(updated_user.into());
     Ok(response)
 }

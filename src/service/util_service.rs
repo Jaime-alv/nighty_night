@@ -1,9 +1,7 @@
 use chrono::{Days, NaiveDate, NaiveDateTime};
 
 use crate::{
-    data::query_dto::Pagination,
-    response::error::ApiError,
-    utils::datetime::{convert_to_date_time, date_time_is_lower_than_other_date},
+    data::query_dto::Pagination, response::error::ApiError, utils::datetime::convert_to_date_time,
 };
 
 pub fn not_found() -> ApiError {
@@ -17,14 +15,6 @@ pub fn cast_to_date_from(date: Option<String>) -> Result<Option<NaiveDateTime>, 
             Err(e) => Err(e.into()),
         },
         None => Ok(None),
-    }
-}
-
-pub fn are_date_time_in_order(from: NaiveDateTime, to: NaiveDateTime) -> Result<(), ApiError> {
-    if date_time_is_lower_than_other_date(from, to) {
-        Ok(())
-    } else {
-        Err(ApiError::DatesUnordered)
     }
 }
 
