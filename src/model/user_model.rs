@@ -2,11 +2,11 @@ use chrono::NaiveDateTime;
 use diesel::prelude::*;
 
 use crate::{
-    repository::user_repository::select_roles_id_from_user, schema::users,
-    security::security::verify_password,
+    data::user_dto::UpdateUserDto, repository::user_repository::select_roles_id_from_user,
+    schema::users, security::security::verify_password, utils::datetime::now,
 };
 
-#[derive(Queryable, Selectable, Identifiable)]
+#[derive(Queryable, Selectable, Identifiable, Clone)]
 #[diesel(table_name = users)]
 pub struct User {
     id: i32,
@@ -92,6 +92,29 @@ impl User {
                 _ => "undefined".to_string(),
             })
             .collect()
+    }
+
+    pub fn update_profile(&self, profile: UpdateUserDto) -> Self {
+        let new_name = match profile.name {
+            Some(value) => Some(value),
+            None => self.name(),
+        };
+        let new_surname = match profile.surname {
+            Some(value) => Some(value),
+            None => self.surname(),
+        };
+        let new_email = match profile.email {
+            Some(value) => Some(value),
+            None => self.email(),
+        };
+        let update_time = Some(now());
+        Self {
+            name: new_name,
+            surname: new_surname,
+            email: new_email,
+            updated_at: update_time,
+            ..self.clone()
+        }
     }
 }
 

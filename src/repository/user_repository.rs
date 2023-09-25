@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 
 use crate::{
-    data::{query_dto::Pagination, user_dto::UpdateUser},
+    data::query_dto::Pagination,
     model::{
         session_model::BabyInfo,
         user_model::{InsertableUser, User},
@@ -79,14 +79,14 @@ pub fn select_roles_id_from_user(user_id: i32) -> Result<HashSet<u8>, Error> {
     Ok(roles)
 }
 
-pub fn update_user(user_id: i32, profile: UpdateUser) -> Result<User, Error> {
+pub fn update_user(profile: User) -> Result<User, Error> {
     let conn = &mut establish_connection();
-    diesel::update(users::table.find(user_id))
+    diesel::update(users::table.find(profile.id()))
         .set((
-            users::name.eq(profile.name),
-            users::surname.eq(profile.surname),
-            users::email.eq(profile.email),
-            users::updated_at.eq(profile.update_at),
+            users::name.eq(profile.name()),
+            users::surname.eq(profile.surname()),
+            users::email.eq(profile.email()),
+            users::updated_at.eq(profile.updated_at()),
         ))
         .get_result(conn)
 }

@@ -2,7 +2,7 @@ use chrono::{NaiveDate, NaiveDateTime};
 use diesel::{prelude::*, result::Error};
 
 use crate::{
-    data::{dream_dto::UpdateDream, query_dto::Pagination},
+    data::query_dto::Pagination,
     model::dream_model::{Dream, InsertableDream},
     schema::dreams,
     utils::datetime::now,
@@ -54,7 +54,11 @@ pub fn update_last_dream(dream: InsertableDream) -> Result<usize, Error> {
 }
 
 /// Only need dates that have both fields, from_date and to_date, because we need to sum durations.
-pub fn select_dreams_for_summary(baby: i32, from: NaiveDate, to: NaiveDate) -> Result<Vec<Dream>, Error> {
+pub fn select_dreams_for_summary(
+    baby: i32,
+    from: NaiveDate,
+    to: NaiveDate,
+) -> Result<Vec<Dream>, Error> {
     let conn = &mut establish_connection();
     let from_timestamp = from.and_hms_opt(0, 0, 1).unwrap();
     let to_timestamp = to.and_hms_opt(23, 59, 59).unwrap();
@@ -70,12 +74,12 @@ pub fn select_dream_by_id(id: i32) -> Result<Dream, Error> {
     dreams::table.find(id).first(conn)
 }
 
-pub fn update_dream(record_id: i32, dream: UpdateDream) -> Result<usize, Error> {
+pub fn update_dream(dream: Dream) -> Result<usize, Error> {
     let conn = &mut establish_connection();
-    diesel::update(dreams::table.find(record_id))
+    diesel::update(dreams::table.find(dream.id()))
         .set((
-            dreams::from_date.eq(dream.from_date),
-            dreams::to_date.eq(dream.to_date),
+            dreams::from_date.eq(dream.from_date()),
+            dreams::to_date.eq(dream.to_date()),
         ))
         .execute(conn)
 }

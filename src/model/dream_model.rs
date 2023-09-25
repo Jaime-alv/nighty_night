@@ -2,8 +2,12 @@ use chrono::{Duration, NaiveDateTime};
 use diesel::{Identifiable, Insertable, Queryable};
 
 use crate::{
+    data::dream_dto::InputDreamDto,
     schema::dreams,
-    utils::datetime::{format_date, format_duration, format_time, now},
+    utils::datetime::{
+        convert_to_date_time, date_time_is_lower_than_other_date, format_date, format_duration,
+        format_time, now,
+    },
 };
 
 #[derive(Queryable, Identifiable, Clone)]
@@ -85,6 +89,34 @@ impl Dream {
 
     pub(crate) fn id(&self) -> i32 {
         self.id
+    }
+
+    pub fn update_dream(&self, dream_record: InputDreamDto) -> Self {
+        let new_from_date = match dream_record.from_date {
+            Some(value) => convert_to_date_time(&value).unwrap_or(self.from_date),
+            None => self.from_date,
+        };
+        let new_to_date = match dream_record.to_date {
+            Some(to_time_value) => {
+                let date: Option<NaiveDateTime> = match convert_to_date_time(&to_time_value) {
+                    Ok(date_value) => {
+                        if date_time_is_lower_than_other_date(new_from_date, date_value) {
+                            Some(date_value)
+                        } else {
+                            None
+                        }
+                    }
+                    Err(_) => None,
+                };
+                date
+            }
+            None => self.to_date,
+        };
+        Self {
+            from_date: new_from_date,
+            to_date: new_to_date,
+            ..self.clone()
+        }
     }
 }
 

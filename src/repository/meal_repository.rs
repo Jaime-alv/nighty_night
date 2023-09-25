@@ -3,7 +3,7 @@ use diesel::{prelude::*, result::Error};
 // use diesel_::RunQueryDsl;
 
 use crate::{
-    data::{meal_dto::UpdateMeal, query_dto::Pagination},
+    data::query_dto::Pagination,
     model::meals_model::{InsertableMeal, Meal},
     schema::meals,
 };
@@ -55,13 +55,13 @@ pub fn select_meal_by_id(record: i32) -> Result<Meal, Error> {
     meals::table.find(record).first::<Meal>(conn)
 }
 
-pub fn update_meal(record: i32, meal: UpdateMeal) -> Result<usize, Error> {
+pub fn update_meal(meal: Meal) -> Result<usize, Error> {
     let conn = &mut establish_connection();
-    diesel::update(meals::table.find(record))
+    diesel::update(meals::table.find(meal.id()))
         .set((
-            meals::date.eq(meal.date),
-            meals::quantity.eq(meal.quantity),
-            meals::to_time.eq(meal.to_time),
+            meals::date.eq(meal.date()),
+            meals::quantity.eq(meal.quantity()),
+            meals::to_time.eq(meal.to_time()),
         ))
         .execute(conn)
 }

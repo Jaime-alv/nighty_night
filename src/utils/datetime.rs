@@ -24,8 +24,9 @@ pub fn format_time(time: NaiveTime) -> String {
     time.format("%H:%M").to_string()
 }
 
-pub fn date_time_is_lower_than_other_date(date: NaiveDateTime, other_date: NaiveDateTime) -> bool {
-    if let std::cmp::Ordering::Less = other_date.cmp(&date) {
+/// From date is a past date of the other date (future_date)
+pub fn date_time_is_lower_than_other_date(from_date: NaiveDateTime, future_date: NaiveDateTime) -> bool {
+    if let std::cmp::Ordering::Less = future_date.cmp(&from_date) {
         false
     } else {
         true

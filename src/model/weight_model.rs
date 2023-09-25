@@ -1,9 +1,13 @@
 use chrono::NaiveDate;
 use diesel::{Identifiable, Insertable, Queryable};
 
-use crate::{schema::weights, utils::datetime::format_date};
+use crate::{
+    data::weight_dto::InputWeightDto,
+    schema::weights,
+    utils::datetime::{convert_to_date, format_date},
+};
 
-#[derive(Queryable, Identifiable)]
+#[derive(Queryable, Identifiable, Clone)]
 #[diesel(table_name = weights)]
 pub struct Weight {
     id: i32,
@@ -40,6 +44,22 @@ impl Weight {
 
     pub fn value(&self) -> f32 {
         self.value
+    }
+
+    pub fn update_weight(&self, new_weight: InputWeightDto) -> Self {
+        let new_date = match new_weight.date {
+            Some(value) => convert_to_date(&value).unwrap_or(self.date),
+            None => self.date,
+        };
+        let new_measure = match new_weight.value {
+            Some(value) => value,
+            None => self.value,
+        };
+        Self {
+            date: new_date,
+            value: new_measure,
+            ..self.clone()
+        }
     }
 }
 

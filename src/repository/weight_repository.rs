@@ -2,7 +2,7 @@ use chrono::NaiveDate;
 use diesel::{prelude::*, result::Error};
 
 use crate::{
-    data::{query_dto::Pagination, weight_dto::UpdateWeight},
+    data::query_dto::Pagination,
     model::weight_model::{InsertableWeight, Weight},
     schema::weights,
 };
@@ -33,12 +33,12 @@ pub fn select_all_weights_from_baby(
         .load_and_count_pages(conn)
 }
 
-pub fn update_weight(record: i32, measure: UpdateWeight) -> Result<usize, Error> {
+pub fn update_weight(measure: Weight) -> Result<usize, Error> {
     let conn = &mut establish_connection();
-    diesel::update(weights::table.find(record))
+    diesel::update(weights::table.find(measure.id()))
         .set((
-            weights::date.eq(measure.date),
-            weights::value.eq(measure.value),
+            weights::date.eq(measure.date()),
+            weights::value.eq(measure.value()),
         ))
         .execute(conn)
 }
