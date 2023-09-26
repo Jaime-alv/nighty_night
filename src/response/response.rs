@@ -20,9 +20,7 @@ impl MsgResponse {
             MsgResponse::NewRecord => (StatusCode::CREATED, "New record added.".to_string()),
             MsgResponse::UpdateRecord => (StatusCode::OK, "Update record.".to_string()),
             MsgResponse::DeleteRecord => (StatusCode::OK, "Delete record.".to_string()),
-            MsgResponse::ActiveStatusUpdate => {
-                (StatusCode::OK, "User status update.".to_string())
-            }
+            MsgResponse::ActiveStatusUpdate => (StatusCode::OK, "User status update.".to_string()),
             MsgResponse::LogoutUser => (StatusCode::OK, "User logged out".to_string()),
             MsgResponse::DeleteXRecords(number) => {
                 (StatusCode::OK, format!("{number} records deleted."))
@@ -118,14 +116,31 @@ where
     T: Serialize,
 {
     data: T,
+    status_code: u16,
 }
 
 impl<T> RecordResponse<T>
 where
     T: Serialize,
 {
+    /// Get a formatted record from Database
+    /// 
+    /// Response returns 200
     pub fn new(data: T) -> Self {
-        Self { data }
+        Self {
+            data,
+            status_code: 200,
+        }
+    }
+
+    /// Method for adding entities into Database
+    /// 
+    /// Response returns 201
+    pub fn new_entry(data: T) -> Self {
+        Self {
+            data,
+            status_code: 201,
+        }
     }
 }
 
@@ -134,7 +149,7 @@ where
     T: Serialize,
 {
     fn into_response(self) -> axum::response::Response {
-        let status_code = StatusCode::OK;
+        let status_code = StatusCode::from_u16(self.status_code).unwrap_or_default();
         let body = Json(json!({ "data": self.data }));
 
         (status_code, body).into_response()

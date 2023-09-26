@@ -11,14 +11,14 @@ use crate::{
 use super::paginator::Paginate;
 use crate::connection::connection_psql::establish_connection;
 
-pub fn insert_new_meal<T>(new_meal: T) -> Result<usize, Error>
+pub fn insert_new_meal<T>(new_meal: T) -> Result<Meal, Error>
 where
     T: Into<InsertableMeal>,
 {
     let conn = &mut establish_connection();
     diesel::insert_into(meals::table)
         .values(new_meal.into())
-        .execute(conn)
+        .get_result(conn)
 }
 
 pub fn select_all_meals_from_baby(

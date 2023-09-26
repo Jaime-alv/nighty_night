@@ -11,14 +11,14 @@ use crate::{
 use super::paginator::Paginate;
 use crate::connection::connection_psql::establish_connection;
 
-pub fn insert_new_dream<T>(new_dream: T) -> Result<usize, Error>
+pub fn insert_new_dream<T>(new_dream: T) -> Result<Dream, Error>
 where
     T: Into<InsertableDream>,
 {
     let conn = &mut establish_connection();
     diesel::insert_into(dreams::table)
         .values(new_dream.into())
-        .execute(conn)
+        .get_result(conn)
 }
 
 pub fn select_all_dreams_from_baby(
@@ -45,12 +45,12 @@ pub fn select_last_dream(baby: i32) -> Result<Dream, Error> {
         .first(conn)
 }
 
-pub fn update_last_dream(dream: InsertableDream) -> Result<usize, Error> {
+pub fn update_last_dream(dream: InsertableDream) -> Result<Dream, Error> {
     let conn = &mut establish_connection();
     let last_dream = select_last_dream(dream.baby_id());
     diesel::update(dreams::table.filter(dreams::id.eq(last_dream.unwrap().id())))
         .set(dreams::to_date.eq(dream.to_date()))
-        .execute(conn)
+        .get_result(conn)
 }
 
 /// Only need dates that have both fields, from_date and to_date, because we need to sum durations.

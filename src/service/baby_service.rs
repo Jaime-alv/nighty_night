@@ -38,7 +38,7 @@ where
     };
     let insert_baby = InsertableBaby::new(new_baby.name.unwrap(), birthdate, user);
     let baby: BabyDto = insert_new_baby(insert_baby, user)?.into();
-    Ok(RecordResponse::new(baby.into()))
+    Ok(RecordResponse::new_entry(baby.into()))
 }
 
 pub async fn get_baby_by_id_service(baby_id: i32) -> Result<RecordResponse<BabyDto>, ApiError> {

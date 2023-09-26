@@ -10,14 +10,14 @@ use crate::{
 use super::paginator::Paginate;
 use crate::connection::connection_psql::establish_connection;
 
-pub fn insert_new_weight<T>(new_measure: T) -> Result<usize, Error>
+pub fn insert_new_weight<T>(new_measure: T) -> Result<Weight, Error>
 where
     T: Into<InsertableWeight>,
 {
     let conn = &mut establish_connection();
     diesel::insert_into(weights::table)
         .values(new_measure.into())
-        .execute(conn)
+        .get_result(conn)
 }
 
 pub fn select_all_weights_from_baby(
