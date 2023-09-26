@@ -5,8 +5,8 @@ use crate::{
     data::meal_dto::InputMealDto,
     schema::meals,
     utils::datetime::{
-        convert_to_date_time, date_time_is_lower_than_other_date, format_date, format_duration,
-        format_time,
+        convert_to_date_time, format_date, format_duration, format_time,
+        parse_string_to_optional_date,
     },
 };
 
@@ -111,19 +111,7 @@ impl Meal {
          * If there are any errors found, it will default to None
          */
         let new_to_time: Option<NaiveDateTime> = match new_meal.to_time {
-            Some(to_time_value) => {
-                let date: Option<NaiveDateTime> = match convert_to_date_time(&to_time_value) {
-                    Ok(date_value) => {
-                        if date_time_is_lower_than_other_date(new_date, date_value) {
-                            Some(date_value)
-                        } else {
-                            None
-                        }
-                    }
-                    Err(_) => None,
-                };
-                date
-            },
+            Some(to_time_value) => parse_string_to_optional_date(new_date, &to_time_value),
             None => self.to_time,
         };
         Self {
