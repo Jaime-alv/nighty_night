@@ -40,7 +40,7 @@ pub async fn post_new_user_service(
     };
     let id_binding = user.id();
     let new_user = cache_user_in_session(user).await?;
-    Ok((RecordResponse::new(new_user), id_binding))
+    Ok((RecordResponse::new_entry(new_user), id_binding))
 }
 
 pub async fn get_all_users_service(

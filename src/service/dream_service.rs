@@ -9,7 +9,7 @@ use crate::{
     },
     response::{
         error::ApiError,
-        response::{MsgResponse, PagedResponse},
+        response::{MsgResponse, PagedResponse, RecordResponse},
     },
     utils::datetime::today,
 };
@@ -19,17 +19,19 @@ use super::util_service::{cast_to_date_from, does_record_belongs_to_baby};
 pub async fn post_dream_service(
     new_dream: InputDreamDto,
     baby_id: i32,
-) -> Result<MsgResponse, ApiError> {
+) -> Result<RecordResponse<DreamDto>, ApiError> {
     let dream: InsertableDream;
-    if new_dream.from_date.is_some() {
+    let entry: Dream = if new_dream.from_date.is_some() {
         dream = create_new_dream_entry(new_dream, baby_id).await?;
-        insert_new_dream(dream)?;
-        Ok(MsgResponse::NewRecord)
+        let entry: Dream = insert_new_dream(dream)?;
+        entry
     } else {
         dream = create_new_dream_entry(new_dream, baby_id).await?;
-        update_last_dream(dream)?;
-        Ok(MsgResponse::UpdateRecord)
-    }
+        let entry: Dream = update_last_dream(dream)?;
+        entry
+    };
+    let response: RecordResponse<DreamDto> = RecordResponse::new_entry(entry.into());
+    Ok(response)
 }
 
 async fn create_new_dream_entry(

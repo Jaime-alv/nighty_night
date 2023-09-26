@@ -9,7 +9,7 @@ use crate::{
     },
     response::{
         error::ApiError,
-        response::{MsgResponse, PagedResponse},
+        response::{MsgResponse, PagedResponse, RecordResponse},
     },
     utils::datetime::{now, today},
 };
@@ -19,7 +19,7 @@ use super::util_service::{cast_to_date_from, does_record_belongs_to_baby};
 pub async fn post_meal_service(
     new_meal: InputMealDto,
     baby_id: i32,
-) -> Result<MsgResponse, ApiError> {
+) -> Result<RecordResponse<MealDto>, ApiError> {
     let timestamp = cast_to_date_from(new_meal.date)?;
     let timestamp_to_time = cast_to_date_from(new_meal.to_time)?;
     let meal = InsertableMeal::new(
@@ -28,8 +28,9 @@ pub async fn post_meal_service(
         new_meal.quantity,
         timestamp_to_time,
     );
-    insert_new_meal(meal)?;
-    Ok(MsgResponse::NewRecord)
+    let insert_data: Meal = insert_new_meal(meal)?;
+    let response: RecordResponse<MealDto> = RecordResponse::new_entry(insert_data.into());
+    Ok(response)
 }
 
 pub async fn patch_meal_service(

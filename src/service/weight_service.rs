@@ -7,7 +7,11 @@ use crate::{
         delete_weight, insert_new_weight, select_all_weights_from_baby, select_weight_by_id,
         select_weights_with_pagination, update_weight,
     },
-    response::{error::ApiError, response::MsgResponse, response::PagedResponse},
+    response::{
+        error::ApiError,
+        response::PagedResponse,
+        response::{MsgResponse, RecordResponse},
+    },
     utils::datetime::{convert_to_date, today},
 };
 
@@ -16,14 +20,15 @@ use super::util_service::does_record_belongs_to_baby;
 pub async fn post_weight_service(
     new_measure: InputWeightDto,
     baby_id: i32,
-) -> Result<MsgResponse, ApiError> {
+) -> Result<RecordResponse<WeightDto>, ApiError> {
     let date = match new_measure.date {
         Some(day) => convert_to_date(&day)?,
         None => today(),
     };
     let measure = InsertableWeight::new(baby_id, date, new_measure.value.unwrap_or_default());
-    insert_new_weight(measure)?;
-    Ok(MsgResponse::NewRecord)
+    let entry: Weight = insert_new_weight(measure)?;
+    let response: RecordResponse<WeightDto> = RecordResponse::new_entry(entry.into());
+    Ok(response)
 }
 
 pub async fn get_weights_all_service(
