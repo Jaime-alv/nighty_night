@@ -71,7 +71,7 @@ sudo service redis-server start
 ```
 
 ```bash
-sudo service postgresql start 
+sudo service postgresql start
 ```
 
 Or run both commands at same time with:
@@ -208,7 +208,7 @@ Modify ports accordingly. This is an example with default ports. Docker compose 
 
 -d = container runs as a background application
 
--p =  maps container ports to host ports
+-p = maps container ports to host ports
 
 --rm = will delete container after stopping the app
 
@@ -271,13 +271,13 @@ data:
   BRANCH: K8s
   POSTGRES_DB: nighty_night_db
   POSTGRES_HOST: psql-service.default.svc.cluster.local
-  POSTGRES_PORT: '5432'
+  POSTGRES_PORT: "5432"
   LOGGER_LEVEL: debug
   ADDRESS: 0.0.0.0
-  PORT: '3000'
+  PORT: "3000"
   REDIS_ADDRESS: redis-service.default.svc.cluster.local
-  REDIS_PORT: '6379'
-  SESSION_DURATION: '600'  
+  REDIS_PORT: "6379"
+  SESSION_DURATION: "600"
 ```
 
 #### Secrets
@@ -297,7 +297,7 @@ metadata:
     branch: minikube
 type: Opaque
 data:
-  POSTGRES_USER: ZGJh 
+  POSTGRES_USER: ZGJh
   POSTGRES_PASSWORD: MTIzNA==
 ```
 
@@ -312,16 +312,16 @@ data:
 
 ### Users: `/api/auth`
 
-| Route     | Method   | Function              | Parameters | Arguments                                  |
-| --------- | -------- | --------------------- | ---------- | ------------------------------------------ |
-| /         | `get`    | Endpoint test         |            |                                            |
-| /register | `post`   | Create a new user     | Body: Json | {username, password, email, name, surname} |
-| /user     | `post`   | find user by username | Body: Json | {username}                                 |
-| /session  | `post`   | login user            | Body: Json | {username, password}                       |
-| /session  | `delete` | logout user           |            |                                            |
-| /profile  | `get`    | Get user profile      |            |                                            |
-| /profile  | `patch`  | Update user profile   | Body: Json | {name, surname, email, }                   |
-| /profile  | `delete` | Deactivate user       |            |                                            |
+| Route     | Method   | Function                    | Parameters | Arguments                                  |
+| --------- | -------- | --------------------------- | ---------- | ------------------------------------------ |
+| /register | `post`   | Create a new user           | Body: Json | {username, password, email, name, surname} |
+| /user     | `post`   | find user by username       | Body: Json | {username}                                 |
+| /session  | `get`    | Get current user in session |            |                                            |
+| /session  | `post`   | login user                  | Body: Json | {username, password}                       |
+| /session  | `delete` | logout user                 |            |                                            |
+| /profile  | `get`    | Get user profile            |            |                                            |
+| /profile  | `patch`  | Update user profile         | Body: Json | {name, surname, email, }                   |
+| /profile  | `delete` | Deactivate user             |            |                                            |
 
 ### Baby: `/api/baby`
 
@@ -419,11 +419,11 @@ Simple response is like:
 
 ```json
 {
-    "message": {
-      "status": 201,
-      "title": "Created",
-      "detail": "New record added."
-      }
+  "message": {
+    "status": 201,
+    "title": "Created",
+    "detail": "New record added."
+  }
 }
 ```
 
@@ -434,15 +434,15 @@ Objects contain info separated in two levels. Top level contains `id`, `attribut
 ```json
 {
   "data": {
-        "attributes": {
-            "date": "2023-07-04",
-            "elapsed": "00:00",
-            "quantity": 145,
-            "time": "08:25"
-        },
-        "id": 169,
-        "type": "meal"
-    }
+    "attributes": {
+      "date": "2023-07-04",
+      "elapsed": "00:00",
+      "quantity": 145,
+      "time": "08:25"
+    },
+    "id": 169,
+    "type": "meal"
+  }
 }
 ```
 
@@ -450,30 +450,30 @@ Response, with pagination, is like:
 
 ```json
 {
-    "data": [
-        {
-            "attributes": {
-                "added_on": "2023-08-28T10:14:45.898688",
-                "belongs_to": 2,
-                "name": "BabyOne"
-            },
-            "id": 1,
-            "type": "Baby"
-        },
-        {
-            "attributes": {
-                "added_on": "2023-08-28T10:32:31.408920",
-                "belongs_to": 2,
-                "name": "BabyTwo"
-            },
-            "id": 2,
-            "type": "Baby"
-        }
-    ],
-    "page_info": {
-        "current": 1,
-        "total_pages": 1
+  "data": [
+    {
+      "attributes": {
+        "added_on": "2023-08-28T10:14:45.898688",
+        "belongs_to": 2,
+        "name": "BabyOne"
+      },
+      "id": 1,
+      "type": "Baby"
+    },
+    {
+      "attributes": {
+        "added_on": "2023-08-28T10:32:31.408920",
+        "belongs_to": 2,
+        "name": "BabyTwo"
+      },
+      "id": 2,
+      "type": "Baby"
     }
+  ],
+  "page_info": {
+    "current": 1,
+    "total_pages": 1
+  }
 }
 ```
 
@@ -483,11 +483,11 @@ Error message:
 
 ```json
 {
-    "errors": {
-      "status": 404,
-      "title": "Not found",
-      "detail": "No user found."
-      }
+  "errors": {
+    "status": 404,
+    "title": "Not found",
+    "detail": "No user found."
+  }
 }
 ```
 
@@ -536,24 +536,24 @@ Start with SQL action
 
 Proposed layout.
 
-- [X] Implement tracing system.
-- [X] Update Cargo.toml and license.
-- [X] Authentication and session.
-- [X] Migrate database to PostgreSQL.
-- [X] Time and dates.
-- [X] Implement meals and dreams tables.
-- [X] Set up associations.
-- [X] User profile.
-- [X] Admin panel.
-- [X] Logout user.
-- [X] Add co-parenting.
-- [X] Update fields.
-- [X] Delete entries.
+- [x] Implement tracing system.
+- [x] Update Cargo.toml and license.
+- [x] Authentication and session.
+- [x] Migrate database to PostgreSQL.
+- [x] Time and dates.
+- [x] Implement meals and dreams tables.
+- [x] Set up associations.
+- [x] User profile.
+- [x] Admin panel.
+- [x] Logout user.
+- [x] Add co-parenting.
+- [x] Update fields.
+- [x] Delete entries.
 - [ ] Add entries by batch.
-- [X] Elapsed times.
+- [x] Elapsed times.
 - [ ] Recovery system.
-- [X] Docker.
-- [X] Kubernetes.
+- [x] Docker.
+- [x] Kubernetes.
 
 This layout is not set in stone. It can, and possibly will, change, neither they're in order.
 
