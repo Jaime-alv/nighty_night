@@ -25,7 +25,10 @@ pub fn format_time(time: NaiveTime) -> String {
 }
 
 /// From date is a past date of the other date (future_date)
-pub fn date_time_is_lower_than_other_date(from_date: NaiveDateTime, future_date: NaiveDateTime) -> bool {
+pub fn date_time_is_lower_than_other_date(
+    from_date: NaiveDateTime,
+    future_date: NaiveDateTime,
+) -> bool {
     if let std::cmp::Ordering::Less = future_date.cmp(&from_date) {
         false
     } else {
@@ -50,11 +53,64 @@ pub fn iter_between_two_dates(from: NaiveDate, to: NaiveDate) -> Vec<NaiveDate> 
     from.iter_days().take(days).collect()
 }
 
+/// Check an input string and convert to an Option<date>
+///
+/// If date is a past of baseline_date returns None.
+pub fn parse_string_to_optional_date(
+    baseline_date: NaiveDateTime,
+    string_timestamp: &str,
+) -> Option<NaiveDateTime> {
+    match string_timestamp {
+        "null" => None,
+        _ => {
+            let date: Option<NaiveDateTime> = match convert_to_date_time(&string_timestamp) {
+                Ok(date_value) => {
+                    if date_time_is_lower_than_other_date(baseline_date, date_value) {
+                        Some(date_value)
+                    } else {
+                        None
+                    }
+                }
+                Err(_) => None,
+            };
+            date
+        }
+    }
+}
+
 #[cfg(test)]
 mod test_timestamp {
     use chrono::NaiveDate;
 
     use super::*;
+
+    #[test]
+    fn test_parse_option_string() {
+        fn into_some(date: &str) -> Option<NaiveDateTime> {
+            Some(convert_to_date_time(date).unwrap())
+        }
+        let baseline_date = convert_to_date_time("2023-09-22 13:00").unwrap();
+        let example_date_one = "2023-09-24 14:00";
+        let example_date_two = "2023-09-24 14:aa";
+        let example_date_three = "2023-09-21 14:00";
+        let example_date_four = "null";
+        assert_eq!(
+            parse_string_to_optional_date(baseline_date, example_date_one),
+            into_some(example_date_one)
+        );
+        assert_eq!(
+            parse_string_to_optional_date(baseline_date, example_date_two),
+            None
+        );
+        assert_eq!(
+            parse_string_to_optional_date(baseline_date, example_date_three),
+            None
+        );
+        assert_eq!(
+            parse_string_to_optional_date(baseline_date, example_date_four),
+            None
+        );
+    }
 
     #[test]
     fn test_date() {

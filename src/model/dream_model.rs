@@ -5,8 +5,8 @@ use crate::{
     data::dream_dto::InputDreamDto,
     schema::dreams,
     utils::datetime::{
-        convert_to_date_time, date_time_is_lower_than_other_date, format_date, format_duration,
-        format_time, now,
+        convert_to_date_time, format_date, format_duration, format_time, now,
+        parse_string_to_optional_date,
     },
 };
 
@@ -97,19 +97,7 @@ impl Dream {
             None => self.from_date,
         };
         let new_to_date = match dream_record.to_date {
-            Some(to_time_value) => {
-                let date: Option<NaiveDateTime> = match convert_to_date_time(&to_time_value) {
-                    Ok(date_value) => {
-                        if date_time_is_lower_than_other_date(new_from_date, date_value) {
-                            Some(date_value)
-                        } else {
-                            None
-                        }
-                    }
-                    Err(_) => None,
-                };
-                date
-            }
+            Some(to_time_value) => parse_string_to_optional_date(new_from_date, &to_time_value),
             None => self.to_date,
         };
         Self {
