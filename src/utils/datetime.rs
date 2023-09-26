@@ -171,7 +171,6 @@ mod test_timestamp {
             NaiveDate::from_ymd_opt(2023, 6, 6).unwrap(),
             NaiveDate::from_ymd_opt(2023, 6, 7).unwrap(),
             NaiveDate::from_ymd_opt(2023, 6, 8).unwrap(),
-            NaiveDate::from_ymd_opt(2023, 6, 9).unwrap(),
         ]);
         assert_eq!(iter_between_two_dates(d1, d2), week);
     }

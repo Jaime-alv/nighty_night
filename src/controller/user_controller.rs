@@ -2,7 +2,9 @@ use crate::{
     data::user_dto::{FindUserDto, LoginDto, NewUserDto, UpdateUserDto},
     model::session_model::CurrentUser,
     service::{
-        session_service::{login_required, login_session, logout_user_session, get_current_user_service},
+        session_service::{
+            get_current_user_service, login_required, login_session, logout_user_session,
+        },
         user_service::{
             delete_active_user_service, delete_session_user_service, get_user_by_id_service,
             patch_user_service, post_find_user_service, post_new_user_service,
@@ -20,12 +22,13 @@ use axum_session_auth::AuthSession;
 
 pub(crate) fn route_user() -> Router {
     let routes = Router::new()
-        .route("/", get(get_current_user))
         .route("/register", post(post_new_user))
         .route("/user", post(post_find_user))
         .route(
             "/session",
-            post(post_session_user).delete(delete_session_user),
+            post(post_session_user)
+                .delete(delete_session_user)
+                .get(get_session_user),
         )
         .route(
             "/profile",
@@ -75,7 +78,7 @@ async fn delete_session_user(
     }
 }
 
-async fn get_current_user(
+async fn get_session_user(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
 ) -> impl IntoResponse {
     get_current_user_service(auth)
