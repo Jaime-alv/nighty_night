@@ -14,7 +14,7 @@ use crate::{
     utils::datetime::{now, today},
 };
 
-use super::util_service::{cast_to_date_from, does_record_belongs_to_baby};
+use super::util_service::{assert_record_belongs_to_parent, cast_to_date_from};
 
 pub async fn post_meal_service(
     new_meal: InputMealDto,
@@ -39,7 +39,7 @@ pub async fn patch_meal_service(
     baby_id: i32,
 ) -> Result<MsgResponse, ApiError> {
     let meal_record = select_meal_by_id(record)?;
-    does_record_belongs_to_baby(meal_record.baby_id(), baby_id)?;
+    assert_record_belongs_to_parent(meal_record.baby_id(), baby_id)?;
     update_meal(meal_record.update_meal(meal))?;
     Ok(MsgResponse::UpdateRecord)
 }
@@ -75,7 +75,7 @@ fn into_meals_dto(meals: Vec<Meal>) -> Result<Vec<MealDto>, ApiError> {
 
 pub async fn delete_meal_service(record: i32, baby_id: i32) -> Result<MsgResponse, ApiError> {
     let meal_to_delete = select_meal_by_id(record)?;
-    does_record_belongs_to_baby(meal_to_delete.baby_id(), baby_id)?;
+    assert_record_belongs_to_parent(meal_to_delete.baby_id(), baby_id)?;
     delete_meal(record)?;
     Ok(MsgResponse::DeleteRecord)
 }
@@ -88,5 +88,15 @@ pub async fn get_meals_all_service(
     let (meals, total_pages) = select_all_meals_from_baby(baby_id, pagination)?;
     let meals = into_meals_dto(meals)?;
     let response = PagedResponse::new(meals, current, total_pages);
+    Ok(response)
+}
+
+pub async fn get_meal_id_service(
+    meal_id: i32,
+    baby_id: i32,
+) -> Result<RecordResponse<MealDto>, ApiError> {
+    let meal = select_meal_by_id(meal_id)?;
+    assert_record_belongs_to_parent(meal.baby_id(), baby_id)?;
+    let response: RecordResponse<MealDto> = RecordResponse::new(meal.into());
     Ok(response)
 }

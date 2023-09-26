@@ -15,8 +15,9 @@ use crate::{
     model::session_model::CurrentUser,
     service::{
         meal_service::{
-            delete_meal_service, get_meals_all_service, get_meals_by_last_days_service,
-            get_meals_by_range_service, patch_meal_service, post_meal_service,
+            delete_meal_service, get_meal_id_service, get_meals_all_service,
+            get_meals_by_last_days_service, get_meals_by_range_service, patch_meal_service,
+            post_meal_service,
         },
         meal_summary_service::{
             get_meals_summary_all_service, get_meals_summary_last_days_service,
@@ -37,6 +38,7 @@ pub(super) fn route_meal() -> Router {
                     .patch(patch_meal)
                     .delete(delete_meal),
             )
+            .route("/:record", get(get_meal_id))
             .route("/summary", get(get_meal_summary)),
     )
 }
@@ -128,4 +130,12 @@ async fn get_meal_summary(
         )
         .await
     }
+}
+
+async fn get_meal_id(
+    Path((baby_unique_id, record)): Path<(String, i32)>,
+    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
+) -> impl IntoResponse {
+    let baby_id: i32 = check_user_permissions(auth, &baby_unique_id)?;
+    get_meal_id_service(record, baby_id).await
 }

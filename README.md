@@ -350,6 +350,7 @@ data:
 | /meals/summary?date=today                    | `get`    | Get a summary from today's data              |                              |                           |
 | /meals/summary?last_days=X                   | `get`    | Get a summary from last X days, default to 7 | days: Integer                |                           |
 | /meals/summary?from=YYYY-mm-dd&to=YYYY-mm-dd | `get`    | Get a summary from date X up to date Y       | {from: String \| to: String} |                           |
+| /meals/:record                               | `get`    | Get an individual record                     | Path: Integer                |                           |
 
 ### Dreams: `/api/baby/:baby_id`
 
@@ -367,6 +368,7 @@ data:
 | /dreams/summary?date=today                    | `get`    | Get a summary from today's data               |                              |                       |
 | /dreams/summary?days=X                        | `get`    | Get a summary from last X days, default to 7  | days: Integer                |                       |
 | /dreams/summary?from=YYYY-mm-dd&to=YYYY-mm-dd | `get`    | Get a summary from date X up to date Y        | {from: String \| to: String} |                       |
+| /dreams/:record                               | `get`    | Get an individual record                      | Path: Integer                |                       |
 
 ### Weights: `/api/baby/:baby_id`
 
@@ -379,6 +381,7 @@ data:
 | /weights                               | `post`   | Add new weight measure to an associated baby | Body: Json                   | {date, value } |
 | /weights                               | `patch`  | Update a measure with any new values         | Body: Json                   | {date, value } |
 | /weights?entry=X                       | `delete` | Delete entry X from DB                       | entry: Integer               |                |
+| /weights/:record                       | `get`    | Get an individual record                     | Path: Integer                |                |
 
 ### Admin: `/api/admin`
 

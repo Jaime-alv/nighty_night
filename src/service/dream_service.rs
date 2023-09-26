@@ -14,7 +14,7 @@ use crate::{
     utils::datetime::today,
 };
 
-use super::util_service::{cast_to_date_from, does_record_belongs_to_baby};
+use super::util_service::{assert_record_belongs_to_parent, cast_to_date_from};
 
 pub async fn post_dream_service(
     new_dream: InputDreamDto,
@@ -50,7 +50,7 @@ pub async fn patch_dream_service(
     baby_id: i32,
 ) -> Result<MsgResponse, ApiError> {
     let dream_record = select_dream_by_id(record)?;
-    does_record_belongs_to_baby(dream_record.baby_id(), baby_id)?;
+    assert_record_belongs_to_parent(dream_record.baby_id(), baby_id)?;
 
     update_dream(dream_record.update_dream(dream))?;
     Ok(MsgResponse::UpdateRecord)
@@ -86,7 +86,7 @@ fn into_dreams_dto(dreams: Vec<Dream>) -> Result<Vec<DreamDto>, ApiError> {
 
 pub async fn delete_dream_service(record: i32, baby_id: i32) -> Result<MsgResponse, ApiError> {
     let old_dream = select_dream_by_id(record)?;
-    does_record_belongs_to_baby(old_dream.baby_id(), baby_id)?;
+    assert_record_belongs_to_parent(old_dream.baby_id(), baby_id)?;
     delete_dream(record)?;
     Ok(MsgResponse::DeleteRecord)
 }
@@ -99,5 +99,15 @@ pub async fn get_dreams_all_service(
     let (dreams, total_pages) = select_all_dreams_from_baby(baby_id, pagination)?;
     let dreams: Vec<DreamDto> = into_dreams_dto(dreams)?;
     let response = PagedResponse::new(dreams, current, total_pages);
+    Ok(response)
+}
+
+pub async fn get_dream_id_service(
+    dream_id: i32,
+    baby_id: i32,
+) -> Result<RecordResponse<DreamDto>, ApiError> {
+    let dream: Dream = select_dream_by_id(dream_id)?;
+    assert_record_belongs_to_parent(dream.baby_id(), baby_id)?;
+    let response: RecordResponse<DreamDto> = RecordResponse::new(dream.into());
     Ok(response)
 }
