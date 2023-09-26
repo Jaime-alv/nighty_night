@@ -7,3 +7,4 @@ pub mod paginator;
 pub mod session_repository;
 pub mod user_repository;
 pub mod weight_repository;
+pub mod role_repository;

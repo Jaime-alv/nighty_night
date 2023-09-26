@@ -2,7 +2,7 @@ use chrono::NaiveDateTime;
 use diesel::prelude::*;
 
 use crate::{
-    data::user_dto::UpdateUserDto, repository::user_repository::select_roles_id_from_user,
+    data::user_dto::UpdateUserDto, repository::role_repository::select_roles_names_from_user,
     schema::users, security::security::verify_password, utils::datetime::now,
 };
 
@@ -82,16 +82,8 @@ impl User {
     }
 
     pub fn roles(&self) -> Vec<String> {
-        let roles = select_roles_id_from_user(self.id).unwrap();
+        let roles = select_roles_names_from_user(self.id).unwrap();
         roles
-            .into_iter()
-            .map(|rol| match rol {
-                0 => "admin".to_string(),
-                1 => "user".to_string(),
-                2 => "anonymous".to_string(),
-                _ => "undefined".to_string(),
-            })
-            .collect()
     }
 
     pub fn update_profile(&self, profile: UpdateUserDto) -> Self {

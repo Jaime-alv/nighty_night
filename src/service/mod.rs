@@ -9,3 +9,4 @@ pub mod user_service;
 pub mod util_service;
 pub mod weight_service;
 pub mod admin_service;
+pub mod role_service;

@@ -14,8 +14,8 @@ use crate::{
             select_user_session, select_user_session_exists,
         },
         user_repository::{
-            select_babies_for_user_id, select_roles_id_from_user, select_user_by_id,
-        },
+            select_babies_for_user_id, select_user_by_id,
+        }, role_repository::select_roles_id_from_user,
     },
     response::{error::ApiError, response::RecordResponse},
 };
@@ -95,7 +95,7 @@ pub async fn read_user_from_db(user: i32) -> Result<CurrentUser, ApiError> {
 pub async fn create_current_user(current_user: User) -> Result<CurrentUser, ApiError> {
     let roles = select_roles_id_from_user(current_user.id())?;
     let babies = select_babies_for_user_id(current_user.id())?;
-    let translate_roles: Vec<Rol> = translate_roles(&roles.into_iter().collect::<Vec<u8>>());
+    let translate_roles: Vec<Rol> = translate_roles(&roles.into_iter().collect::<Vec<i16>>());
 
     let user_session = CurrentUser::new(
         current_user.id().into(),
