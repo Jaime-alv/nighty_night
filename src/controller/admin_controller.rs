@@ -16,7 +16,7 @@ use crate::{
         user_service::{
             delete_active_user_service, delete_old_users_service, delete_user_service,
             get_all_users_service,
-        },
+        }, role_service::get_role_by_name_service,
     },
 };
 
@@ -107,7 +107,8 @@ async fn put_user_role(
     Json(user_role): Json<UpdateRole>,
 ) -> impl IntoResponse {
     current_user_is_admin(auth)?;
-    add_rol_to_user_service(&user_role.username, user_role.role.into()).await
+    let rol = get_role_by_name_service(&user_role.role).await?;
+    add_rol_to_user_service(&user_role.username, rol).await
 }
 
 async fn delete_user_role(
@@ -115,5 +116,6 @@ async fn delete_user_role(
     Json(user_role): Json<UpdateRole>,
 ) -> impl IntoResponse {
     current_user_is_admin(auth)?;
-    delete_rol_to_user_service(&user_role.username, user_role.role.into()).await
+    let rol = get_role_by_name_service(&user_role.role).await?;
+    delete_rol_to_user_service(&user_role.username, rol).await
 }

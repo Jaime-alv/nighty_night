@@ -1,5 +1,3 @@
-use std::collections::HashSet;
-
 use crate::{
     data::query_dto::Pagination,
     model::{
@@ -63,20 +61,6 @@ pub fn insert_new_user<T: Into<InsertableUser>>(new_user: T, rol: i16) -> Result
         ))
         .execute(conn)?;
     user
-}
-
-pub fn select_roles_id_from_user(user_id: i32) -> Result<HashSet<u8>, Error> {
-    let mut roles: HashSet<u8> = HashSet::new();
-    let conn = &mut establish_connection();
-    users_roles::table
-        .filter(users_roles::user_id.eq(user_id))
-        .select(users_roles::rol_id)
-        .load::<i16>(conn)?
-        .iter()
-        .for_each(|id| {
-            roles.insert((*id).try_into().unwrap());
-        });
-    Ok(roles)
 }
 
 pub fn update_user(profile: User) -> Result<User, Error> {

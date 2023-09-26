@@ -11,7 +11,7 @@ pub struct CurrentUserDto {
     pub id: i64,
     pub anonymous: bool,
     pub username: String,
-    pub roles: Vec<u8>,
+    pub roles: Vec<i16>,
     pub active: bool,
     pub baby_id: Vec<BabyInfo>,
 }
@@ -21,7 +21,7 @@ impl CurrentUserDto {
         id: i64,
         anonymous: bool,
         username: String,
-        roles: Vec<u8>,
+        roles: Vec<i16>,
         active: bool,
         baby_id: Vec<BabyInfo>,
     ) -> Self {

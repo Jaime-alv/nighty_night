@@ -76,7 +76,7 @@ impl CurrentUser {
             .collect()
     }
 
-    pub fn roles_id(&self) -> Vec<u8> {
+    pub fn roles_id(&self) -> Vec<i16> {
         self.roles
             .to_owned()
             .into_iter()
