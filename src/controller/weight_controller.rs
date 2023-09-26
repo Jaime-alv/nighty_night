@@ -17,19 +17,25 @@ use crate::{
     service::{
         session_service::check_user_permissions,
         weight_service::{
-            delete_weight_service, get_weight_range_service, get_weights_all_service,
-            get_weights_by_last_days, patch_weight_service, post_weight_service,
+            delete_weight_service, get_weight_id_service, get_weight_range_service,
+            get_weights_all_service, get_weights_by_last_days, patch_weight_service,
+            post_weight_service,
         },
     },
 };
 
 pub(super) fn route_weight() -> Router {
-    Router::new().route(
+    Router::new().nest(
         "/weights",
-        get(get_weights)
-            .post(post_weight)
-            .patch(patch_weight)
-            .delete(delete_weight),
+        Router::new()
+            .route(
+                "/",
+                get(get_weights)
+                    .post(post_weight)
+                    .patch(patch_weight)
+                    .delete(delete_weight),
+            )
+            .route("/:record", get(get_weight_id)),
     )
 }
 
@@ -88,4 +94,12 @@ async fn delete_weight(
 ) -> impl IntoResponse {
     let baby_id = check_user_permissions(auth, &baby_unique_id)?;
     delete_weight_service(record_id.id(), baby_id).await
+}
+
+async fn get_weight_id(
+    Path((baby_unique_id, record)): Path<(String, i32)>,
+    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
+) -> impl IntoResponse {
+    let baby_id = check_user_permissions(auth, &baby_unique_id)?;
+    get_weight_id_service(record, baby_id).await
 }

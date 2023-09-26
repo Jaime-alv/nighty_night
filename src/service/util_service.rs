@@ -19,7 +19,7 @@ pub fn cast_to_date_from(date: Option<String>) -> Result<Option<NaiveDateTime>, 
 }
 
 /// Checks if records' baby is the same as the one you want to perform the modification on.
-pub fn does_record_belongs_to_baby(record_baby: i32, baby_id: i32) -> Result<(), ApiError> {
+pub fn assert_record_belongs_to_parent(record_baby: i32, baby_id: i32) -> Result<(), ApiError> {
     if record_baby.ne(&baby_id) {
         Err(ApiError::Forbidden)
     } else {

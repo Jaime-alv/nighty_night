@@ -15,7 +15,7 @@ use crate::{
     utils::datetime::{convert_to_date, today},
 };
 
-use super::util_service::does_record_belongs_to_baby;
+use super::util_service::assert_record_belongs_to_parent;
 
 pub async fn post_weight_service(
     new_measure: InputWeightDto,
@@ -71,7 +71,7 @@ pub async fn patch_weight_service(
     baby_id: i32,
 ) -> Result<MsgResponse, ApiError> {
     let old_record = select_weight_by_id(record)?;
-    does_record_belongs_to_baby(old_record.baby_id(), baby_id)?;
+    assert_record_belongs_to_parent(old_record.baby_id(), baby_id)?;
     update_weight(old_record.update_weight(measure))?;
     Ok(MsgResponse::UpdateRecord)
 }
@@ -82,7 +82,17 @@ fn into_weight_dto(measures: Vec<Weight>) -> Result<Vec<WeightDto>, ApiError> {
 
 pub async fn delete_weight_service(record: i32, baby_id: i32) -> Result<MsgResponse, ApiError> {
     let delete_record = select_weight_by_id(record)?;
-    does_record_belongs_to_baby(delete_record.baby_id(), baby_id)?;
+    assert_record_belongs_to_parent(delete_record.baby_id(), baby_id)?;
     delete_weight(record)?;
     Ok(MsgResponse::DeleteRecord)
+}
+
+pub async fn get_weight_id_service(
+    weight_id: i32,
+    baby_id: i32,
+) -> Result<RecordResponse<WeightDto>, ApiError> {
+    let weight: Weight = select_weight_by_id(weight_id)?;
+    assert_record_belongs_to_parent(weight.baby_id(), baby_id)?;
+    let response: RecordResponse<WeightDto> = RecordResponse::new(weight.into());
+    Ok(response)
 }
