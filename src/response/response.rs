@@ -108,13 +108,14 @@ where
     }
 }
 
+#[derive(Debug)]
 /// Return a single record.
 pub struct RecordResponse<T>
 where
     T: Serialize,
 {
-    data: T,
-    status_code: u16,
+    pub data: T,
+    pub status_code: u16,
 }
 
 impl<T> RecordResponse<T>
