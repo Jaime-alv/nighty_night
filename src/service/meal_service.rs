@@ -37,11 +37,12 @@ pub async fn patch_meal_service(
     meal: InputMealDto,
     record: i32,
     baby_id: i32,
-) -> Result<MsgResponse, ApiError> {
+) -> Result<RecordResponse<MealDto>, ApiError> {
     let meal_record = select_meal_by_id(record)?;
     assert_record_belongs_to_parent(meal_record.baby_id(), baby_id)?;
-    update_meal(meal_record.update_meal(meal))?;
-    Ok(MsgResponse::UpdateRecord)
+    let new_meal: Meal = update_meal(meal_record.update_meal(meal))?;
+    let response: RecordResponse<MealDto> = RecordResponse::new(new_meal.into());
+    Ok(response)
 }
 
 pub async fn get_meals_by_range_service(

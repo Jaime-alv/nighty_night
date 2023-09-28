@@ -55,7 +55,7 @@ pub fn select_meal_by_id(record: i32) -> Result<Meal, Error> {
     meals::table.find(record).first::<Meal>(conn)
 }
 
-pub fn update_meal(meal: Meal) -> Result<usize, Error> {
+pub fn update_meal(meal: Meal) -> Result<Meal, Error> {
     let conn = &mut establish_connection();
     diesel::update(meals::table.find(meal.id()))
         .set((
@@ -63,7 +63,7 @@ pub fn update_meal(meal: Meal) -> Result<usize, Error> {
             meals::quantity.eq(meal.quantity()),
             meals::to_time.eq(meal.to_time()),
         ))
-        .execute(conn)
+        .get_result(conn)
 }
 
 pub fn delete_meal(record: i32) -> Result<usize, Error> {

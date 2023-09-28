@@ -48,12 +48,13 @@ pub async fn patch_dream_service(
     dream: InputDreamDto,
     record: i32,
     baby_id: i32,
-) -> Result<MsgResponse, ApiError> {
+) -> Result<RecordResponse<DreamDto>, ApiError> {
     let dream_record = select_dream_by_id(record)?;
     assert_record_belongs_to_parent(dream_record.baby_id(), baby_id)?;
 
-    update_dream(dream_record.update_dream(dream))?;
-    Ok(MsgResponse::UpdateRecord)
+    let dream: Dream = update_dream(dream_record.update_dream(dream))?;
+    let response: RecordResponse<DreamDto> = RecordResponse::new(dream.into());
+    Ok(response)
 }
 
 pub async fn get_dreams_by_range_date_service(

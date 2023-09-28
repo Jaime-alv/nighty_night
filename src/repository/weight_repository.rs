@@ -33,14 +33,14 @@ pub fn select_all_weights_from_baby(
         .load_and_count_pages(conn)
 }
 
-pub fn update_weight(measure: Weight) -> Result<usize, Error> {
+pub fn update_weight(measure: Weight) -> Result<Weight, Error> {
     let conn = &mut establish_connection();
     diesel::update(weights::table.find(measure.id()))
         .set((
             weights::date.eq(measure.date()),
             weights::value.eq(measure.value()),
         ))
-        .execute(conn)
+        .get_result(conn)
 }
 
 pub fn select_weight_by_id(id: i32) -> Result<Weight, Error> {
