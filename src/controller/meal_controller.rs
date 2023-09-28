@@ -10,7 +10,7 @@ use axum_session_auth::AuthSession;
 use crate::{
     data::{
         meal_dto::InputMealDto,
-        query_dto::{AllRecords, DateDto, DateRangeDto, IdDto, LastDaysDto, Pagination},
+        query_dto::{AllRecords, DateDto, DateRangeDto, LastDaysDto, Pagination},
     },
     model::session_model::CurrentUser,
     service::{
@@ -31,14 +31,11 @@ pub(super) fn route_meal() -> Router {
     Router::new().nest(
         "/meals",
         Router::new()
+            .route("/", get(get_meals).post(post_meal))
             .route(
-                "/",
-                get(get_meals)
-                    .post(post_meal)
-                    .patch(patch_meal)
-                    .delete(delete_meal),
+                "/:record",
+                get(get_meal_id).patch(patch_meal).delete(delete_meal),
             )
-            .route("/:record", get(get_meal_id))
             .route("/summary", get(get_meal_summary)),
     )
 }
@@ -78,22 +75,20 @@ async fn post_meal(
 }
 
 async fn patch_meal(
-    Path(baby_unique_id): Path<String>,
+    Path((baby_unique_id, record)): Path<(String, i32)>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
-    record_id: Query<IdDto>,
     Json(meal): Json<InputMealDto>,
 ) -> impl IntoResponse {
     let baby_id = check_user_permissions(auth, &baby_unique_id)?;
-    patch_meal_service(meal, record_id.id(), baby_id).await
+    patch_meal_service(meal, record, baby_id).await
 }
 
 async fn delete_meal(
-    Path(baby_unique_id): Path<String>,
+    Path((baby_unique_id, record)): Path<(String, i32)>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
-    record_id: Query<IdDto>,
 ) -> impl IntoResponse {
     let baby_id = check_user_permissions(auth, &baby_unique_id)?;
-    delete_meal_service(record_id.id(), baby_id).await
+    delete_meal_service(record, baby_id).await
 }
 
 /// Obtain summary records, if there are no parameters, it will try to get last 7 days.

@@ -10,7 +10,7 @@ use axum_session_auth::AuthSession;
 use crate::{
     configuration::constant::GlobalCte,
     data::{
-        query_dto::{AllRecords, DateDto, DateRangeDto, IdDto, LastDaysDto, Pagination},
+        query_dto::{AllRecords, DateDto, DateRangeDto, LastDaysDto, Pagination},
         weight_dto::InputWeightDto,
     },
     model::session_model::CurrentUser,
@@ -35,7 +35,10 @@ pub(super) fn route_weight() -> Router {
                     .patch(patch_weight)
                     .delete(delete_weight),
             )
-            .route("/:record", get(get_weight_id)),
+            .route(
+                "/:record",
+                get(get_weight_id).patch(patch_weight).delete(delete_weight),
+            ),
     )
 }
 
@@ -78,22 +81,20 @@ async fn post_weight(
 }
 
 async fn patch_weight(
-    Path(baby_unique_id): Path<String>,
+    Path((baby_unique_id, record)): Path<(String, i32)>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
-    record: Query<IdDto>,
     Json(measure): Json<InputWeightDto>,
 ) -> impl IntoResponse {
     let baby_id = check_user_permissions(auth, &baby_unique_id)?;
-    patch_weight_service(measure, record.id(), baby_id).await
+    patch_weight_service(measure, record, baby_id).await
 }
 
 async fn delete_weight(
-    Path(baby_unique_id): Path<String>,
+    Path((baby_unique_id, record)): Path<(String, i32)>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
-    record_id: Query<IdDto>,
 ) -> impl IntoResponse {
     let baby_id = check_user_permissions(auth, &baby_unique_id)?;
-    delete_weight_service(record_id.id(), baby_id).await
+    delete_weight_service(record, baby_id).await
 }
 
 async fn get_weight_id(

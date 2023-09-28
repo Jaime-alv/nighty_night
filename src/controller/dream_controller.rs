@@ -10,13 +10,14 @@ use axum_session_auth::AuthSession;
 use crate::{
     data::{
         dream_dto::InputDreamDto,
-        query_dto::{AllRecords, DateDto, DateRangeDto, IdDto, LastDaysDto, Pagination},
+        query_dto::{AllRecords, DateDto, DateRangeDto, LastDaysDto, Pagination},
     },
     model::session_model::CurrentUser,
     service::{
         dream_service::{
-            delete_dream_service, get_dreams_all_service, get_dreams_by_last_days_service,
-            get_dreams_by_range_date_service, patch_dream_service, post_dream_service, get_dream_id_service,
+            delete_dream_service, get_dream_id_service, get_dreams_all_service,
+            get_dreams_by_last_days_service, get_dreams_by_range_date_service, patch_dream_service,
+            post_dream_service,
         },
         dream_summary_service::{
             get_dreams_summary_all_service, get_dreams_summary_last_days_service,
@@ -30,14 +31,11 @@ pub(super) fn route_dream() -> Router {
     Router::new().nest(
         "/dreams",
         Router::new()
+            .route("/", get(get_dreams).post(post_dream))
             .route(
-                "/",
-                get(get_dreams)
-                    .post(post_dream)
-                    .patch(patch_dream)
-                    .delete(delete_dream),
+                "/:record",
+                get(get_dream_id).patch(patch_dream).delete(delete_dream),
             )
-            .route("/:record", get(get_dream_id))
             .route("/summary", get(get_dream_summary)),
     )
 }
@@ -77,22 +75,20 @@ async fn post_dream(
 }
 
 async fn patch_dream(
-    Path(baby_unique_id): Path<String>,
+    Path((baby_unique_id, record)): Path<(String, i32)>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
-    record_id: Query<IdDto>,
     Json(dream): Json<InputDreamDto>,
 ) -> impl IntoResponse {
     let baby_id = check_user_permissions(auth, &baby_unique_id)?;
-    patch_dream_service(dream, record_id.id(), baby_id).await
+    patch_dream_service(dream, record, baby_id).await
 }
 
 async fn delete_dream(
-    Path(baby_unique_id): Path<String>,
+    Path((baby_unique_id, record)): Path<(String, i32)>,
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
-    record_id: Query<IdDto>,
 ) -> impl IntoResponse {
     let baby_id = check_user_permissions(auth, &baby_unique_id)?;
-    delete_dream_service(record_id.id(), baby_id).await
+    delete_dream_service(record, baby_id).await
 }
 
 /// Obtain summary records, if there are no parameters, it will try to get last 7 days.
@@ -130,7 +126,6 @@ async fn get_dream_summary(
         .await
     }
 }
-
 
 async fn get_dream_id(
     Path((baby_unique_id, record)): Path<(String, i32)>,
