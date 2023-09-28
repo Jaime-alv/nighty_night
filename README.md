@@ -343,14 +343,14 @@ data:
 | /meals?from=YYYY-mm-dd&to=YYYY-mm-dd         | `get`    | Get all meals in a given range               | {from: String \| to: String} |                           |
 | /meals?last_days=X                           | `get`    | Get all meals from last X days, default to 7 | last_days: integer           |                           |
 | /meals                                       | `post`   | Add new meals to an associated baby          | Body: Json                   | {date, quantity, elapsed} |
-| /meals                                       | `patch`  | Update a meal record with any new values     | Body: Json                   | {date, quantity, elapsed} |
-| /meals?entry=X                               | `delete` | Delete entry X from DB                       | entry: Integer               |                           |
+| /meals/:record                               | `patch`  | Update a meal record with any new values     | Path: Integer \| Body: Json  | {date, quantity, elapsed} |
+| /meals/:record                               | `delete` | Delete entry X from DB                       | Path: Integer                |                           |
+| /meals/:record                               | `get`    | Get an individual record                     | Path: Integer                |                           |
 | /meals/summary?all=bool                      | `get`    | Get all summaries                            | all: Boolean                 |                           |
 | /meals/summary?date=YYYY-mm-dd               | `get`    | Get a summary from one day's data            | date: String                 |                           |
 | /meals/summary?date=today                    | `get`    | Get a summary from today's data              |                              |                           |
 | /meals/summary?last_days=X                   | `get`    | Get a summary from last X days, default to 7 | days: Integer                |                           |
 | /meals/summary?from=YYYY-mm-dd&to=YYYY-mm-dd | `get`    | Get a summary from date X up to date Y       | {from: String \| to: String} |                           |
-| /meals/:record                               | `get`    | Get an individual record                     | Path: Integer                |                           |
 
 ### Dreams: `/api/baby/:baby_id`
 
@@ -361,14 +361,14 @@ data:
 | /dreams?from=YYYY-mm-dd&to=YYYY-mm-dd         | `get`    | Get all dreams in a given range               | {from: String \| to: String} |                       |
 | /dreams?last_days=X                           | `get`    | Get all dreams from last X days, default to 7 | last_days: integer           |                       |
 | /dreams                                       | `post`   | Add new dreams to an associated baby          | Body: Json                   | {from_date, to_date } |
-| /dreams                                       | `patch`  | Update a dream record with any new values     | Body: Json                   | {from_date, to_date } |
-| /dreams?entry=X                               | `delete` | Delete entry X from DB                        | entry: Integer               |                       |
+| /dreams/:record                               | `patch`  | Update a dream record with any new values     | Path: Integer \| Body: Json  | {from_date, to_date } |
+| /dreams/:record                               | `delete` | Delete entry X from DB                        | Path: Integer                |                       |
+| /dreams/:record                               | `get`    | Get an individual record                      | Path: Integer                |                       |
 | /dreams/summary?all=bool                      | `get`    | Get all summaries                             | all: Boolean                 |                       |
 | /dreams/summary?date=YYYY-mm-dd               | `get`    | Get a summary from one day's data             | date: String                 |                       |
 | /dreams/summary?date=today                    | `get`    | Get a summary from today's data               |                              |                       |
 | /dreams/summary?days=X                        | `get`    | Get a summary from last X days, default to 7  | days: Integer                |                       |
 | /dreams/summary?from=YYYY-mm-dd&to=YYYY-mm-dd | `get`    | Get a summary from date X up to date Y        | {from: String \| to: String} |                       |
-| /dreams/:record                               | `get`    | Get an individual record                      | Path: Integer                |                       |
 
 ### Weights: `/api/baby/:baby_id`
 
@@ -379,8 +379,8 @@ data:
 | /weights?from=YYYY-mm-dd&to=YYYY-mm-dd | `get`    | Get weights in a given range                 | {from: String \| to: String} |                |
 | /weights?last_days=X                   | `get`    | Get weights from last X days, default to 30  | last_days: Integer           |                |
 | /weights                               | `post`   | Add new weight measure to an associated baby | Body: Json                   | {date, value } |
-| /weights                               | `patch`  | Update a measure with any new values         | Body: Json                   | {date, value } |
-| /weights?entry=X                       | `delete` | Delete entry X from DB                       | entry: Integer               |                |
+| /weights/:record                       | `patch`  | Update a measure with any new values         | Path: Integer \| Body: Json  | {date, value } |
+| /weights/:record                       | `delete` | Delete entry X from DB                       | Path: Integer                |                |
 | /weights/:record                       | `get`    | Get an individual record                     | Path: Integer                |                |
 
 ### Admin: `/api/admin`
