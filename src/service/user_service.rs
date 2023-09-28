@@ -11,7 +11,8 @@ use crate::{
     model::{role_model::Rol, user_model::User},
     repository::user_repository::{
         delete_all_users, delete_user, insert_new_user, select_all_users, select_id_from_username,
-        select_user_by_id, select_user_by_username, update_active_for_user, update_user,
+        select_user_by_id, select_user_by_username, select_user_from_username,
+        update_active_for_user, update_user,
     },
     response::{
         error::ApiError,
@@ -28,12 +29,7 @@ use super::session_service::{create_current_user, save_user_session};
 pub async fn post_new_user_service(
     new_user: NewUserDto,
 ) -> Result<(RecordResponse<SessionDto>, i32), ApiError> {
-    if validate_fields(&new_user.data()) {
-        return Err(ApiError::EmptyBody);
-    }
-    if valid_password(&new_user.password) {
-        return Err(ApiError::Generic400Error("Password too short.".into()));
-    }
+    validate_new_user_information(&new_user)?;
     let user = match insert_new_user(new_user, Rol::User.into()) {
         Ok(user) => user,
         Err(_) => return Err(ApiError::DuplicateUser),
@@ -41,6 +37,25 @@ pub async fn post_new_user_service(
     let id_binding = user.id();
     let new_user = cache_user_in_session(user).await?;
     Ok((RecordResponse::new_entry(new_user), id_binding))
+}
+
+fn validate_new_user_information(new_user: &NewUserDto) -> Result<(), ApiError> {
+    if validate_fields(&new_user.data()) {
+        return Err(ApiError::EmptyBody);
+    }
+    if valid_password(&new_user.password) {
+        return Err(ApiError::Generic400Error("Password too short.".into()));
+    }
+    if exist_username_in_database(&new_user.username)? {
+        return Err(ApiError::DuplicateUser);
+    }
+    return Ok(());
+}
+
+fn exist_username_in_database(username: &str) -> Result<bool, ApiError> {
+    let user_count: usize = select_user_from_username(username)?;
+    let boolean_transformation = if user_count.eq(&0) { false } else { true };
+    Ok(boolean_transformation)
 }
 
 pub async fn get_all_users_service(
@@ -142,7 +157,7 @@ pub async fn delete_old_users_service() -> Result<MsgResponse, ApiError> {
 }
 
 /// Return user id if user with username exits.
-pub async fn find_user_id_from_username(username: &str) -> Result<i32, ApiError> {
+pub async fn get_user_id_from_username(username: &str) -> Result<i32, ApiError> {
     match select_id_from_username(username) {
         Ok(id) => Ok(id),
         Err(_) => Err(ApiError::NoUser),
@@ -151,4 +166,54 @@ pub async fn find_user_id_from_username(username: &str) -> Result<i32, ApiError>
 
 pub fn delete_session_user_service() -> Result<MsgResponse, ApiError> {
     Ok(MsgResponse::LogoutUser)
+}
+
+#[cfg(test)]
+mod test_user_service {
+    use std::path::Path;
+
+    use super::*;
+
+    fn setup_env() {
+        dotenvy::from_path(Path::new("./key/local.env")).unwrap()
+    }
+
+    #[test]
+    fn test_user_existence() {
+        setup_env();
+        assert!(exist_username_in_database("admin").unwrap());
+        assert!(!exist_username_in_database("administratorInvent").unwrap());
+    }
+
+    #[test]
+    fn test_validation_user_info() {
+        setup_env();
+        let error_user = NewUserDto {
+            username: "admin".to_string(),
+            password: "abcd".to_string(),
+            email: None,
+            name: None,
+            surname: None,
+        };
+        let good_user = NewUserDto {
+            username: "adminInvent".to_string(),
+            password: "abcd".to_string(),
+            email: None,
+            name: None,
+            surname: None,
+        };
+        let empty_fields = NewUserDto {
+            username: "".to_string(),
+            password: "abcd".to_string(),
+            email: None,
+            name: None,
+            surname: None,
+        };
+        let error_validation = validate_new_user_information(&error_user).is_err();
+        let ok_validation = validate_new_user_information(&good_user).is_ok();
+        let empty_validation = validate_new_user_information(&empty_fields).is_err();
+        assert!(ok_validation);
+        assert!(error_validation);
+        assert!(empty_validation);
+    }
 }

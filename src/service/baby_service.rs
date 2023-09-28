@@ -19,7 +19,7 @@ use crate::{
     utils::datetime::{convert_to_date, today},
 };
 
-use super::{session_service::load_user_session, user_service::find_user_id_from_username};
+use super::{session_service::load_user_session, user_service::get_user_id_from_username};
 
 pub async fn post_new_baby_service<T>(
     new_baby: InputBabyDto,
@@ -92,7 +92,7 @@ pub async fn get_babies_for_user_service(
 }
 
 pub async fn transfer_baby_service(baby_id: i32, username: &str) -> Result<MsgResponse, ApiError> {
-    let user = find_user_id_from_username(username).await?;
+    let user = get_user_id_from_username(username).await?;
     insert_baby_to_user(user, baby_id)?;
     match update_baby_belongs_to(baby_id, user) {
         Ok(_) => Ok(MsgResponse::UpdateRecord),

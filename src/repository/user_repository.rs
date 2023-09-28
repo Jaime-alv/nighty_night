@@ -137,3 +137,10 @@ pub fn select_babies_for_user_id(user: i32) -> Result<Vec<BabyInfo>, Error> {
         .collect();
     Ok(babies)
 }
+
+pub fn select_user_from_username(username: &str) -> Result<usize, Error> {
+    let conn = &mut establish_connection();
+    users::table
+        .filter(users::username.eq(username))
+        .execute(conn)
+}
