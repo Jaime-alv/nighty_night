@@ -74,14 +74,14 @@ pub fn select_dream_by_id(id: i32) -> Result<Dream, Error> {
     dreams::table.find(id).first(conn)
 }
 
-pub fn update_dream(dream: Dream) -> Result<usize, Error> {
+pub fn update_dream(dream: Dream) -> Result<Dream, Error> {
     let conn = &mut establish_connection();
     diesel::update(dreams::table.find(dream.id()))
         .set((
             dreams::from_date.eq(dream.from_date()),
             dreams::to_date.eq(dream.to_date()),
         ))
-        .execute(conn)
+        .get_result(conn)
 }
 
 pub fn delete_dream(record_id: i32) -> Result<usize, Error> {

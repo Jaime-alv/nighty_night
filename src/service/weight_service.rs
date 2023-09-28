@@ -69,11 +69,12 @@ pub async fn patch_weight_service(
     measure: InputWeightDto,
     record: i32,
     baby_id: i32,
-) -> Result<MsgResponse, ApiError> {
+) -> Result<RecordResponse<WeightDto>, ApiError> {
     let old_record = select_weight_by_id(record)?;
     assert_record_belongs_to_parent(old_record.baby_id(), baby_id)?;
-    update_weight(old_record.update_weight(measure))?;
-    Ok(MsgResponse::UpdateRecord)
+    let weight: Weight = update_weight(old_record.update_weight(measure))?;
+    let response: RecordResponse<WeightDto> = RecordResponse::new(weight.into());
+    Ok(response)
 }
 
 fn into_weight_dto(measures: Vec<Weight>) -> Result<Vec<WeightDto>, ApiError> {
