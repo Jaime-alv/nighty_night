@@ -33,14 +33,14 @@ impl DataType {
     }
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct BasicDataStruct<T>
 where
     T: Serialize,
 {
-    id: i32,
+    pub id: i32,
     r#type: &'static str,
-    attributes: T,
+    pub attributes: T,
 }
 
 impl<T> BasicDataStruct<T>

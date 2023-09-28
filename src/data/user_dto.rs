@@ -17,7 +17,7 @@ impl Mandatory for NewUserDto {
     }
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct UserData {
     pub username: String,
     pub email: Option<String>,

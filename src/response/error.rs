@@ -28,7 +28,7 @@ pub enum ApiError {
 }
 
 impl ApiError {
-    fn get_error<'a>(&self) -> (StatusCode, String) {
+    pub fn get_error<'a>(&self) -> (StatusCode, String) {
         match self {
             // 40X Error
             ApiError::EmptyBody => (StatusCode::BAD_REQUEST, String::from("Empty body.")),

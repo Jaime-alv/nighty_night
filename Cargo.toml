@@ -40,3 +40,7 @@ chrono = "0.4.24"
 
 # Uuid
 uuid ={ version = "1.4.1", features = ["v4", "serde", "macro-diagnostics"]}
+
+[dev-dependencies]
+ctor = "0.2.5"
+fake = "2.8.0"

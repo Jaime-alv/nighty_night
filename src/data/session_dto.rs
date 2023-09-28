@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-
 use crate::model::session_model::BabyInfo;
 
 /// This struct belongs to redis repository.
@@ -36,7 +35,7 @@ impl CurrentUserDto {
     }
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct UserSessionData {
     pub username: String,
     pub baby_info: Vec<BabyInfo>,

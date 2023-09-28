@@ -5,7 +5,7 @@ pub mod meal_dto;
 pub mod query_dto;
 pub mod session_dto;
 pub mod traits;
-pub(crate) mod user_dto;
+pub mod user_dto;
 pub mod weight_dto;
 pub mod role_dto;
 pub mod common_structure;
