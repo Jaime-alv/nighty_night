@@ -6,7 +6,6 @@ use serde_json::json;
 
 /// Return a factory set message.
 pub enum MsgResponse {
-    NewRecord,
     UpdateRecord,
     DeleteRecord,
     DeleteXRecords(usize),
@@ -17,7 +16,6 @@ pub enum MsgResponse {
 impl MsgResponse {
     fn get_response(&self) -> (StatusCode, String) {
         match self {
-            MsgResponse::NewRecord => (StatusCode::CREATED, "New record added.".to_string()),
             MsgResponse::UpdateRecord => (StatusCode::OK, "Update record.".to_string()),
             MsgResponse::DeleteRecord => (StatusCode::OK, "Delete record.".to_string()),
             MsgResponse::ActiveStatusUpdate => (StatusCode::OK, "User status update.".to_string()),
