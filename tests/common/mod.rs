@@ -9,6 +9,7 @@ use std::fmt::Debug;
 pub mod cte {
     pub const VALUE_NONE: &'static str = "Some value expected, found None";
     pub const DB_ERROR: &'static str = "Error connecting database";
+    pub const NO_USER_ERROR: &'static str = "No user found.";
 }
 
 pub mod initialiser {
