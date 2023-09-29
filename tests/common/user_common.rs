@@ -1,10 +1,13 @@
 use nighty_night::{
     data::{
         common_structure::{SessionDto, UserDto},
-        user_dto::{NewUserDto, UpdateUserDto, LoginDto},
+        user_dto::{LoginDto, NewUserDto, UpdateUserDto},
     },
-    response::{error::ApiError, response::RecordResponse},
-    service::user_service::{get_user_by_id_service, patch_user_service, post_new_user_service, validate_new_user_information, post_session_user_service},
+    response::{error::ApiError, response::{RecordResponse, MsgResponse}},
+    service::user_service::{
+        get_user_by_id_service, patch_user_service, post_new_user_service,
+        post_session_user_service, validate_new_user_information, delete_user_from_database,
+    },
 };
 
 pub async fn test_create_user(
@@ -42,6 +45,12 @@ pub fn test_validate_user_fields(user: NewUserDto) -> Result<(), ApiError> {
     validate_new_user_information(&user)
 }
 
-pub async fn test_login_service(user_credentials: LoginDto) -> Result<(RecordResponse<SessionDto>, i32), ApiError> {
+pub async fn test_login_service(
+    user_credentials: LoginDto,
+) -> Result<(RecordResponse<SessionDto>, i32), ApiError> {
     post_session_user_service(user_credentials).await
+}
+
+pub fn test_delete_user(id: i32) -> Result<MsgResponse, ApiError> {
+    delete_user_from_database(id)
 }
