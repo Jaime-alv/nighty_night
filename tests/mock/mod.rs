@@ -51,7 +51,6 @@ pub fn generate_invalid_credentials(username: Option<&str>, password: Option<&st
     } else {
         password.unwrap().to_string()
     };
-    dbg!(&username_field, &password_field);
     LoginDto {
         username: username_field,
         password: password_field,
