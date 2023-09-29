@@ -14,7 +14,7 @@ use crate::{
         baby_service::{get_all_babies_service, get_baby_by_id_service},
         session_service::current_user_is_admin,
         user_service::{
-            delete_active_user_service, delete_old_users_service, delete_user_service,
+            delete_active_user_service, delete_old_users_service, delete_user_with_time_constrain_service,
             get_all_users_service,
         }, role_service::get_role_by_name_service,
     },
@@ -67,7 +67,7 @@ async fn delete_user(
     let binding: i32 = auth.id.try_into().unwrap();
     current_user_is_admin(auth)?;
     match user_id {
-        Some(value) => delete_user_service(value.id(), binding).await,
+        Some(value) => delete_user_with_time_constrain_service(value.id(), binding).await,
         None => delete_old_users_service().await,
     }
 }

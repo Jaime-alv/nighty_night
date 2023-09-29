@@ -135,7 +135,7 @@ pub async fn delete_active_user_service(
 
 /// User must be active = false, last updated 180 days ago (as per DeleteAccount const)
 /// and user must not be current user.
-pub async fn delete_user_service(user_id: i32, current_user: i32) -> Result<MsgResponse, ApiError> {
+pub async fn delete_user_with_time_constrain_service(user_id: i32, current_user: i32) -> Result<MsgResponse, ApiError> {
     let user = select_user_by_id(user_id)?;
     let inactive_period: i64 = GlobalCte::DeleteAccount.get().into();
     let inactive_time = (now() - user.updated_at().unwrap_or_default())
@@ -146,6 +146,14 @@ pub async fn delete_user_service(user_id: i32, current_user: i32) -> Result<MsgR
         Ok(MsgResponse::DeleteRecord)
     } else {
         Err(ApiError::Forbidden)
+    }
+}
+
+pub fn delete_user_from_database(user_id: i32) -> Result<usize, ApiError> {
+    let row_count = delete_user(user_id)?;
+    match row_count {
+        0 => return Err(ApiError::NoUser),
+        _ => return Ok(1)
     }
 }
 
