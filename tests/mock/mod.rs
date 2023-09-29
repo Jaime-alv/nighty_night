@@ -7,7 +7,7 @@ use fake::{
     },
     Fake,
 };
-use nighty_night::data::user_dto::{NewUserDto, UpdateUserDto};
+use nighty_night::data::user_dto::{LoginDto, NewUserDto, UpdateUserDto};
 
 /// Generate random user with all required and
 /// optional fields.
@@ -23,9 +23,37 @@ pub fn generate_new_user() -> NewUserDto {
 
 /// Generate update user fields.
 pub fn generate_update_user() -> UpdateUserDto {
+    let email: String = FreeEmail().fake();
+    let name: String = FirstName().fake();
+    let surname: String = LastName().fake();
     UpdateUserDto {
-        email: FreeEmail().fake(),
-        name: FirstName().fake(),
-        surname: LastName().fake(),
+        email: Some(email),
+        name: Some(name),
+        surname: Some(surname),
+    }
+}
+
+pub fn generate_login_credentials(username: &str, password: &str) -> LoginDto {
+    LoginDto {
+        username: username.to_string(),
+        password: password.to_string(),
+    }
+}
+
+pub fn generate_invalid_credentials(username: Option<&str>, password: Option<&str>) -> LoginDto {
+    let username_field: String = if username.is_none() {
+        Username().fake()
+    } else {
+        username.unwrap().to_string()
+    };
+    let password_field: String = if password.is_none() {
+        Password(Range { start: 6, end: 7 }).fake()
+    } else {
+        password.unwrap().to_string()
+    };
+    dbg!(&username_field, &password_field);
+    LoginDto {
+        username: username_field,
+        password: password_field,
     }
 }
