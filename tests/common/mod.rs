@@ -1,4 +1,4 @@
-pub mod alias;
+pub mod record;
 
 use std::path::Path;
 
