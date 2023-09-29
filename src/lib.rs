@@ -35,14 +35,21 @@ mod security;
 pub mod service;
 mod utils;
 
-pub async fn launch_app() {
+/// Prepare environment variables.
+///
+/// If no env variables are set, defaults to local file
+/// in path `/key/local.env`
+pub fn set_environment() {
     if Setting::Branch.get().eq("local") {
         match dotenvy::from_path(Path::new("./key/local.env")) {
             Ok(_) => (),
             Err(error) => panic!("{error}"),
         }
-    };
+    }
+}
 
+/// Check whether databases are ready or not.
+pub async fn check_db_initialisation() {
     match checking_status().await {
         Ok(_) => (),
         Err(error) => panic!("{error}"),
@@ -52,7 +59,10 @@ pub async fn launch_app() {
         Ok(_) => (),
         Err(error) => panic!("{error}"),
     };
+}
 
+/// Launch server
+pub async fn create_app() {
     let app = create_app_route().await;
 
     info!("Branch mode: {}", Setting::Branch.get());
