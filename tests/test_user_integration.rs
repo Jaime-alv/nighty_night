@@ -1,5 +1,4 @@
 mod common;
-mod import;
 mod mock;
 
 use fake::{faker::internet::en::Username, Fake};
@@ -11,15 +10,15 @@ use nighty_night::{
         user_dto::NewUserDto,
     },
     response::{error::ApiError, response::RecordResponse},
-    service::user_service::{delete_active_user_service, delete_user_from_database},
+    service::user_service::delete_active_user_service,
 };
 
 use crate::{
     common::{
+        assertion_common::*,
         cte::{DB_ERROR, NO_USER_ERROR, VALUE_NONE},
-        *,
+        user_common::*,
     },
-    import::user_service::*,
     mock::{
         generate_invalid_credentials, generate_login_credentials, generate_new_user,
         generate_update_user,
@@ -120,11 +119,19 @@ async fn test_user_flow() {
     let response_login = test_login_service(login_credentials).await;
     assert_ok_response_id(&response_login, "Should login user", StatusCode::OK);
 
-    let response_delete_user = delete_user_from_database(id);
-    assert_ok_message(&response_delete_user, "User should be drop from database", StatusCode::OK);
+    let response_delete_user = test_delete_user(id);
+    assert_ok_message(
+        &response_delete_user,
+        "User should be drop from database",
+        StatusCode::OK,
+    );
 
     let call_deleted_user_response = test_load_user_profile(id).await;
-    assert_error_response(&call_deleted_user_response, "User should not exists in database", StatusCode::NOT_FOUND);
+    assert_error_response(
+        &call_deleted_user_response,
+        "User should not exists in database",
+        StatusCode::NOT_FOUND,
+    );
 }
 
 #[tokio::test]
@@ -139,7 +146,7 @@ async fn test_user_creation() {
 
     let (_created_user, id_created_user) = response_user.expect(DB_ERROR);
 
-    delete_user_from_database(id_created_user).expect(NO_USER_ERROR);
+    test_delete_user(id_created_user).expect(NO_USER_ERROR);
 
     let empty_user = NewUserDto {
         username: "".to_string(),
@@ -264,7 +271,7 @@ async fn test_login_user() {
         StatusCode::UNAUTHORIZED,
     );
 
-    delete_user_from_database(id).expect(NO_USER_ERROR);
+    test_delete_user(id).expect(NO_USER_ERROR);
     let valid_credentials = generate_login_credentials(&user.username, &user.password);
     let response = test_login_service(valid_credentials).await;
     assert_error_response_id(&response, "User should not exist", StatusCode::BAD_REQUEST);
