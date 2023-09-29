@@ -5,6 +5,7 @@ use serde::Serialize;
 use serde_json::json;
 
 /// Return a factory set message.
+#[derive(Debug)]
 pub enum MsgResponse {
     UpdateRecord,
     DeleteRecord,
@@ -14,7 +15,7 @@ pub enum MsgResponse {
 }
 
 impl MsgResponse {
-    fn get_response(&self) -> (StatusCode, String) {
+    pub fn get_response(&self) -> (StatusCode, String) {
         match self {
             MsgResponse::UpdateRecord => (StatusCode::OK, "Update record.".to_string()),
             MsgResponse::DeleteRecord => (StatusCode::OK, "Delete record.".to_string()),

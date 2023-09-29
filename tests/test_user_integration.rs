@@ -11,10 +11,14 @@ use nighty_night::{
         user_dto::NewUserDto,
     },
     response::{error::ApiError, response::RecordResponse},
+    service::user_service::delete_active_user_service,
 };
 
 use crate::{
-    common::{record::*, *},
+    common::{
+        cte::{DB_ERROR, VALUE_NONE},
+        *,
+    },
     import::user_service::*,
     mock::{
         generate_invalid_credentials, generate_login_credentials, generate_new_user,
@@ -24,7 +28,7 @@ use crate::{
 
 #[ctor::ctor]
 fn init() {
-    common::init()
+    common::initialiser::init()
 }
 
 #[test]
@@ -35,11 +39,6 @@ fn test_branch() {
 
 #[tokio::test]
 async fn test_user_flow() {
-    // Create new user
-    // let (user, update_profile) = tokio::join!(
-    //     generate_new_user(),
-    //     generate_update_user()
-    // );
     let user = generate_new_user();
     let update_profile = generate_update_user();
 
@@ -93,7 +92,33 @@ async fn test_user_flow() {
     // Login user
     let login_credentials = generate_login_credentials(&user.username, &user.password);
     let response_login = test_login_service(login_credentials).await;
-    assert_ok_response_id(&response_login, "Should login user in", StatusCode::OK);
+    assert_ok_response_id(&response_login, "Should login user", StatusCode::OK);
+
+    // De-active user
+    let response_de_active_user = delete_active_user_service(id, false).await;
+    assert_ok_message(
+        &response_de_active_user,
+        "User should not be active",
+        StatusCode::OK,
+    );
+    let login_credentials = generate_login_credentials(&user.username, &user.password);
+    let response_login = test_login_service(login_credentials).await;
+    assert_error_response_id(
+        &response_login,
+        "Should NOT login user",
+        StatusCode::UNAUTHORIZED,
+    );
+
+    // Re-active user
+    let response_de_active_user = delete_active_user_service(id, true).await;
+    assert_ok_message(
+        &response_de_active_user,
+        "User should be active",
+        StatusCode::OK,
+    );
+    let login_credentials = generate_login_credentials(&user.username, &user.password);
+    let response_login = test_login_service(login_credentials).await;
+    assert_ok_response_id(&response_login, "Should login user", StatusCode::OK);
 }
 
 #[tokio::test]
@@ -188,7 +213,7 @@ fn test_validation_user_info() {
 #[tokio::test]
 async fn test_login_user() {
     let user = generate_new_user();
-    test_create_user(&user).await.expect(DB_ERROR);
+    let (_new_user, id) = test_create_user(&user).await.expect(DB_ERROR);
 
     let valid_credentials = generate_login_credentials(&user.username, &user.password);
     let response = test_login_service(valid_credentials).await;
@@ -218,5 +243,8 @@ async fn test_login_user() {
         StatusCode::BAD_REQUEST,
     );
 
-    // TODO: User is not active
+    delete_active_user_service(id, false).await.expect(DB_ERROR);
+    let valid_credentials = generate_login_credentials(&user.username, &user.password);
+    let response = test_login_service(valid_credentials).await;
+    assert_error_response_id(&response, "User should not login into system. User is not active", StatusCode::UNAUTHORIZED);
 }
