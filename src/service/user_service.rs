@@ -39,7 +39,7 @@ pub async fn post_new_user_service(
     Ok((RecordResponse::new_entry(new_user), id_binding))
 }
 
-fn validate_new_user_information(new_user: &NewUserDto) -> Result<(), ApiError> {
+pub fn validate_new_user_information(new_user: &NewUserDto) -> Result<(), ApiError> {
     if validate_fields(&new_user.data()) {
         return Err(ApiError::EmptyBody);
     }
@@ -166,54 +166,4 @@ pub async fn get_user_id_from_username(username: &str) -> Result<i32, ApiError> 
 
 pub fn delete_session_user_service() -> Result<MsgResponse, ApiError> {
     Ok(MsgResponse::LogoutUser)
-}
-
-#[cfg(test)]
-mod test_user_service {
-    use std::path::Path;
-
-    use super::*;
-
-    fn setup_env() {
-        dotenvy::from_path(Path::new("./key/local.env")).unwrap()
-    }
-
-    #[test]
-    fn test_user_existence() {
-        setup_env();
-        assert!(exist_username_in_database("admin").unwrap());
-        assert!(!exist_username_in_database("administratorInvent").unwrap());
-    }
-
-    #[test]
-    fn test_validation_user_info() {
-        setup_env();
-        let error_user = NewUserDto {
-            username: "admin".to_string(),
-            password: "abcd".to_string(),
-            email: None,
-            name: None,
-            surname: None,
-        };
-        let good_user = NewUserDto {
-            username: "adminInvent".to_string(),
-            password: "abcd".to_string(),
-            email: None,
-            name: None,
-            surname: None,
-        };
-        let empty_fields = NewUserDto {
-            username: "".to_string(),
-            password: "abcd".to_string(),
-            email: None,
-            name: None,
-            surname: None,
-        };
-        let error_validation = validate_new_user_information(&error_user).is_err();
-        let ok_validation = validate_new_user_information(&good_user).is_ok();
-        let empty_validation = validate_new_user_information(&empty_fields).is_err();
-        assert!(ok_validation);
-        assert!(error_validation);
-        assert!(empty_validation);
-    }
 }
