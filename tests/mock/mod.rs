@@ -1,13 +1,17 @@
+pub mod entities;
+
 use std::ops::Range;
 
+use chrono::{DateTime, TimeZone, Utc};
 use fake::{
     faker::{
+        chrono::en::DateTimeBetween,
         internet::en::{FreeEmail, Password, Username},
         name::en::{FirstName, LastName},
     },
     Fake,
 };
-use nighty_night::data::user_dto::{LoginDto, NewUserDto, UpdateUserDto};
+use nighty_night::data::{baby_dto::InputBabyDto, user_dto::NewUserDto};
 
 /// Generate random user with all required and
 /// optional fields.
@@ -21,38 +25,18 @@ pub fn generate_new_user() -> NewUserDto {
     }
 }
 
-/// Generate update user fields.
-pub fn generate_update_user() -> UpdateUserDto {
-    let email: String = FreeEmail().fake();
-    let name: String = FirstName().fake();
-    let surname: String = LastName().fake();
-    UpdateUserDto {
-        email: Some(email),
-        name: Some(name),
-        surname: Some(surname),
-    }
+fn generate_date() -> String {
+    let today = Utc::now();
+    let minimum_date = Utc.with_ymd_and_hms(2018, 1, 1, 00, 00, 00).unwrap();
+    let date: String = DateTimeBetween(minimum_date, today).fake();
+    let timestamp = DateTime::parse_from_rfc3339(&date).unwrap().date_naive();
+    timestamp.to_string()
 }
 
-pub fn generate_login_credentials(username: &str, password: &str) -> LoginDto {
-    LoginDto {
-        username: username.to_string(),
-        password: password.to_string(),
-    }
-}
-
-pub fn generate_invalid_credentials(username: Option<&str>, password: Option<&str>) -> LoginDto {
-    let username_field: String = if username.is_none() {
-        Username().fake()
-    } else {
-        username.unwrap().to_string()
-    };
-    let password_field: String = if password.is_none() {
-        Password(Range { start: 6, end: 7 }).fake()
-    } else {
-        password.unwrap().to_string()
-    };
-    LoginDto {
-        username: username_field,
-        password: password_field,
+pub fn generate_new_baby() -> InputBabyDto {
+    let birthdate = generate_date();
+    InputBabyDto {
+        name: Some(FirstName().fake()),
+        birthdate: Some(birthdate),
     }
 }

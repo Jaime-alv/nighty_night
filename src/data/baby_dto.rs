@@ -7,7 +7,7 @@ pub struct InputBabyDto {
     pub birthdate: Option<String>,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct BabyData {
     pub unique_id: Uuid,
     pub name: String,

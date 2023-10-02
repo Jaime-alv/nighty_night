@@ -50,12 +50,14 @@ struct Message<'a> {
 }
 
 /// Return data with pagination info.
+#[derive(Debug)]
 pub struct PagedResponse<T>
 where
     T: Serialize,
 {
-    data: T,
+    pub data: T,
     pager: PageInfo,
+    pub status_code: StatusCode,
 }
 
 impl<T> PagedResponse<T>
@@ -64,11 +66,15 @@ where
 {
     pub fn new(data: T, current: i64, total_pages: i64) -> Self {
         let pager = PageInfo::new(current, total_pages);
-        Self { data, pager }
+        Self {
+            data,
+            pager,
+            status_code: StatusCode::OK,
+        }
     }
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct PageInfo {
     current: i64,
     first: i64,
@@ -102,10 +108,9 @@ where
     T: Serialize,
 {
     fn into_response(self) -> axum::response::Response {
-        let status_code = StatusCode::OK;
         let body = Json(json!({"data": self.data, "page_info": self.pager}));
 
-        (status_code, body).into_response()
+        (self.status_code, body).into_response()
     }
 }
 
@@ -116,7 +121,7 @@ where
     T: Serialize,
 {
     pub data: T,
-    pub status_code: u16,
+    pub status_code: StatusCode,
 }
 
 impl<T> RecordResponse<T>
@@ -124,22 +129,22 @@ where
     T: Serialize,
 {
     /// Get a formatted record from Database
-    /// 
+    ///
     /// Response returns 200
     pub fn new(data: T) -> Self {
         Self {
             data,
-            status_code: 200,
+            status_code: StatusCode::OK,
         }
     }
 
     /// Method for adding entities into Database
-    /// 
+    ///
     /// Response returns 201
     pub fn new_entry(data: T) -> Self {
         Self {
             data,
-            status_code: 201,
+            status_code: StatusCode::CREATED,
         }
     }
 }
@@ -149,9 +154,8 @@ where
     T: Serialize,
 {
     fn into_response(self) -> axum::response::Response {
-        let status_code = StatusCode::from_u16(self.status_code).unwrap_or_default();
         let body = Json(json!({ "data": self.data }));
 
-        (status_code, body).into_response()
+        (self.status_code, body).into_response()
     }
 }
