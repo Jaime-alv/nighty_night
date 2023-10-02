@@ -25,7 +25,7 @@ pub fn generate_new_user() -> NewUserDto {
     }
 }
 
-fn generate_date() -> String {
+pub fn generate_date() -> String {
     let today = Utc::now();
     let minimum_date = Utc.with_ymd_and_hms(2018, 1, 1, 00, 00, 00).unwrap();
     let date: String = DateTimeBetween(minimum_date, today).fake();
