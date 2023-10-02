@@ -8,7 +8,7 @@ use crate::{
     repository::{
         association_repository::{delete_baby_association, insert_baby_to_user},
         baby_repository::{
-            delete_baby_from_db, insert_new_baby, select_all_babies_by_unique_id, select_babies,
+            delete_baby_from_db, insert_new_baby, select_babies, select_babies_from_user_id,
             select_baby_by_id, update_baby, update_baby_belongs_to,
         },
     },
@@ -19,7 +19,7 @@ use crate::{
     utils::datetime::{convert_to_date, today},
 };
 
-use super::{session_service::load_user_session, user_service::get_user_id_from_username};
+use super::user_service::get_user_id_from_username;
 
 pub async fn post_new_baby_service<T>(
     new_baby: InputBabyDto,
@@ -80,12 +80,11 @@ pub async fn delete_baby_service(baby_id: i32, user: i32) -> Result<MsgResponse,
 }
 
 pub async fn get_babies_for_user_service(
-    user_id: i64,
+    user_id: i32,
     pagination: Pagination,
 ) -> Result<PagedResponse<Vec<BabyDto>>, ApiError> {
     let current = pagination.page();
-    let user = load_user_session(user_id).await?;
-    let (babies, total_pages) = select_all_babies_by_unique_id(user.baby_unique_id(), pagination)?;
+    let (babies, total_pages) = select_babies_from_user_id(user_id, pagination)?;
     let babies: Vec<BabyDto> = babies.into_iter().map(|baby| baby.into()).collect();
     let response = PagedResponse::new(babies, current, total_pages);
     Ok(response)
