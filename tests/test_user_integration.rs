@@ -1,5 +1,5 @@
-mod common;
-mod mock;
+pub mod common;
+pub mod mock;
 
 use fake::{faker::internet::en::Username, Fake};
 use hyper::StatusCode;
@@ -10,19 +10,25 @@ use nighty_night::{
         user_dto::NewUserDto,
     },
     response::{error::ApiError, response::RecordResponse},
-    service::user_service::delete_active_user_service,
+    service::user_service::{
+        delete_active_user_service, delete_user_from_database, get_user_by_id_service,
+        post_session_user_service, validate_new_user_information,
+    },
 };
 
 use crate::{
     common::{
-        assertion_common::*,
+        assertions::{
+            assert_compare_fields, assert_error_response, assert_error_response_id,
+            assert_ok_message, assert_ok_response, assert_ok_response_id,
+        },
         cte::{DB_ERROR, NO_USER_ERROR, VALUE_NONE},
-        user_common::*,
     },
-    mock::{
-        generate_invalid_credentials, generate_login_credentials, generate_new_user,
-        generate_update_user,
+    helper::{
+        generate_invalid_credentials, generate_login_credentials, generate_update_user,
+        test_create_user, test_patch_user_profile,
     },
+    mock::generate_new_user,
 };
 
 #[ctor::ctor]
@@ -51,7 +57,7 @@ async fn test_user_flow() {
 
     let (new_created_user, id) = response_create_user.expect(DB_ERROR);
 
-    let response_load_profile = test_load_user_profile(id).await;
+    let response_load_profile = get_user_by_id_service(id).await;
 
     assert_ok_response(
         &response_load_profile,
@@ -59,7 +65,7 @@ async fn test_user_flow() {
         StatusCode::OK,
     );
 
-    let test_profile = test_load_user_profile(id).await.expect(DB_ERROR);
+    let test_profile = get_user_by_id_service(id).await.expect(DB_ERROR);
 
     assert_compare_fields(
         &new_created_user.data.attributes.username,
@@ -77,7 +83,7 @@ async fn test_user_flow() {
     );
 
     // Check updated fields
-    let updated_fields_user = test_load_user_profile(id)
+    let updated_fields_user = get_user_by_id_service(id)
         .await
         .expect(DB_ERROR)
         .data
@@ -90,7 +96,7 @@ async fn test_user_flow() {
 
     // Login user
     let login_credentials = generate_login_credentials(&user.username, &user.password);
-    let response_login = test_login_service(login_credentials).await;
+    let response_login = post_session_user_service(login_credentials).await;
     assert_ok_response_id(&response_login, "Should login user", StatusCode::OK);
 
     // De-active user
@@ -101,7 +107,7 @@ async fn test_user_flow() {
         StatusCode::OK,
     );
     let login_credentials = generate_login_credentials(&user.username, &user.password);
-    let response_login = test_login_service(login_credentials).await;
+    let response_login = post_session_user_service(login_credentials).await;
     assert_error_response_id(
         &response_login,
         "Should NOT login user",
@@ -116,17 +122,17 @@ async fn test_user_flow() {
         StatusCode::OK,
     );
     let login_credentials = generate_login_credentials(&user.username, &user.password);
-    let response_login = test_login_service(login_credentials).await;
+    let response_login = post_session_user_service(login_credentials).await;
     assert_ok_response_id(&response_login, "Should login user", StatusCode::OK);
 
-    let response_delete_user = test_delete_user(id);
+    let response_delete_user = delete_user_from_database(id);
     assert_ok_message(
         &response_delete_user,
         "User should be drop from database",
         StatusCode::OK,
     );
 
-    let call_deleted_user_response = test_load_user_profile(id).await;
+    let call_deleted_user_response = get_user_by_id_service(id).await;
     assert_error_response(
         &call_deleted_user_response,
         "User should not exists in database",
@@ -146,7 +152,7 @@ async fn test_user_creation() {
 
     let (_created_user, id_created_user) = response_user.expect(DB_ERROR);
 
-    test_delete_user(id_created_user).expect(NO_USER_ERROR);
+    delete_user_from_database(id_created_user).expect(NO_USER_ERROR);
 
     let empty_user = NewUserDto {
         username: "".to_string(),
@@ -224,9 +230,9 @@ fn test_validation_user_info() {
         name: None,
         surname: None,
     };
-    assert!(test_validate_user_fields(error_user).is_err());
-    assert!(test_validate_user_fields(good_user).is_ok());
-    assert!(test_validate_user_fields(empty_fields).is_err());
+    assert!(validate_new_user_information(&error_user).is_err());
+    assert!(validate_new_user_information(&good_user).is_ok());
+    assert!(validate_new_user_information(&empty_fields).is_err());
 }
 
 #[tokio::test]
@@ -235,11 +241,11 @@ async fn test_login_user() {
     let (_new_user, id) = test_create_user(&user).await.expect(DB_ERROR);
 
     let valid_credentials = generate_login_credentials(&user.username, &user.password);
-    let response = test_login_service(valid_credentials).await;
+    let response = post_session_user_service(valid_credentials).await;
     assert_ok_response_id(&response, "User should login into system", StatusCode::OK);
 
     let invalid_password = generate_invalid_credentials(Some(&user.username), None);
-    let invalid_response = test_login_service(invalid_password).await;
+    let invalid_response = post_session_user_service(invalid_password).await;
     assert_error_response_id(
         &invalid_response,
         "Password should not match",
@@ -247,7 +253,7 @@ async fn test_login_user() {
     );
 
     let invalid_user = generate_invalid_credentials(None, Some(&user.password));
-    let invalid_user_response = test_login_service(invalid_user).await;
+    let invalid_user_response = post_session_user_service(invalid_user).await;
     assert_error_response_id(
         &invalid_user_response,
         "User should not exist",
@@ -255,7 +261,7 @@ async fn test_login_user() {
     );
 
     let invalid_credentials = generate_invalid_credentials(None, None);
-    let all_field_invalid_response = test_login_service(invalid_credentials).await;
+    let all_field_invalid_response = post_session_user_service(invalid_credentials).await;
     assert_error_response_id(
         &all_field_invalid_response,
         "Neither user nor password should exist",
@@ -264,15 +270,101 @@ async fn test_login_user() {
 
     delete_active_user_service(id, false).await.expect(DB_ERROR);
     let valid_credentials = generate_login_credentials(&user.username, &user.password);
-    let response = test_login_service(valid_credentials).await;
+    let response = post_session_user_service(valid_credentials).await;
     assert_error_response_id(
         &response,
         "User should not login into system. User is not active",
         StatusCode::UNAUTHORIZED,
     );
 
-    test_delete_user(id).expect(NO_USER_ERROR);
+    delete_user_from_database(id).expect(NO_USER_ERROR);
     let valid_credentials = generate_login_credentials(&user.username, &user.password);
-    let response = test_login_service(valid_credentials).await;
+    let response = post_session_user_service(valid_credentials).await;
     assert_error_response_id(&response, "User should not exist", StatusCode::BAD_REQUEST);
+}
+
+mod helper {
+    use std::ops::Range;
+
+    use fake::{
+        faker::{
+            internet::en::{FreeEmail, Password, Username},
+            name::en::{FirstName, LastName},
+        },
+        Fake,
+    };
+    use nighty_night::{
+        data::{
+            common_structure::{SessionDto, UserDto},
+            user_dto::{LoginDto, NewUserDto, UpdateUserDto},
+        },
+        response::{error::ApiError, response::RecordResponse},
+        service::user_service::{patch_user_service, post_new_user_service},
+    };
+
+    pub(super) fn generate_login_credentials(username: &str, password: &str) -> LoginDto {
+        LoginDto {
+            username: username.to_string(),
+            password: password.to_string(),
+        }
+    }
+
+    pub(super) async fn test_create_user(
+        user: &NewUserDto,
+    ) -> Result<(RecordResponse<SessionDto>, i32), ApiError> {
+        let new_user = NewUserDto {
+            username: user.username.to_owned(),
+            password: user.password.to_owned(),
+            email: user.email.to_owned(),
+            name: user.name.to_owned(),
+            surname: user.surname.to_owned(),
+        };
+        post_new_user_service(new_user).await
+    }
+
+    pub(super) async fn test_patch_user_profile(
+        user_id: i32,
+        update_profile: &UpdateUserDto,
+    ) -> Result<RecordResponse<UserDto>, ApiError> {
+        let update_fields = UpdateUserDto {
+            email: update_profile.email.to_owned(),
+            name: update_profile.name.to_owned(),
+            surname: update_profile.surname.to_owned(),
+        };
+
+        let response = patch_user_service(user_id, update_fields).await;
+        response
+    }
+
+    /// Generate update user fields.
+    pub fn generate_update_user() -> UpdateUserDto {
+        let email: String = FreeEmail().fake();
+        let name: String = FirstName().fake();
+        let surname: String = LastName().fake();
+        UpdateUserDto {
+            email: Some(email),
+            name: Some(name),
+            surname: Some(surname),
+        }
+    }
+
+    pub fn generate_invalid_credentials(
+        username: Option<&str>,
+        password: Option<&str>,
+    ) -> LoginDto {
+        let username_field: String = if username.is_none() {
+            Username().fake()
+        } else {
+            username.unwrap().to_string()
+        };
+        let password_field: String = if password.is_none() {
+            Password(Range { start: 6, end: 7 }).fake()
+        } else {
+            password.unwrap().to_string()
+        };
+        LoginDto {
+            username: username_field,
+            password: password_field,
+        }
+    }
 }
