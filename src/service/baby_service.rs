@@ -19,8 +19,6 @@ use crate::{
     utils::datetime::{convert_to_date, today},
 };
 
-use super::user_service::get_user_id_from_username;
-
 pub async fn post_new_baby_service<T>(
     new_baby: InputBabyDto,
     current_user: T,
@@ -90,11 +88,22 @@ pub async fn get_babies_for_user_service(
     Ok(response)
 }
 
-pub async fn transfer_baby_service(baby_id: i32, username: &str) -> Result<MsgResponse, ApiError> {
-    let user = get_user_id_from_username(username).await?;
-    insert_baby_to_user(user, baby_id)?;
-    match update_baby_belongs_to(baby_id, user) {
+/// Change ownership from one user to another.
+pub async fn transfer_baby_service(baby_id: i32, user_id: i32) -> Result<MsgResponse, ApiError> {
+    insert_baby_to_user(user_id, baby_id)?;
+    match update_baby_belongs_to(baby_id, user_id) {
         Ok(_) => Ok(MsgResponse::UpdateRecord),
         Err(error) => Err(error.into()),
+    }
+}
+
+/// Share baby record with another user.
+pub async fn post_share_baby_with_user_service(
+    baby_id: i32,
+    user: i32,
+) -> Result<MsgResponse, ApiError> {
+    match insert_baby_to_user(user, baby_id) {
+        Ok(_) => Ok(MsgResponse::UpdateRecord),
+        Err(error) => Err(ApiError::DBError(error)),
     }
 }

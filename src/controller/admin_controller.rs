@@ -15,7 +15,7 @@ use crate::{
         session_service::current_user_is_admin,
         user_service::{
             delete_active_user_service, delete_old_users_service, delete_user_with_time_constrain_service,
-            get_all_users_service,
+            get_all_users_service, get_user_id_from_username,
         }, role_service::get_role_by_name_service,
     },
 };
@@ -108,7 +108,8 @@ async fn put_user_role(
 ) -> impl IntoResponse {
     current_user_is_admin(auth)?;
     let rol = get_role_by_name_service(&user_role.role).await?;
-    add_rol_to_user_service(&user_role.username, rol).await
+    let user = get_user_id_from_username(&user_role.username).await?;
+    add_rol_to_user_service(user, rol).await
 }
 
 async fn delete_user_role(
@@ -117,5 +118,6 @@ async fn delete_user_role(
 ) -> impl IntoResponse {
     current_user_is_admin(auth)?;
     let rol = get_role_by_name_service(&user_role.role).await?;
-    delete_rol_to_user_service(&user_role.username, rol).await
+    let user = get_user_id_from_username(&user_role.username).await?;
+    delete_rol_to_user_service(user, rol).await
 }

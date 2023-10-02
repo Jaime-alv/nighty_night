@@ -14,12 +14,13 @@ use crate::{
     },
     model::session_model::CurrentUser,
     service::{
-        association_service::post_share_baby_with_user_service,
         baby_service::{
             delete_baby_service, get_babies_for_user_service, get_baby_by_id_service,
-            patch_baby_service, post_new_baby_service, transfer_baby_service,
+            patch_baby_service, post_new_baby_service, post_share_baby_with_user_service,
+            transfer_baby_service,
         },
         session_service::{check_user_permissions, login_required, update_user_session},
+        user_service::get_user_id_from_username,
     },
 };
 
@@ -109,8 +110,8 @@ async fn post_share_baby_with_user(
     user: Query<Username>,
 ) -> impl IntoResponse {
     let baby_id = check_user_permissions(auth, &baby_unique_id)?;
-    let username = user.username()?;
-    post_share_baby_with_user_service(baby_id, &username).await
+    let user = get_user_id_from_username(&user.username()?).await?;
+    post_share_baby_with_user_service(baby_id, user).await
 }
 
 async fn patch_transfer_owner(
@@ -119,6 +120,6 @@ async fn patch_transfer_owner(
     user: Query<Username>,
 ) -> impl IntoResponse {
     let baby_id = check_user_permissions(auth, &baby_unique_id)?;
-    let username = user.username()?;
-    transfer_baby_service(baby_id, &username).await
+    let user = get_user_id_from_username(&user.username()?).await?;
+    transfer_baby_service(baby_id, user).await
 }
