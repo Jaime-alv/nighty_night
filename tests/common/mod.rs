@@ -2,6 +2,7 @@ pub mod cte {
     pub const VALUE_NONE: &'static str = "Some value expected, found None";
     pub const DB_ERROR: &'static str = "Error connecting database";
     pub const NO_USER_ERROR: &'static str = "No user found.";
+    pub const DELETE: &'static str = "Delete records not working";
 }
 
 pub mod initialiser {
@@ -150,6 +151,18 @@ pub mod assertions {
             msg,
             expected_status,
             response.as_ref().unwrap().status_code
+        )
+    }
+
+    pub fn assert_len<T>(array: &[T], expected_value: i32, msg: &str)
+    where
+        T: Serialize,
+    {
+        let array_length: i32 = array.len().try_into().unwrap();
+        assert_eq!(
+            array_length, expected_value,
+            "Test failed: {}. Expected items: {} => Received items: {}",
+            msg, expected_value, array_length
         )
     }
 }

@@ -35,7 +35,9 @@ pub(crate) fn route_baby() -> Router {
             Router::new()
                 .route(
                     "/",
-                    get(get_baby_by_unique_id).patch(patch_baby).delete(delete_baby),
+                    get(get_baby_by_unique_id)
+                        .patch(patch_baby)
+                        .delete(delete_baby),
                 )
                 .route("/share", post(post_share_baby_with_user))
                 .route("/transfer", patch(patch_transfer_owner))
@@ -95,7 +97,7 @@ async fn get_babies_for_user(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     page: Option<Query<Pagination>>,
 ) -> impl IntoResponse {
-    let id: i64 = auth.id;
+    let id: i32 = auth.id.try_into().unwrap();
     let pagination = page.unwrap_or_default().0;
     login_required(auth)?;
     get_babies_for_user_service(id, pagination).await

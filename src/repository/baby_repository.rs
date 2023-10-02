@@ -71,22 +71,26 @@ pub fn update_baby_belongs_to(baby: i32, new_user: i32) -> Result<usize, Error> 
         .execute(conn)
 }
 
-pub fn select_all_babies_by_unique_id(
-    babies: Vec<Uuid>,
-    pagination: Pagination,
-) -> Result<(Vec<Baby>, i64), Error> {
-    let conn = &mut establish_connection();
-    babies::table
-        .filter(babies::unique_id.eq_any(babies))
-        .paginate(pagination.page())
-        .per_page(pagination.per_page())
-        .load_and_count_pages(conn)
-}
-
 pub fn select_baby_from_unique_id(unique_id: Uuid) -> Result<i32, Error> {
     let conn = &mut establish_connection();
     babies::table
         .filter(babies::unique_id.eq(unique_id))
         .select(babies::id)
         .first(conn)
+}
+
+pub fn select_babies_from_user_id(
+    user_id: i32,
+    pagination: Pagination,
+) -> Result<(Vec<Baby>, i64), Error> {
+    let conn = &mut establish_connection();
+    let babies_id: Vec<i32> = users_babies::table
+        .filter(users_babies::user_id.eq(user_id))
+        .select(users_babies::baby_id)
+        .load::<i32>(conn)?;
+    babies::table
+        .filter(babies::id.eq_any(babies_id))
+        .paginate(pagination.page())
+        .per_page(pagination.per_page())
+        .load_and_count_pages(conn)
 }
