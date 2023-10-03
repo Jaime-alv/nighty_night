@@ -16,7 +16,7 @@ use crate::{
 
 /// Create app object with routes and layers.
 /// Session layer must be on top of session auth layer.
-pub(super) async fn create_app_route() -> Router {
+pub async fn create_app_route() -> Router {
     setup_logger();
 
     let config = if Setting::Branch.get().eq("local") {

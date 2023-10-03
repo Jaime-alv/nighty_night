@@ -21,7 +21,7 @@ use crate::{
     utils::app::{checking_status, set_anonymous_user, shutdown_signal},
 };
 
-mod app;
+pub mod app;
 pub mod configuration;
 mod connection;
 mod controller;
