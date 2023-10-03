@@ -1,30 +1,34 @@
 use crate::{
-    data::user_dto::{NewUserDto, UserDto},
+    data::{
+        common_structure::{BasicDataStruct, DataType},
+        user_dto::{NewUserDto, UserData},
+    },
     model::user_model::{InsertableUser, User},
     security::security::hash_password,
+    utils::datetime::now,
 };
 
-impl From<User> for UserDto {
+impl From<User> for BasicDataStruct<UserData> {
     fn from(user: User) -> Self {
-        UserDto::new(
-            user.username(),
-            user.email(),
-            user.name(),
-            user.surname(),
-            user.find_related_babies_names(),
-        )
+        let attributes = UserData {
+            username: user.username(),
+            email: user.email(),
+            name: user.name(),
+            surname: user.surname(),
+        };
+        BasicDataStruct::new(user.id(), DataType::User, attributes)
     }
 }
 
-impl From<&User> for UserDto {
-    fn from(user: &User) -> UserDto {
-        UserDto::new(
-            user.username(),
-            user.email(),
-            user.name(),
-            user.surname(),
-            user.find_related_babies_names(),
-        )
+impl From<&User> for BasicDataStruct<UserData> {
+    fn from(user: &User) -> BasicDataStruct<UserData> {
+        let attributes = UserData {
+            username: user.username(),
+            email: user.email(),
+            name: user.name(),
+            surname: user.surname(),
+        };
+        BasicDataStruct::new(user.id(), DataType::User, attributes)
     }
 }
 
@@ -37,10 +41,7 @@ impl From<NewUserDto> for InsertableUser {
             new_user.email,
             new_user.name,
             new_user.surname,
+            now(),
         )
     }
-}
-
-pub fn users_to_users_dto(users: Vec<User>) -> Vec<UserDto> {
-    users.into_iter().map(|u| UserDto::from(u)).collect()
 }

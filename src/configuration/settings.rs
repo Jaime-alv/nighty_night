@@ -17,8 +17,15 @@ impl Setting {
                 let port = read_environment_key("PORT");
                 format!("{address}:{port}")
             }
-            Setting::Branch => read_environment_key("BRANCH"),
-            Setting::DatabaseUrl => read_environment_key("DATABASE_URL"),
+            Setting::Branch => env::var("BRANCH").unwrap_or("local".to_string()),
+            Setting::DatabaseUrl => {
+                let user = read_environment_key("POSTGRES_USER");
+                let password = read_environment_key("POSTGRES_PASSWORD");
+                let host = read_environment_key("POSTGRES_HOST");
+                let port = read_environment_key("POSTGRES_PORT");
+                let db = read_environment_key("POSTGRES_DB");
+                format!("postgres://{user}:{password}@{host}:{port}/{db}")
+            }
             Setting::LoggerLevel => read_environment_key("LOGGER_LEVEL"),
             Setting::RedisHost => {
                 let address = read_environment_key("REDIS_ADDRESS");
@@ -42,6 +49,7 @@ fn read_environment_key(key: &str) -> String {
 
 #[cfg(test)]
 mod test_setting {
+
     use dotenvy::dotenv;
 
     use super::*;

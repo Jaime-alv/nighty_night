@@ -1,11 +1,18 @@
-use crate::{model::baby_model::Baby, data::baby_dto::BabyDto};
+use crate::{
+    data::{
+        baby_dto::BabyData,
+        common_structure::{BasicDataStruct, DataType},
+    },
+    model::baby_model::Baby,
+};
 
-impl From<Baby> for BabyDto {
+impl From<Baby> for BasicDataStruct<BabyData> {
     fn from(baby: Baby) -> Self {
-        BabyDto::new(baby.name())
+        let attributes = BabyData {
+            unique_id: baby.unique_id(),
+            name: baby.name(),
+            birthdate: baby.formatted_birthdate(),
+        };
+        BasicDataStruct::new(baby.id(), DataType::Baby, attributes)
     }
-}
-
-pub fn babies_to_babies_dto(babies: Vec<Baby>) -> Vec<BabyDto> {
-    babies.into_iter().map(|b| BabyDto::from(b)).collect()
 }

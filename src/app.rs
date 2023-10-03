@@ -4,16 +4,14 @@ use axum_session::{SessionLayer, SessionRedisPool, SessionStore};
 use axum_session_auth::AuthSessionLayer;
 use controller::{baby_controller::route_baby, user_controller::route_user};
 use hyper::Request;
-use tokio::signal;
 use tower_http::trace::TraceLayer;
 use tracing::{error, info_span};
 
 use crate::{
-    configuration::settings::Setting,
-    controller,
+    configuration::{settings::Setting, app_settings::{session_config, private_cookies_session, auth_config}},
+    controller::{self, admin_controller::route_admin},
     model::session_model::CurrentUser,
-    repository::connection_redis::{auth_config, poll, private_cookies_session, session_config},
-    utils::logger::setup_logger,
+    utils::{app::error_404, logger::setup_logger}, connection::connection_redis::poll,
 };
 
 /// Create app object with routes and layers.
@@ -38,7 +36,10 @@ pub(super) async fn create_app_route() -> Router {
     let app = Router::new()
         .nest(
             "/api",
-            Router::new().merge(route_user()).merge(route_baby()),
+            Router::new()
+                .merge(route_user())
+                .merge(route_baby())
+                .merge(route_admin()),
         )
         .layer(
             TraceLayer::new_for_http().make_span_with(|request: &Request<_>| {
@@ -61,18 +62,7 @@ pub(super) async fn create_app_route() -> Router {
             AuthSessionLayer::<CurrentUser, i64, SessionRedisPool, redis::Client>::new(Some(poll))
                 .with_config(auth_config()),
         )
-        .layer(SessionLayer::new(session_store));
+        .layer(SessionLayer::new(session_store))
+        .fallback(error_404);
     app
-}
-
-pub async fn shutdown_signal() {
-    let ctrl_c = async {
-        signal::ctrl_c()
-            .await
-            .expect("failed to install Ctrl+C handler");
-    };
-    tokio::select! {
-        _ = ctrl_c=> {},
-
-    }
 }

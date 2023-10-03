@@ -1,12 +1,9 @@
-use anyhow::Ok;
 use axum::async_trait;
 use axum_session_auth::Authentication;
+use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
-use crate::{
-    mapping::rol_mapper::translate_roles,
-    repository::user_repository::load_user_by_id,
-    service::session_service::{load_user_session, save_user_session, user_session_exists},
-};
+use crate::service::session_service::{load_user_session, read_user_from_db, save_user_session};
 
 use super::role_model::Rol;
 
@@ -17,16 +14,31 @@ pub struct CurrentUser {
     username: String,
     roles: Vec<Rol>,
     active: bool,
+    baby_info: Vec<BabyInfo>,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct BabyInfo {
+    pub name: String,
+    pub unique_id: Uuid,
 }
 
 impl CurrentUser {
-    pub fn new(id: i64, anonymous: bool, username: String, roles: Vec<Rol>, active: bool) -> Self {
+    pub fn new(
+        id: i64,
+        anonymous: bool,
+        username: String,
+        roles: Vec<Rol>,
+        active: bool,
+        baby_unique_id: Vec<BabyInfo>,
+    ) -> Self {
         Self {
             id,
             anonymous,
             username,
             roles,
             active,
+            baby_info: baby_unique_id,
         }
     }
 
@@ -49,6 +61,28 @@ impl CurrentUser {
     pub fn active(&self) -> bool {
         self.active
     }
+
+    /// Get all baby info with name and uuid
+    pub fn baby_info(&self) -> Vec<BabyInfo> {
+        self.baby_info.to_owned()
+    }
+
+    /// Get all Unique id for current user babies
+    pub fn baby_unique_id(&self) -> Vec<Uuid> {
+        self.baby_info
+            .to_owned()
+            .into_iter()
+            .map(|baby| baby.unique_id)
+            .collect()
+    }
+
+    pub fn roles_id(&self) -> Vec<i16> {
+        self.roles
+            .to_owned()
+            .into_iter()
+            .map(|rol| rol.into())
+            .collect()
+    }
 }
 
 impl Default for CurrentUser {
@@ -61,6 +95,7 @@ impl Default for CurrentUser {
             username: "GUEST".to_string(),
             roles: anonymous,
             active: true,
+            baby_info: vec![],
         }
     }
 }
@@ -71,33 +106,18 @@ impl Authentication<CurrentUser, i64, redis::Client> for CurrentUser {
         user_id: i64,
         _pool: Option<&redis::Client>,
     ) -> Result<CurrentUser, anyhow::Error> {
-        if user_session_exists(user_id).await {
-            let user = load_user_session(user_id).await;
-            return Ok(user);
-        } else {
-            let current_user = load_user_by_id(user_id.try_into().unwrap()).unwrap();
-            let roles: Vec<u8> = current_user.find_roles_id().into_iter().collect();
-
-            let translate_roles: Vec<Rol> = translate_roles(&roles);
-
-            let user_session = CurrentUser::new(
-                user_id,
-                translate_roles.contains(&Rol::Anonymous),
-                current_user.username(),
-                translate_roles,
-                current_user.active(),
-            );
-            let tmp_response = save_user_session(&user_session, roles).await;
-            if tmp_response.is_err() {
-                let error = tmp_response.err().unwrap();
-                return Err(anyhow::anyhow!("{error}"));
+        match load_user_session(user_id).await {
+            Ok(u) => Ok(u),
+            Err(_) => {
+                let current_user = read_user_from_db(user_id.try_into().unwrap()).await?;
+                save_user_session(&current_user, None).await?;
+                Ok(current_user)
             }
-            Ok(user_session)
         }
     }
 
     fn is_authenticated(&self) -> bool {
-        self.roles.contains(&Rol::User)
+        !self.anonymous
     }
 
     fn is_active(&self) -> bool {

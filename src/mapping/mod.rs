@@ -1,3 +1,10 @@
 pub mod user_mapper;
 pub mod baby_mapper;
 pub mod rol_mapper;
+pub mod meal_mapper;
+pub mod dream_mapper;
+pub mod weight_mapper;
+pub mod summary_mapper;
+pub mod error_mapper;
+pub mod session_mapper;
+pub mod admin_mapper;

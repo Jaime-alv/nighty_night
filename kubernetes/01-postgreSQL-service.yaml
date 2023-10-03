@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: psql-service
+  labels:
+    group: nighty.night.db
+    app: PostgreSQL
+    branch: minikube
+spec:
+  ports:
+    - port: 5432
+      targetPort: 5432
+  selector:
+    app: PostgreSQL

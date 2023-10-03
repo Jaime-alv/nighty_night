@@ -1,62 +1,181 @@
 use axum_session::SessionRedisPool;
 use axum_session_auth::AuthSession;
+use uuid::Uuid;
 
 use crate::{
     configuration::settings::Setting,
-    data::session_dto::CurrentUserDto,
-    error::error::ApiError,
+    data::{session_dto::CurrentUserDto, common_structure::SessionDto},
     mapping::rol_mapper::translate_roles,
-    model::session_model::CurrentUser,
-    repository::session_repository::{exists_user, get_user, set_user},
+    model::{role_model::Rol, session_model::CurrentUser, user_model::User},
+    repository::{
+        baby_repository::select_baby_from_unique_id,
+        session_repository::{
+            delete_user_session, insert_user_session, insert_user_session_indefinitely,
+            select_user_session, select_user_session_exists,
+        },
+        user_repository::{
+            select_babies_for_user_id, select_user_by_id,
+        }, role_repository::select_roles_id_from_user,
+    },
+    response::{error::ApiError, response::RecordResponse},
 };
 
-pub async fn login_session<T: Into<i64>>(
+pub async fn login_session<T>(
     auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
     user_id: T,
-) -> () {
-    auth.login_user(user_id.into())
+) -> Result<(), ApiError>
+where
+    i32: From<T>,
+    i64: From<T>,
+{
+    auth.login_user(user_id.into());
+    Ok(())
 }
 
-pub async fn save_user_session(user: &CurrentUser, roles: Vec<u8>) -> Result<(), ApiError> {
-    let current_user_dto = CurrentUserDto::new(
-        user.id(),
-        user.anonymous(),
-        user.username(),
-        roles.into_iter().collect(),
-        user.active(),
-    );
+pub async fn logout_user_session<T>(
+    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
+    user_id: T,
+) -> Result<(), ApiError>
+where
+    i32: From<T>,
+    i64: From<T>,
+{
+    let key = user_redis_key(user_id.into());
+    auth.logout_user();
+    let redis_session = delete_user_session(&key).await?;
+    Ok(redis_session)
+}
+
+pub async fn save_user_session(
+    user: &CurrentUser,
+    duration: Option<usize>,
+) -> Result<(), ApiError> {
     let key = user_redis_key(user.id());
-    let duration = match Setting::SessionDuration.get().parse::<usize>() {
-        Ok(time) => time,
-        Err(_) => 600,
+    let session_duration = match duration {
+        Some(value) => value,
+        None => Setting::SessionDuration
+            .get()
+            .parse::<usize>()
+            .unwrap_or(600),
     };
-    match set_user(&key, current_user_dto, duration).await {
-        Ok(_) => Ok(()),
-        Err(error) => {
-            tracing::error!("{error}");
-            Err(ApiError::Redis(error))
-        }
-    }
+    insert_user_session(&key, (*user).clone().into(), session_duration).await?;
+    Ok(())
 }
 
-pub async fn load_user_session(id: i64) -> CurrentUser {
-    let key = user_redis_key(id);
-    let string_user = get_user(&key).await.unwrap();
-    let user: CurrentUserDto = serde_json::from_str(&string_user).unwrap();
-    CurrentUser::new(
-        user.id,
-        user.anonymous,
-        user.username,
-        translate_roles(&user.roles),
-        user.active,
-    )
+pub async fn save_user_indefinitely(user: &CurrentUser) -> Result<(), ApiError> {
+    let key = user_redis_key(user.id());
+    insert_user_session_indefinitely(&key, (*user).clone().into()).await?;
+    Ok(())
 }
 
-pub async fn user_session_exists(id: i64) -> bool {
+pub async fn update_user_session(
+    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
+) -> Result<(), ApiError> {
+    let user_id: i32 = auth.id.try_into().unwrap();
+    clear_cache_current_user(&auth);
+    let update_user = read_user_from_db(user_id).await?;
+    save_user_session(&update_user, None).await
+}
+
+pub async fn load_user_session(id: i64) -> Result<CurrentUser, ApiError> {
     let key = user_redis_key(id);
-    exists_user(&key).await.unwrap()
+    let string_user = select_user_session(&key).await?;
+    let user: CurrentUserDto = match serde_json::from_str(&string_user) {
+        Ok(user) => user,
+        Err(err) => return Err(ApiError::Redis(err.into())),
+    };
+    Ok(user.into())
+}
+
+pub async fn read_user_from_db(user: i32) -> Result<CurrentUser, ApiError> {
+    let current_user = select_user_by_id(user)?;
+    create_current_user(current_user).await
+}
+
+pub async fn create_current_user(current_user: User) -> Result<CurrentUser, ApiError> {
+    let roles = select_roles_id_from_user(current_user.id())?;
+    let babies = select_babies_for_user_id(current_user.id())?;
+    let translate_roles: Vec<Rol> = translate_roles(&roles.into_iter().collect::<Vec<i16>>());
+
+    let user_session = CurrentUser::new(
+        current_user.id().into(),
+        translate_roles.contains(&Rol::Anonymous),
+        current_user.username(),
+        translate_roles,
+        current_user.active(),
+        babies,
+    );
+    Ok(user_session)
 }
 
 fn user_redis_key(id: i64) -> String {
     format!("user_{}", id)
+}
+
+pub async fn user_exists_in_session<T>(id: T) -> Result<bool, ApiError>
+where
+    T: Into<i64>,
+{
+    let user_key: String = user_redis_key(id.into());
+    let result = select_user_session_exists(&user_key).await?;
+    Ok(result)
+}
+
+/// Check if user has admin privileges
+pub fn current_user_is_admin(
+    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
+) -> Result<(), ApiError> {
+    match auth.current_user.unwrap().is_admin() {
+        true => Ok(()),
+        false => Err(ApiError::Forbidden),
+    }
+}
+
+/// Check if user contains a baby with uuid.
+fn has_baby(
+    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
+    baby_id: Uuid,
+) -> bool {
+    let babies: Vec<Uuid> = auth.current_user.unwrap().baby_unique_id();
+    babies.contains(&baby_id)
+}
+
+/// Check if user is authenticated and baby has a relationship with user.
+pub fn check_user_permissions(
+    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
+    baby_unique_id: &str,
+) -> Result<i32, ApiError> {
+    let unique_id = Uuid::parse_str(baby_unique_id)?;
+    if auth.is_anonymous() {
+        return Err(ApiError::LoginRequired);
+    } else if has_baby(auth, unique_id) {
+        let id = select_baby_from_unique_id(unique_id)?;
+        Ok(id)
+    } else {
+        Err(ApiError::Forbidden)
+    }
+}
+
+pub fn login_required(
+    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
+) -> Result<(), ApiError> {
+    match auth.is_authenticated() {
+        true => Ok(()),
+        false => Err(ApiError::LoginRequired),
+    }
+}
+
+pub fn clear_cache_current_user(
+    auth: &AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
+) -> () {
+    auth.cache_clear_user(auth.id)
+}
+
+pub fn get_current_user_service(
+    auth: AuthSession<CurrentUser, i64, SessionRedisPool, redis::Client>,
+) -> RecordResponse<SessionDto> {
+    auth.cache_clear_user(auth.id);
+    let current_user = auth.current_user.unwrap();
+    let response = RecordResponse::new(current_user.into());
+    response
 }

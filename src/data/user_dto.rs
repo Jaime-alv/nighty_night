@@ -6,46 +6,23 @@ use super::traits::Mandatory;
 pub struct NewUserDto {
     pub username: String,
     pub password: String,
-    pub email: String,
+    pub email: Option<String>,
     pub name: Option<String>,
     pub surname: Option<String>,
 }
 
 impl Mandatory for NewUserDto {
     fn data(&self) -> Vec<&str> {
-        vec![
-            self.username.as_str(),
-            self.password.as_str(),
-            self.email.as_str(),
-        ]
+        vec![self.username.as_str(), self.password.as_str()]
     }
 }
 
-#[derive(Debug, Serialize)]
-pub struct UserDto {
-    username: String,
-    email: String,
-    name: Option<String>,
-    surname: Option<String>,
-    babies: Vec<String>,
-}
-
-impl UserDto {
-    pub fn new(
-        username: String,
-        email: String,
-        name: Option<String>,
-        surname: Option<String>,
-        babies: Vec<String>,
-    ) -> Self {
-        Self {
-            username,
-            email,
-            name,
-            surname,
-            babies,
-        }
-    }
+#[derive(Serialize, Debug)]
+pub struct UserData {
+    pub username: String,
+    pub email: Option<String>,
+    pub name: Option<String>,
+    pub surname: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -63,4 +40,11 @@ impl Mandatory for LoginDto {
     fn data(&self) -> Vec<&str> {
         vec![self.username.as_str(), self.password.as_str()]
     }
+}
+
+#[derive(Deserialize)]
+pub struct UpdateUserDto {
+    pub email: Option<String>,
+    pub name: Option<String>,
+    pub surname: Option<String>,
 }
