@@ -16,7 +16,7 @@ use crate::{
     common::{
         assertions::{
             assert_compare_fields, assert_error_response, assert_len, assert_ok_message,
-            assert_ok_paginated, assert_ok_response,
+            assert_ok_paginated, assert_ok_response, assert_error_message
         },
         cte::{DB_ERROR, DELETE},
     },
@@ -278,4 +278,16 @@ async fn test_update_baby_info() {
     delete_baby_service(new_baby.id, user_id).await.expect(DB_ERROR);
     delete_user_from_database(user_id).expect(DB_ERROR);
 
+}
+
+#[tokio::test]
+async fn test_delete_on_cascade() {
+    let (user_id, _user_credentials) = create_new_user().await;
+    let baby_id = create_new_baby(user_id).await;
+
+    delete_user_from_database(user_id).expect(DB_ERROR);
+
+    let response = get_baby_by_id_service(baby_id).await;
+
+    assert_error_response(&response, "Baby should be deleted on cascade", StatusCode::NOT_FOUND);
 }
