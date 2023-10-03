@@ -43,7 +43,8 @@ impl Weight {
     }
 
     pub fn value(&self) -> f32 {
-        self.value
+        let round_value: f32 = 10_f32.powf(3.0);
+        (self.value * round_value).round() / round_value
     }
 
     pub fn update_weight(&self, new_weight: InputWeightDto) -> Self {

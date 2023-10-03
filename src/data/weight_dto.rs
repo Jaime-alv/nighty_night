@@ -6,7 +6,7 @@ pub struct InputWeightDto {
     pub value: Option<f32>,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct WeightData {
     pub date: String,
     pub value: f32,
