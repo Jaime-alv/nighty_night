@@ -1,6 +1,6 @@
 [package]
 name = "nighty_night"
-version = "0.4.7"
+version = "0.4.8"
 authors = ["Jaime Alvarez <jaime.af.git@gmail.com>"]
 description = "Backend written with Axum framework and diesel as ORM. It records feeding and sleeping patterns in newborns and, additionally, it allows to record the baby's weight. Session is stored in redis."
 readme = "README.md"
