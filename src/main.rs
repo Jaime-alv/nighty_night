@@ -12,11 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use nighty_night::{check_db_initialisation, create_app, set_environment};
+use nighty_night::{check_db_initialisation, serve_app, set_environment, utils::logger::setup_logger};
 
 #[tokio::main]
 async fn main() {
     set_environment();
+    setup_logger();
     check_db_initialisation().await;
-    create_app().await
+    serve_app().await
 }

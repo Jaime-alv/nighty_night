@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use app::create_app_route;
 use std::path::Path;
 use tracing::info;
 
 use crate::{
+    app::{expand_router_layer, create_router},
     configuration::settings::Setting,
     utils::app::{checking_status, set_anonymous_user, shutdown_signal},
 };
@@ -33,7 +33,7 @@ pub mod response;
 mod schema;
 mod security;
 pub mod service;
-mod utils;
+pub mod utils;
 
 /// Prepare environment variables.
 ///
@@ -62,8 +62,9 @@ pub async fn check_db_initialisation() {
 }
 
 /// Launch server
-pub async fn create_app() {
-    let app = create_app_route().await;
+pub async fn serve_app() {
+    let router = create_router();
+    let app = expand_router_layer(router).await;
 
     info!("Branch mode: {}", Setting::Branch.get());
 
