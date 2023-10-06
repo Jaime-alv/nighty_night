@@ -2,7 +2,7 @@ pub mod common;
 
 use axum::http::StatusCode;
 use axum_test_helper::{TestClient, TestResponse};
-use nighty_night::app::create_app_route;
+use nighty_night::app::{expand_router_layer, create_router};
 use serde_json::{json, Value};
 
 const SESSION: &'static str = "/api/auth/session";
@@ -34,7 +34,7 @@ fn init() {
 
 #[tokio::test]
 async fn test_anonymous_call() {
-    let router = create_app_route().await;
+    let router = expand_router_layer(create_router()).await;
     let client = TestClient::new(router);
 
     let welcome_test = client.get(SESSION).send().await;
