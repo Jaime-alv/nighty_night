@@ -16,19 +16,19 @@ use std::path::Path;
 use tracing::info;
 
 use crate::{
-    app::{expand_router_layer, create_router},
+    app::{create_router, expand_router_layer},
     configuration::settings::Setting,
-    utils::app::{checking_status, set_anonymous_user, shutdown_signal},
+    utils::app::shutdown_signal,
 };
 
 pub mod app;
 pub mod configuration;
-mod connection;
+pub mod connection;
 mod controller;
 pub mod data;
 mod mapping;
 pub mod model;
-mod repository;
+pub mod repository;
 pub mod response;
 mod schema;
 mod security;
@@ -46,19 +46,6 @@ pub fn set_environment() {
             Err(error) => panic!("{error}"),
         }
     }
-}
-
-/// Check whether databases are ready or not.
-pub async fn check_db_initialisation() {
-    match checking_status().await {
-        Ok(_) => (),
-        Err(error) => panic!("{error}"),
-    };
-
-    match set_anonymous_user().await {
-        Ok(_) => (),
-        Err(error) => panic!("{error}"),
-    };
 }
 
 /// Launch server

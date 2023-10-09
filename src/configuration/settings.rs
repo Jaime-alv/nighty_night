@@ -46,18 +46,3 @@ fn read_environment_key(key: &str) -> String {
         }
     }
 }
-
-#[cfg(test)]
-mod test_setting {
-
-    use dotenvy::dotenv;
-
-    use super::*;
-
-    #[test]
-    fn test_branch() {
-        dotenv().ok();
-        assert_eq!(Setting::Branch.get(), "local");
-        assert_eq!(Setting::RedisHost.get(), "redis://127.0.0.1:6379/");
-    }
-}
