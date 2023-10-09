@@ -24,7 +24,8 @@ RUN apt-get update \
     && apt-get install -y ca-certificates libpq5 \
     && rm -rf /var/lib/apt/lists/*
 
-EXPOSE 3000
+ENV PORT=3000
+EXPOSE ${PORT}
 
 ENV APP_USER=appuser
 
