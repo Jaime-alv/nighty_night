@@ -13,7 +13,7 @@ services:
   postgres:
     image: postgres:14.9
     ports:
-      - '8080:5432'
+      - '${POSTGRES_PORT}:5432'
     restart: unless-stopped
     environment:
       - POSTGRES_USER
@@ -29,7 +29,7 @@ services:
     image: redis:7.2
     restart: unless-stopped
     ports:
-      - '8081:6379'
+      - '${REDIS_PORT}:6379'
     command: redis-server --loglevel warning
     volumes: 
       - redis:/data
@@ -38,7 +38,7 @@ services:
   backend:
     image: 'nighty_night:latest'
     ports:
-      - '3000:3000'
+      - '${PORT}:${PORT}'
     environment:
       - BRANCH
       - POSTGRES_PASSWORD
