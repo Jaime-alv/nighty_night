@@ -16,8 +16,8 @@ pub struct StatsDB<'a> {
 
 #[derive(Serialize)]
 pub struct TableDescription<'a> {
-    name: &'a str,
-    value: i64,
+    pub name: &'a str,
+    pub value: i64,
 }
 
 pub fn select_stats_from_tables() -> Result<StatsDB<'static>, Error> {

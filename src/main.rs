@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use nighty_night::{check_db_initialisation, serve_app, set_environment, utils::logger::setup_logger};
+use nighty_night::{serve_app, set_environment, utils::{logger::setup_logger, app::set_anonymous_user}};
 
 #[tokio::main]
 async fn main() {
     set_environment();
     setup_logger();
-    check_db_initialisation().await;
+    set_anonymous_user().await.expect("Redis should be working");
     serve_app().await
 }

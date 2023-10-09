@@ -3,7 +3,6 @@ use tokio::signal;
 
 use crate::{
     configuration::constant::GlobalCte,
-    connection::{connection_psql::check_db_status, connection_redis::ping_redis},
     response::error::ApiError,
     service::{
         session_service::{read_user_from_db, save_user_indefinitely, user_exists_in_session},
@@ -25,19 +24,6 @@ pub async fn shutdown_signal() {
 
 pub async fn error_404() -> impl IntoResponse {
     not_found()
-}
-
-pub async fn checking_status() -> Result<(), String> {
-    match ping_redis().await {
-        Ok(_) => (),
-        Err(error) => return Err(format!("Redis: {error}")),
-    }
-
-    match check_db_status() {
-        Ok(_) => (),
-        Err(error) => return Err(format!("PostgreSQL: {error}")),
-    };
-    Ok(())
 }
 
 pub async fn set_anonymous_user() -> Result<(), ApiError> {
