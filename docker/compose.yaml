@@ -11,6 +11,7 @@ volumes:
     driver: local
 services:
   postgres:
+    container_name: nn_psql
     image: postgres:14.9
     ports:
       - '${POSTGRES_PORT}:5432'
@@ -26,6 +27,7 @@ services:
     networks:
       - nighty_night_network
   redis:
+    container_name: nn_redis
     image: redis:7.2
     restart: unless-stopped
     ports:
@@ -36,6 +38,7 @@ services:
     networks:
       - nighty_night_network
   backend:
+    container_name: nn_backend
     image: 'nighty_night:latest'
     ports:
       - '${PORT}:${PORT}'
